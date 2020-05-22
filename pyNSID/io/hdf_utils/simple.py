@@ -474,8 +474,9 @@ def check_if_main(h5_main, verbose=False):
 
     # Blindly linking four datasets is still not sufficient. The sizes need to match:
     anc_shape_match = list()
-    h5_pos_inds = h5_main.file[h5_main.attrs['Position_Indices']]
-    h5_pos_vals = h5_main.file[h5_main.attrs['Position_Values']]
+    ## Todo change this here 
+    #h5_pos_inds = h5_main.file[h5_main.attrs['Position_Indices']]
+    #5_pos_vals = h5_main.file[h5_main.attrs['Position_Values']]
     anc_shape_match.append(np.all(h5_pos_vals.shape == h5_pos_inds.shape))
     for anc_dset in [h5_pos_vals, h5_pos_inds]:
         anc_shape_match.append(np.all(h5_main.shape[0] == anc_dset.shape[0]))
@@ -486,8 +487,8 @@ def check_if_main(h5_main, verbose=False):
         return False
 
     anc_shape_match = list()
-    h5_spec_inds = h5_main.file[h5_main.attrs['Spectroscopic_Indices']]
-    h5_spec_vals = h5_main.file[h5_main.attrs['Spectroscopic_Values']]
+    #h5_spec_inds = h5_main.file[h5_main.attrs['Spectroscopic_Indices']]
+    #h5_spec_vals = h5_main.file[h5_main.attrs['Spectroscopic_Values']]
     anc_shape_match.append(np.all(h5_spec_inds.shape == h5_spec_vals.shape))
     for anc_dset in [h5_spec_inds, h5_spec_vals]:
         anc_shape_match.append(np.all(h5_main.shape[1] == anc_dset.shape[1]))
