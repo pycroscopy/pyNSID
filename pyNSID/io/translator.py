@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Abstract :class:`~pyUSID.io.translator.Translator` base-class
+Abstract :class:`~pyNSID.io.translator.Translator` base-class
 
 Created on Tue Nov  3 15:07:16 2015
 
