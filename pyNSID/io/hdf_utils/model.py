@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Utilities for reading and writing USID datasets that are highly model-dependent (with or without N-dimensional form)
+Utilities for reading and writing NSID datasets that are highly model-dependent (with or without N-dimensional form)
 
 Created on Fri May 22 16:29:25 2020
 

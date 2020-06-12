@@ -1,5 +1,5 @@
 """
-:class:`~pyUSID.io.image.ImageTranslator` class that translates conventional 2D images to USID HDF5 files
+:class:`~pyNSID.io.image.ImageTranslator` class that translates conventional 2D images to NSID HDF5 files
 
 Created on Feb 9, 2016
 
@@ -79,7 +79,7 @@ class ImageTranslator(ArrayTranslator):
     def translate(self, image_path, h5_path=None, bin_factor=None, interp_func=Image.BICUBIC, normalize=False,
                   **image_args):
         """
-        Translates the image in the provided file into a USID HDF5 file
+        Translates the image in the provided file into a NSID HDF5 file
 
         Parameters
         ----------------
