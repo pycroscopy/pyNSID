@@ -13,10 +13,11 @@ import numpy as np
 import dask.array as da
 
 from ..dtype_utils import validate_dtype, validate_single_string_arg, validate_list_of_strings, contains_integers, lazy_load_array
-from ..reg_ref import write_region_references, simple_region_ref_copy, copy_reg_ref_reduced_dim, \
-    create_region_reference, copy_all_region_refs
-from ..write_utils import clean_string_att, build_ind_val_matrices, get_aux_dset_slicing, INDICES_DTYPE, \
-    VALUES_DTYPE, Dimension, DimType
+## Must be reimplemented
+#from ..reg_ref import write_region_references, simple_region_ref_copy, copy_reg_ref_reduced_dim, \
+#    create_region_reference, copy_all_region_refs
+from ..write_utils import clean_string_att, Dimension # build_ind_val_matrices, get_aux_dset_slicing, INDICES_DTYPE, \
+#    VALUES_DTYPE, Dimension, DimType
 from .base import get_auxiliary_datasets, link_h5_obj_as_alias, get_attr, \
     link_h5_objects_as_attrs, write_book_keeping_attrs, write_simple_attrs, \
     is_editable_h5, validate_h5_objs_in_same_h5_file
@@ -68,6 +69,8 @@ def get_all_main(parent, verbose=False):
 
     return main_list
 
+def check_if_main(h5_group, dset_name):
+    pass
 
 def find_dataset(h5_group, dset_name):
     """
