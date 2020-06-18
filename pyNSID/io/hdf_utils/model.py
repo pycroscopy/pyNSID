@@ -5,6 +5,7 @@ Utilities for reading and writing USID datasets that are highly model-dependent 
 Created on Fri May 22 16:29:25 2020
 
 @author: []]
+ToDo update version
 """
 from __future__ import division, print_function, absolute_import, unicode_literals
 from warnings import warn
@@ -37,32 +38,8 @@ def __check_anc_before_creation(aux_prefix, dim_type='pos'):
             raise KeyError('Dataset named: ' + dset_name + ' already exists in group: '
                                                             '{}. Consider passing these datasets using kwargs (if they are correct) instead of providing the pos_dims and spec_dims arguments'.format(h5_parent_group.name))
     return aux_prefix
+
 """ New version much shorter and in validate_main_dimensions in file "simple.py"
-def check_dimension_dataset(this_dim,dim_shape):
-    error_message = ''
-    # Is it 1D?
-    if len(this_dim.shape)!=1:
-        error_message += ' High dimensional datasets are not allowed as dimensions;\n'
-    # Does this dataset have a "simple" dtype - no compound data type allowed!
-    # is the shape matching with the main dataset?
-    if len(this_dim) != dim_shape:
-        error_message += ' Dimension has wrong length;\n'
-    # Does it contain some ancillary attributes like 'name', quantity', 'units', and 'is_position' 
-    necessary_attributes =  ['name', 'quantity', 'units', 'is_position']
-    for key in necessary_attributes:
-        if key not in this_dim.attrs:
-            error_message += f'Missing {key} attribute in dimension;\n ' 
-        # and are these of types str, str, str, and bool respectively and not empty?
-        elif key == 'is_position':
-            if this_dim.attrs['is_position'] not in [True, False]: ## isinstance is here not working 
-                error_message += f'{key} attribute in dimension should be boolean;\n ' 
-        elif not isinstance(this_dim.attrs[key], str):
-            error_message += f'{key} attribute in dimension should be string;\n ' 
-    
-    return error_message
-"""
-
-
 def __ensure_anc_in_correct_file(h5_inds, h5_parent_group, prefix):
     h5_parent_group = h5_vals.parent
     if h5_inds.file != h5_parent_group.file:
@@ -75,6 +52,7 @@ def __ensure_anc_in_correct_file(h5_inds, h5_parent_group, prefix):
     else:
         ret_vals = [h5_inds, h5_vals]
     return tuple(ret_vals)
+"""
 
 
 
@@ -228,9 +206,13 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
     for i, this_dim in dim_dict.items():
         if isinstance(this_dim, h5py.Dataset):
             this_dim_dset = this_dim
+            if 'nsid_version' not in this_dim_dset.attrs:
+                this_dim_dset.attrs['nsid_version'] = '0.0.1'
+
         elif isinstance(this_dim, Dimension):
             this_dim_dset = h5_parent_group.create_dataset(this_dim.name,data=this_dim.values)
-            write_simple_attrs(this_dim_dset, {'name':  this_dim.name,'quantity': this_dim.quantity, 'units': this_dim.units, 'quantity':  this_dim.quantity, 'is_position': this_dim.is_position})
+            attrs_to_write={'name':  this_dim.name, 'units': this_dim.units, 'quantity':  this_dim.quantity, 'is_position': this_dim.is_position, 'nsid_version' : '0.0.1'}
+            write_simple_attrs(this_dim_dset, attrs_to_write)
         else:
             print(i,' not a good dimension')
             pass
@@ -239,7 +221,13 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
         h5_main.dims[int(i)].label = this_dim_dset.attrs['name']
         h5_main.dims[int(i)].attach_scale(this_dim_dset)
         
-    write_simple_attrs(h5_main, {'quantity': quantity, 'units': units, 'data_type': data_type})
+    attrs_to_write={'quantity': quantity, 'units': units, 'nsid_version' : '0.0.1'}
+    attrs_to_write['main_data_name'] =  main_data_name
+    attrs_to_write['data_type'] =  data_type
+    attrs_to_write['modality'] =  modality
+    attrs_to_write['source'] =  source
+    
+    write_simple_attrs(h5_main, attrs_to_write)
 
     if verbose:
         print('Wrote dimensions and attributes to main dataset')
@@ -255,6 +243,6 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
         print('Successfully linked datasets - dataset should be main now')
 
     from ..nsi_data import NSIDataset
-    return NSIDataset(h5_main)
+    return h5_main
 
 

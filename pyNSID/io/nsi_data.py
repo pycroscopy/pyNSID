@@ -85,7 +85,7 @@ class NSIDataset(h5py.Dataset):
         super(NSIDataset, self).__init__(h5_ref.id)
 
         # User accessible properties
-        
+        self.data_type = h5_ref.attrs['data_type'] # #ToDo: where is shape
         # The dimension labels as they appear in the ancillary datasets
         #self.__orig_pos_dim_labels = get_attr(self.h5_pos_inds, 'labels')
         #self.__orig_spec_dim_labels = get_attr(self.h5_spec_inds, 'labels')
