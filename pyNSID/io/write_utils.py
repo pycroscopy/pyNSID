@@ -97,20 +97,26 @@ class Dimension(object):
 
 def validate_dimensions(this_dim,dim_shape):
     """
-    Checks if the provided object is an iterable with pyNSID.Dimension objects.
-    If it is not full of Dimension objects, Exceptions are raised.
+    Checks if the provided object is an  h5 dataset. 
+    A valid dataset to be uses as dimension must be 1D not a comopound data type but 'simple'.
+    Such a dataset must have  ancillary attributes 'name', quantity', 'units', and 'is_position',
+    which have to be of  types str, str, str, and bool respectively and not empty
+    If it is not valid of dataset, Exceptions are raised.
 
     Parameters
     ----------
-    dimensions : iterable or pyNSID.Dimension
-        Iterable containing pyNSID.Dimension objects
-    dim_shape : list, shape of dataset
+    dimensions : h5 dataset
+        with non empty attributes 'name', quantity', 'units', and 'is_position' 
+    dim_shape : required length of dataset 
 
     Returns
     -------
-    list
-        List containing pyUSID.Dimension objects
+    error_message: string, empty if ok. 
     """
+
+    if not isinstance(this_dim, h5py.Dataset):
+        error_message = 'this Dimension must be a h5 Dataset'
+        return  error_message 
     
     error_message = ''
     # Is it 1D?
@@ -133,17 +139,7 @@ def validate_dimensions(this_dim,dim_shape):
             error_message += f'{key} attribute in dimension should be string;\n ' 
     
     return error_message
-    if isinstance(dimensions, Dimension):
-        dimensions = [dimensions]
-    if isinstance(dimensions, np.ndarray):
-        if dimensions.ndim > 1:
-            dimensions = dimensions.ravel()
-            warn(dim_type + ' dimensions should be specified by a 1D array-like. Raveled this numpy array for now')
-    if not isinstance(dimensions, (list, np.ndarray, tuple)):
-        raise TypeError(dim_type + ' dimensions should be array-like of Dimension objects')
-    if not np.all([isinstance(x, Dimension) for x in dimensions]):
-        raise TypeError(dim_type + ' dimensions should be a sequence of Dimension objects')
-    return dimensions
+
 
 def validate_main_dimensions(main_shape, dim_dict, h5_parent_group ):
     # Each item could either be a Dimension object or a HDF5 dataset
@@ -160,19 +156,17 @@ def validate_main_dimensions(main_shape, dim_dict, h5_parent_group ):
             error_message = validate_dimensions(this_dim, main_shape[index])
                 
             # All these checks should live in a helper function for cleaniness
-            # Is it 1D?
-            # Does this dataset have a "simple" dtype - no compound data type allowed!
-            # is the shape matching with the main dataset?
-            # Does it contain some ancillary attributes like 'name', quantity', 'units', and 'is_position' 
-            # and are these of types str, str, str, and bool respectively and not empty?
+            
             if len(error_message)>0:
                 print(f'Dimension {index} has the following error_message:\n', error_message)
             
             else:
-                #print("dataset ok")
-                dim_names.append(this_dim.name)
+                if this_dim.name not in dim_names: ## names must be unique
+                    dim_names.append(this_dim.name)
+                else:
+                    raise TypeError(f'All dimension names must be unique, found {this_dim.name} twice')
+                
                 # are all datasets in the same file?
-                __ensure_anc_in_correct_file(this_dim.file, h5_parent_group.file, this_dim.name)
                 if this_dim.file != h5_parent_group.file:
                     this_dim = copy_dataset(this_dim, h5_parent_group, verbose=verbose)
 

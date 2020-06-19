@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Utilities for reading and writing NSID datasets that are highly model-dependent (with or without N-dimensional form)
+Utilities for reading and writing USID datasets that are highly model-dependent (with or without N-dimensional form)
 
 Created on Fri May 22 16:29:25 2020
 
@@ -204,23 +204,24 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
      #################
     # Add Dimensions
     #################
+    dimensional_dict = {}
     for i, this_dim in dim_dict.items():
         if isinstance(this_dim, h5py.Dataset):
             this_dim_dset = this_dim
             if 'nsid_version' not in this_dim_dset.attrs:
                 this_dim_dset.attrs['nsid_version'] = '0.0.1'
-
+            dimensional_dict[i] = this_dim
         elif isinstance(this_dim, Dimension):
             this_dim_dset = h5_parent_group.create_dataset(this_dim.name,data=this_dim.values)
             attrs_to_write={'name':  this_dim.name, 'units': this_dim.units, 'quantity':  this_dim.quantity, 'is_position': this_dim.is_position, 'nsid_version' : '0.0.1'}
             write_simple_attrs(this_dim_dset, attrs_to_write)
+
         else:
             print(i,' not a good dimension')
             pass
-
-        this_dim_dset.make_scale(this_dim_dset.attrs['name'])
-        h5_main.dims[int(i)].label = this_dim_dset.attrs['name']
-        h5_main.dims[int(i)].attach_scale(this_dim_dset)
+        dimensional_dict[i] = this_dim_dset
+    
+    h5_main = link_as_main(h5_main, dimensional_dict)
         
     attrs_to_write={'quantity': quantity, 'units': units, 'nsid_version' : '0.0.1'}
     attrs_to_write['main_data_name'] =  main_data_name

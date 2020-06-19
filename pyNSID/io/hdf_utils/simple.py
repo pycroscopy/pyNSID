@@ -16,7 +16,7 @@ from ..dtype_utils import validate_dtype, validate_single_string_arg, validate_l
 ## Must be reimplemented
 #from ..reg_ref import write_region_references, simple_region_ref_copy, copy_reg_ref_reduced_dim, \
 #    create_region_reference, copy_all_region_refs
-from ..write_utils import clean_string_att, Dimension # build_ind_val_matrices, get_aux_dset_slicing, INDICES_DTYPE, \
+from ..write_utils import clean_string_att, Dimension , validate_dimensions# build_ind_val_matrices, get_aux_dset_slicing, INDICES_DTYPE, \
 #    VALUES_DTYPE, Dimension, DimType
 from .base import get_auxiliary_datasets, link_h5_obj_as_alias, get_attr, \
     link_h5_objects_as_attrs, write_book_keeping_attrs, write_simple_attrs, \
@@ -501,22 +501,15 @@ def check_if_main(h5_main, verbose=False):
     return main_attr_success
 
 
-def link_as_main(h5_main, h5_pos_inds, h5_pos_vals, h5_spec_inds, h5_spec_vals):
+def link_as_main(h5_main, dim_dict):
     """
-    Links the object references to the four position and spectroscopic datasets as
-    attributes of `h5_main`
+    Attaches datasets as h5 Dimensional Scales to  `h5_main`
     Parameters
     ----------
     h5_main : h5py.Dataset
-        2D Dataset which will have the references added as attributes
-    h5_pos_inds : h5py.Dataset
-        Dataset that will be linked with the name 'Position_Indices'
-    h5_pos_vals : h5py.Dataset
-        Dataset that will be linked with the name 'Position_Values'
-    h5_spec_inds : h5py.Dataset
-        Dataset that will be linked with the name 'Spectroscopic_Indices'
-    h5_spec_vals : h5py.Dataset
-        Dataset that will be linked with the name 'Spectroscopic_Values'
+        N-dimensional Dataset which will have the references added as h5 Dimensional Scales
+    dim_dict: dictionary with dimensional oreder as key and items are datasets to be used as h5 Dimensional Scales 
+
     Returns
     -------
     pyNSID.NSIDataset
@@ -525,16 +518,44 @@ def link_as_main(h5_main, h5_pos_inds, h5_pos_vals, h5_spec_inds, h5_spec_vals):
     if not isinstance(h5_main, h5py.Dataset):
         raise TypeError('h5_main should be a h5py.Dataset object')
 
-    validate_anc_h5_dsets(h5_pos_inds, h5_pos_vals, h5_main.shape,
-                          is_spectroscopic=False)
-    validate_anc_h5_dsets(h5_spec_inds, h5_spec_vals, h5_main.shape,
-                          is_spectroscopic=True)
+    h5_parent_group = h5_main.parent
+    main_shape = h5_main.shape
+    ######################
+    # Validate Dimensions
+    ######################
+    # An N dimensional dataset should have N items in the dimension dictionary
+    if len(dim_dict) != len(main_shape):
+        raise ValueError('Incorrect number of dimensions: {} provided to support main data, of shape: {}'.format(len(dim_dict), main_shape))
+    if set(range(len(main_shape))) != set(dim_dict.keys()):
+        raise KeyError('')
+    
+    dimensions_correct = []
+    dim_names = []
+    for index, dim_exp_size in enumerate(main_shape):
+        this_dim = dim_dict[index]
+        if isinstance(this_dim, h5py.Dataset):
+            error_message = validate_dimensions(this_dim, main_shape[index])
+            if len(error_message)>0:
+                raise TypeError(f'Dimension {index} has the following error_message:\n', error_message)
+            else:
+                #if this_dim.name not in dim_names:
+                if this_dim.name not in dim_names: ## names must be unique
+                    dim_names.append(this_dim.name)
+                else:
+                    raise TypeError(f'All dimension names must be unique, found {this_dim.name} twice')
+                if this_dim.file != h5_parent_group.file:
+                    this_dim = copy_dataset(this_dim, h5_parent_group, verbose=verbose)
+        else: 
+            raise TypeError('Items in dictionary must all  be h5py.Datasets !')
 
-    link_h5_obj_as_alias(h5_main, h5_pos_inds, 'Position_Indices')
-    link_h5_obj_as_alias(h5_main, h5_pos_vals, 'Position_Values')
-    link_h5_obj_as_alias(h5_main, h5_spec_inds, 'Spectroscopic_Indices')
-    link_h5_obj_as_alias(h5_main, h5_spec_vals, 'Spectroscopic_Values')
-
+    ################
+    # Attach Scales
+    ################
+    for i, this_dim_dset in  dim_dict.items():
+        this_dim_dset.make_scale(this_dim_dset.attrs['name'])
+        h5_main.dims[int(i)].label = this_dim_dset.attrs['name']
+        h5_main.dims[int(i)].attach_scale(this_dim_dset)
+        
     from ..nsi_data import NSIDataset
     try:
         # If all other conditions are satisfied
