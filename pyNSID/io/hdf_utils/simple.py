@@ -479,6 +479,7 @@ def check_if_main(h5_main, verbose=False):
         return False
 
 
+
     #Check for all required attributes in dataset
     main_attrs_names = ['quantity', 'units', 'main_data_name','data_type', 'modality', 'source']
     main_attr_success = np.all([att in h5_main.attrs for att in main_attrs_names])

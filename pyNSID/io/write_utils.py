@@ -7,6 +7,7 @@ Created on Thu Sep  7 21:14:25 2017
 @author: Suhas Somnath, Chris Smith
 """
 
+
 from __future__ import division, print_function, unicode_literals, absolute_import
 import sys
 from warnings import warn
@@ -171,7 +172,7 @@ def validate_main_dimensions(main_shape, dim_dict, h5_parent_group ):
                 #print("dataset ok")
                 dim_names.append(this_dim.name)
                 # are all datasets in the same file?
-                #__ensure_anc_in_correct_file(this_dim.file, h5_parent_group.file, this_dim.name)
+                __ensure_anc_in_correct_file(this_dim.file, h5_parent_group.file, this_dim.name)
                 if this_dim.file != h5_parent_group.file:
                     this_dim = copy_dataset(this_dim, h5_parent_group, verbose=verbose)
 
@@ -185,7 +186,7 @@ def validate_main_dimensions(main_shape, dim_dict, h5_parent_group ):
                 # check if this object with the same name is a dataset and if it satisfies the above tests
                 if isinstance(h5_parent_group[this_dim.name], h5py.Dataset):
                     print('needs more checking')
-                    #dimensions_correct[-1] = False
+                    dimensions_correct[-1] = False
                 else:
                     dimensions_correct[-1] = True
             # Otherwise, just append the dimension name for the uniqueness test
