@@ -5,6 +5,8 @@ Utilities for reading and writing NSID datasets that are highly model-dependent 
 Created on Fri May 22 16:29:25 2020
 
 @author: []]
+ToDo update version
+
 """
 from __future__ import division, print_function, absolute_import, unicode_literals
 from warnings import warn
@@ -12,32 +14,61 @@ import sys
 import h5py
 import numpy as np
 from dask import array as da
-
+from ..write_utils import  Dimension #new
 from ..dtype_utils import contains_integers, validate_dtype, validate_single_string_arg, validate_string_args, \
     validate_list_of_strings, lazy_load_array
-
 from .base import get_attr, write_simple_attrs, is_editable_h5, write_book_keeping_attrs
 from .simple import link_as_main, check_if_main, write_ind_val_dsets, validate_dims_against_main, validate_anc_h5_dsets, copy_dataset
-from pyNSID.io.write_utils import validate_dimensions
-from ..write_utils import INDICES_DTYPE, make_indices_matrix
+from pyNSID.io.write_utils import validate_dimensions , validate_main_dimensions
+#from ..write_utils import INDICES_DTYPE, make_indices_matrix
 
 if sys.version_info.major == 3:
     unicode = str
 
-def write_main_dataset(h5_parent_group, main_data, main_data_name,
-                       quantity, units, dims,
-                       data_type, modality, source,
-                       main_dset_attrs=None, verbose=False,
-                      **kwargs):
+def __check_anc_before_creation(aux_prefix, dim_type='pos'):
+    aux_prefix = validate_single_string_arg(aux_prefix, 'aux_' + dim_type + '_prefix')
+    if not aux_prefix.endswith('_'):
+        aux_prefix += '_'
+    if '-' in aux_prefix:
+        warn('aux_' + dim_type + ' should not contain the "-" character. Reformatted name from:{} to '
+                                    '{}'.format(aux_prefix, aux_prefix.replace('-', '_')))
+    aux_prefix = aux_prefix.replace('-', '_')
+    for dset_name in [aux_prefix + 'Indices', aux_prefix + 'Values']:
+        if dset_name in h5_parent_group.keys():
+            # TODO: What if the contained data was correct?
+            raise KeyError('Dataset named: ' + dset_name + ' already exists in group: '
+                                                            '{}. Consider passing these datasets using kwargs (if they are correct) instead of providing the pos_dims and spec_dims arguments'.format(h5_parent_group.name))
+    return aux_prefix
+
+""" New version much shorter and in validate_main_dimensions in file "simple.py"
+def __ensure_anc_in_correct_file(h5_inds, h5_parent_group, prefix):
+    h5_parent_group = h5_vals.parent
+    if h5_inds.file != h5_parent_group.file:
+        # Need to copy over the anc datasets to the new group
+        if verbose:
+            print('Need to copy over ancillary datasets: {} and {} to '
+                    'destination group: {} which is in a different HDF5 '
+                    'file'.format(h5_inds, h5_parent_group))
+        ret_vals = [copy_dataset(x, h5_parent_group, verbose=verbose) for x in [h5_inds, h5_vals]]
+    else:
+        ret_vals = [h5_inds, h5_vals]
+    return tuple(ret_vals)
+"""
+
+
+
+def write_main_dataset(h5_parent_group, main_data, main_data_name, 
+                        quantity, units, data_type, modality, source, 
+                        dim_dict, main_dset_attrs=None, verbose=False,
+                        slow_to_fast=False, **kwargs):
+
     """
 
     #TODO: Suhas to think about this a lot more
 
     Writes the provided data as a 'Main' dataset with all appropriate linking.
-    By default, the instructions for generating the ancillary datasets should be specified using the pos_dims and
-    spec_dims arguments as dictionary objects. Alternatively, if both the indices and values datasets are already
-    available for either/or the positions / spectroscopic, they can be specified using the keyword arguments. In this
-    case, fresh datasets will not be generated.
+    By default, the instructions for generating dimension should be provided as a dictionary containing pyNSID-Dimensions or 1-Dim datasets 
+    The dimension-datasets can be shared with other main datasets; in this case, fresh datasets will not be generated.
 
     Parameters
     ----------
@@ -55,55 +86,26 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
     data_type : `string : What kind of data this is. Example - image, image stack, video, hyperspectral image, etc.
     modality : `string : Experimental / simulation modality - scientific meaning of data. Example - photograph, TEM micrograph, SPM Force-Distance spectroscopy.
     source : `string : Source for dataset like the kind of instrument.
-    dims : Dictionary containing Dimension or h5PyDataset objects, that map each dimension to the specified dimension. E.g.
-    {'0': position_X, '1': position_Y, 2: spectra} where position_X, position_Y, spectra can be either Dimensions or h5py datasets.
+    dim_dict : Dictionary containing Dimension or h5PyDataset objects, that map each dimension to the specified dimension. E.g.
+        {'0': position_X, '1': position_Y, 2: spectra} where position_X, position_Y, spectra can be either Dimensions or h5py datasets.
 
         Sequence of Dimension objects that provides all necessary instructions for constructing the indices and values
         datasets
         Object specifying the instructions necessary for building the Position indices and values datasets
-
+    main_dset_attrs: dictionary, Optional, default = None
+        flat dictionary of data to be added to the dataset, 
     verbose : bool, Optional, default=False
         If set to true - prints debugging logs
-
     kwargs will be passed onto the creation of the dataset. Please pass chunking, compression, dtype, and other
         arguments this way
 
     Returns
     -------
-    h5_main : USIDataset
+    h5_main : NSIDataset
         Reference to the main dataset
 
     """
-    def __check_anc_before_creation(aux_prefix, dim_type='pos'):
-        aux_prefix = validate_single_string_arg(aux_prefix, 'aux_' + dim_type + '_prefix')
-        if not aux_prefix.endswith('_'):
-            aux_prefix += '_'
-        if '-' in aux_prefix:
-            warn('aux_' + dim_type + ' should not contain the "-" character. Reformatted name from:{} to '
-                                     '{}'.format(aux_prefix, aux_prefix.replace('-', '_')))
-        aux_prefix = aux_prefix.replace('-', '_')
-        for dset_name in [aux_prefix + 'Indices', aux_prefix + 'Values']:
-            if dset_name in h5_parent_group.keys():
-                # TODO: What if the contained data was correct?
-                raise KeyError('Dataset named: ' + dset_name + ' already exists in group: '
-                                                               '{}. Consider passing these datasets using kwargs (if they are correct) instead of providing the pos_dims and spec_dims arguments'.format(h5_parent_group.name))
-        return aux_prefix
-
-    def __ensure_anc_in_correct_file(h5_inds, h5_vals, prefix):
-        if h5_inds.file != h5_vals.file:
-            raise ValueError('Provided ' + prefix + ' datasets are present in different HDF5 files!')
-
-        if h5_inds.file != h5_parent_group.file:
-            # Need to copy over the anc datasets to the new group
-            if verbose:
-                print('Need to copy over ancillary datasets: {} and {} to '
-                      'destination group: {} which is in a different HDF5 '
-                      'file'.format(h5_inds, h5_vals, h5_parent_group))
-            ret_vals = [copy_dataset(x, h5_parent_group, verbose=verbose) for x in [h5_inds, h5_vals]]
-        else:
-            ret_vals = [h5_inds, h5_vals]
-        return tuple(ret_vals)
-
+    
     if not isinstance(h5_parent_group, (h5py.Group, h5py.File)):
         raise TypeError('h5_parent_group should be a h5py.File or h5py.Group object')
     if not is_editable_h5(h5_parent_group):
@@ -111,10 +113,14 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
     if verbose:
         print('h5 group and file OK')
 
-    quantity, units, main_data_name = validate_string_args([quantity, units, main_data_name],
-                                                           ['quantity', 'units', 'main_data_name'])
+    #####################
+    # Validate Main Data
+    #####################
+    quantity, units, main_data_name, data_type, modality, source = validate_string_args([quantity, units, main_data_name, data_type, modality, source],
+                                                           ['quantity', 'units', 'main_data_name','data_type', 'modality', 'source'])
+
     if verbose:
-        print('quantity, units, main_data_name all OK')
+            print('quantity, units, main_data_name all OK')
 
     quantity = quantity.strip()
     units = units.strip()
@@ -123,12 +129,12 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
         warn('main_data_name should not contain the "-" character. Reformatted name from:{} to '
              '{}'.format(main_data_name, main_data_name.replace('-', '_')))
     main_data_name = main_data_name.replace('-', '_')
-
-    if isinstance(main_data, (list, tuple)):
+    
+    if  isinstance(main_data, (list, tuple)):
         if not contains_integers(main_data, min_val=1):
             raise ValueError('main_data if specified as a shape should be a list / tuple of integers >= 1')
-        if len(main_data) != 2:
-            raise ValueError('main_data if specified as a shape should contain 2 numbers')
+        if len(main_data) < 1:
+            raise ValueError('main_data if specified as a shape should contain at least 1 number for the singular dimension')
         if 'dtype' not in kwargs:
             raise ValueError('dtype must be included as a kwarg when creating an empty dataset')
         _ = validate_dtype(kwargs.get('dtype'))
@@ -136,55 +142,40 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
         if verbose:
             print('Selected empty dataset creation. OK so far')
     elif isinstance(main_data, (np.ndarray, da.core.Array)):
-        if main_data.ndim != 2:
-            raise ValueError('main_data should be a 2D array')
         main_shape = main_data.shape
         if verbose:
             print('Provided numpy or Dask array for main_data OK so far')
     else:
         raise TypeError('main_data should either be a numpy array or a tuple / list with the shape of the data')
+      
+    ######################
+    # Validate Dimensions
+    ######################
+    # An N dimensional dataset should have N items in the dimension dictionary
+    if len(dim_dict) != len(main_shape):
+        raise ValueError('Incorrect number of dimensions: {} provided to support main data, of shape: {}'.format(len(dim_dict), main_shape))
+    if set(range(len(main_shape))) != set(dim_dict.keys()):
+        raise KeyError('')
+    
+    if False in validate_main_dimensions(main_shape,dim_dict, h5_parent_group):
+        print('Dimensions incorrect')
+        return
+    if verbose:
+        print('Dimensions are correct!')
 
-    if h5_pos_inds is not None and h5_pos_vals is not None:
-        # The provided datasets override fresh building instructions.
-        validate_anc_h5_dsets(h5_pos_inds, h5_pos_vals, main_shape, is_spectroscopic=False)
-        if verbose:
-            print('The shapes of the provided h5 position indices and values are OK')
-        h5_pos_inds, h5_pos_vals = __ensure_anc_in_correct_file(h5_pos_inds, h5_pos_vals, 'Position')
-    else:
-        aux_pos_prefix = __check_anc_before_creation(aux_pos_prefix, dim_type='pos')
-        pos_dims = validate_dimensions(pos_dims, dim_type='Position')
-        validate_dims_against_main(main_shape, pos_dims, is_spectroscopic=False)
-        if verbose:
-            print('Passed all pre-tests for creating position datasets')
-        h5_pos_inds, h5_pos_vals = write_ind_val_dsets(h5_parent_group, pos_dims, is_spectral=False, verbose=verbose,
-                                                       slow_to_fast=slow_to_fast, base_name=aux_pos_prefix)
-        if verbose:
-            print('Created position datasets!')
-
-    if h5_spec_inds is not None and h5_spec_vals is not None:
-        # The provided datasets override fresh building instructions.
-        validate_anc_h5_dsets(h5_spec_inds, h5_spec_vals, main_shape, is_spectroscopic=True)
-        if verbose:
-            print('The shapes of the provided h5 position indices and values '
-                  'are OK')
-        h5_spec_inds, h5_spec_vals = __ensure_anc_in_correct_file(h5_spec_inds, h5_spec_vals,
-                                         'Spectroscopic')
-    else:
-        aux_spec_prefix = __check_anc_before_creation(aux_spec_prefix, dim_type='spec')
-        spec_dims = validate_dimensions(spec_dims, dim_type='Spectroscopic')
-        validate_dims_against_main(main_shape, spec_dims, is_spectroscopic=True)
-        if verbose:
-            print('Passed all pre-tests for creating spectroscopic datasets')
-        h5_spec_inds, h5_spec_vals = write_ind_val_dsets(h5_parent_group, spec_dims, is_spectral=True, verbose=verbose,
-                                                         slow_to_fast=slow_to_fast, base_name=aux_spec_prefix)
-        if verbose:
-            print('Created Spectroscopic datasets')
-
+    #####################
+    # Write Main Dataset
+    ####################
     if h5_parent_group.file.driver == 'mpio':
         if kwargs.pop('compression', None) is not None:
             warn('This HDF5 file has been opened wth the "mpio" communicator. '
                  'mpi4py does not allow creation of compressed datasets. Compression kwarg has been removed')
 
+    if main_data_name in h5_parent_group:
+        print('Oops, dataset exits')
+        #del h5_parent_group[main_data_name]
+        return
+    
     if isinstance(main_data, np.ndarray):
         # Case 1 - simple small dataset
         h5_main = h5_parent_group.create_dataset(main_data_name, data=main_data, **kwargs)
@@ -210,22 +201,49 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
         if verbose:
             print('Created empty dataset for Main')
 
-    write_simple_attrs(h5_main, {'quantity': quantity, 'units': units})
+     #################
+    # Add Dimensions
+    #################
+    for i, this_dim in dim_dict.items():
+        if isinstance(this_dim, h5py.Dataset):
+            this_dim_dset = this_dim
+            if 'nsid_version' not in this_dim_dset.attrs:
+                this_dim_dset.attrs['nsid_version'] = '0.0.1'
+
+        elif isinstance(this_dim, Dimension):
+            this_dim_dset = h5_parent_group.create_dataset(this_dim.name,data=this_dim.values)
+            attrs_to_write={'name':  this_dim.name, 'units': this_dim.units, 'quantity':  this_dim.quantity, 'is_position': this_dim.is_position, 'nsid_version' : '0.0.1'}
+            write_simple_attrs(this_dim_dset, attrs_to_write)
+        else:
+            print(i,' not a good dimension')
+            pass
+
+        this_dim_dset.make_scale(this_dim_dset.attrs['name'])
+        h5_main.dims[int(i)].label = this_dim_dset.attrs['name']
+        h5_main.dims[int(i)].attach_scale(this_dim_dset)
+        
+    attrs_to_write={'quantity': quantity, 'units': units, 'nsid_version' : '0.0.1'}
+    attrs_to_write['main_data_name'] =  main_data_name
+    attrs_to_write['data_type'] =  data_type
+    attrs_to_write['modality'] =  modality
+    attrs_to_write['source'] =  source
+    
+    write_simple_attrs(h5_main, attrs_to_write)
+
     if verbose:
-        print('Wrote quantity and units attributes to main dataset')
+        print('Wrote dimensions and attributes to main dataset')
 
     if isinstance(main_dset_attrs, dict):
         write_simple_attrs(h5_main, main_dset_attrs)
         if verbose:
             print('Wrote provided attributes to main dataset')
 
-    write_book_keeping_attrs(h5_main)
+    #ToDo: check if we need  write_book_keeping_attrs(h5_main)
 
-    # make it main
-    link_as_main(h5_main, h5_pos_inds, h5_pos_vals, h5_spec_inds, h5_spec_vals)
     if verbose:
         print('Successfully linked datasets - dataset should be main now')
 
-    from ..usi_data import USIDataset
-    return USIDataset(h5_main)
+    from ..nsi_data import NSIDataset
+    return h5_main
+
 

@@ -7,12 +7,14 @@ Created on Thu Sep  7 21:14:25 2017
 @author: Suhas Somnath, Chris Smith
 """
 
+
 from __future__ import division, print_function, unicode_literals, absolute_import
 import sys
 from warnings import warn
 from enum import Enum
 from itertools import groupby
 import numpy as np
+import h5py #new
 from .dtype_utils import contains_integers, validate_list_of_strings, validate_single_string_arg
 if sys.version_info.major == 3:
     from collections.abc import Iterable
@@ -35,7 +37,6 @@ class Dimension(object):
     def __init__(self, name, quantity, units, values, is_position):
         """
         Simple object that describes a dimension in a dataset by its name, units, and values
-
         Parameters
         ----------
         name : str or unicode
@@ -50,8 +51,8 @@ class Dimension(object):
         is_position : bool
             Whether or not this is a position or spectroscopy dimensions
         """
-        name = validate_single_string_arg(name, 'name')
-        quantity = validate_single_string_arg(quantity, 'quantity')
+        #name = validate_single_string_arg(name, 'name')
+        #quantity = validate_single_string_arg(quantity, 'quantity')
 
         if not isinstance(units, (str, unicode)):
             raise TypeError('units should be a string')
@@ -63,6 +64,9 @@ class Dimension(object):
             values = np.arange(values)
         if not isinstance(values, (np.ndarray, list, tuple)):
             raise TypeError('values should be array-like')
+        values = np.array(values)
+        if values.ndim > 1:
+            raise ValueError('Values for dimension: {} are not 1-dimensional'.format(name))
 
         if not isinstance(is_position, bool):
             raise TypeError('is_position should be a bool')
@@ -74,7 +78,7 @@ class Dimension(object):
         self.is_position = is_position
 
     def __repr__(self):
-        return '{} - {} ({}) mode:{} : {}'.format(self.name, self.quantity, self.units, self.values)
+        return '{} - {} ({}): {}'.format(self.name, self.quantity, self.units, self.values)
 
     def __eq__(self, other):
         if isinstance(other, Dimension):
@@ -91,24 +95,44 @@ class Dimension(object):
         return True
 
 
-def validate_dimensions(dimensions, dim_type='Position'):
+def validate_dimensions(this_dim,dim_shape):
     """
-    Checks if the provided object is an iterable with pyUSID.Dimension objects.
+    Checks if the provided object is an iterable with pyNSID.Dimension objects.
     If it is not full of Dimension objects, Exceptions are raised.
 
     Parameters
     ----------
-    dimensions : iterable or pyUSID.Dimension
-        Iterable containing pyUSID.Dimension objects
-    dim_type : str, Optional. Default = "Position"
-        Type of Dimensions in the iterable. Set to "Spectroscopic" if not Position dimensions.
-        This string is only used for more descriptive Exceptions
+    dimensions : iterable or pyNSID.Dimension
+        Iterable containing pyNSID.Dimension objects
+    dim_shape : list, shape of dataset
 
     Returns
     -------
     list
         List containing pyUSID.Dimension objects
     """
+    
+    error_message = ''
+    # Is it 1D?
+    if len(this_dim.shape)!=1:
+        error_message += ' High dimensional datasets are not allowed as dimensions;\n'
+    # Does this dataset have a "simple" dtype - no compound data type allowed!
+    # is the shape matching with the main dataset?
+    if len(this_dim) != dim_shape:
+        error_message += ' Dimension has wrong length;\n'
+    # Does it contain some ancillary attributes like 'name', quantity', 'units', and 'is_position' 
+    necessary_attributes =  ['name', 'quantity', 'units', 'is_position']
+    for key in necessary_attributes:
+        if key not in this_dim.attrs:
+            error_message += f'Missing {key} attribute in dimension;\n ' 
+        # and are these of types str, str, str, and bool respectively and not empty?
+        elif key == 'is_position':
+            if this_dim.attrs['is_position'] not in [True, False]: ## isinstance is here not working 
+                error_message += f'{key} attribute in dimension should be boolean;\n ' 
+        elif not isinstance(this_dim.attrs[key], str):
+            error_message += f'{key} attribute in dimension should be string;\n ' 
+    
+    return error_message
     if isinstance(dimensions, Dimension):
         dimensions = [dimensions]
     if isinstance(dimensions, np.ndarray):
@@ -121,6 +145,67 @@ def validate_dimensions(dimensions, dim_type='Position'):
         raise TypeError(dim_type + ' dimensions should be a sequence of Dimension objects')
     return dimensions
 
+def validate_main_dimensions(main_shape, dim_dict, h5_parent_group ):
+    # Each item could either be a Dimension object or a HDF5 dataset
+    # Collect the file within which these ancillary HDF5 objectsa are present if they are provided
+    which_h5_file = {}
+    # Also collect the names of the dimensions. We want them to be unique
+    dim_names = []
+    
+    dimensions_correct = []
+    for index, dim_exp_size in enumerate(main_shape):
+        this_dim = dim_dict[index]
+        if isinstance(this_dim, h5py.Dataset):
+            #print(f'{index} is a dataset')
+            error_message = validate_dimensions(this_dim, main_shape[index])
+                
+            # All these checks should live in a helper function for cleaniness
+            # Is it 1D?
+            # Does this dataset have a "simple" dtype - no compound data type allowed!
+            # is the shape matching with the main dataset?
+            # Does it contain some ancillary attributes like 'name', quantity', 'units', and 'is_position' 
+            # and are these of types str, str, str, and bool respectively and not empty?
+            if len(error_message)>0:
+                print(f'Dimension {index} has the following error_message:\n', error_message)
+            
+            else:
+                #print("dataset ok")
+                dim_names.append(this_dim.name)
+                # are all datasets in the same file?
+                __ensure_anc_in_correct_file(this_dim.file, h5_parent_group.file, this_dim.name)
+                if this_dim.file != h5_parent_group.file:
+                    this_dim = copy_dataset(this_dim, h5_parent_group, verbose=verbose)
+
+        elif isinstance(this_dim, Dimension):
+            #print('Dimension')
+            #print(len(this_dim.values))
+            # is the shape matching with the main dataset?
+            dimensions_correct.append(len(this_dim.values) == dim_exp_size)
+            # Is there a HDF5 dataset with the same name already in the provided group where this dataset will be created?
+            if  this_dim.name in h5_parent_group:
+                # check if this object with the same name is a dataset and if it satisfies the above tests
+                if isinstance(h5_parent_group[this_dim.name], h5py.Dataset):
+                    print('needs more checking')
+                    dimensions_correct[-1] = False
+                else:
+                    dimensions_correct[-1] = True
+            # Otherwise, just append the dimension name for the uniqueness test
+            elif this_dim.name not in dim_names:
+                dim_names.append(this_dim.name)
+            else:
+                dimensions_correct[-1] = False
+        else:
+            raise TypeError(f'Values of dim_dict should either be h5py.Dataset objects or Dimension. '
+                            'Object at index: {index} was of type: {index}')
+        
+        for dim in which_h5_file:
+            if which_h5_file[dim] != h5_parent_group.file.filename:
+                print('need to copy dimension', dim)
+        for i, dim_name in enumerate(dim_names[:-1]):
+            if dim_name in  dim_names[i+1:]:
+                print(dim_name, ' is not unique')
+    
+    return dimensions_correct 
 
 def clean_string_att(att_val):
     """

@@ -13,10 +13,11 @@ import numpy as np
 import dask.array as da
 
 from ..dtype_utils import validate_dtype, validate_single_string_arg, validate_list_of_strings, contains_integers, lazy_load_array
-from ..reg_ref import write_region_references, simple_region_ref_copy, copy_reg_ref_reduced_dim, \
-    create_region_reference, copy_all_region_refs
-from ..write_utils import clean_string_att, build_ind_val_matrices, get_aux_dset_slicing, INDICES_DTYPE, \
-    VALUES_DTYPE, Dimension, DimType
+## Must be reimplemented
+#from ..reg_ref import write_region_references, simple_region_ref_copy, copy_reg_ref_reduced_dim, \
+#    create_region_reference, copy_all_region_refs
+from ..write_utils import clean_string_att, Dimension # build_ind_val_matrices, get_aux_dset_slicing, INDICES_DTYPE, \
+#    VALUES_DTYPE, Dimension, DimType
 from .base import get_auxiliary_datasets, link_h5_obj_as_alias, get_attr, \
     link_h5_objects_as_attrs, write_book_keeping_attrs, write_simple_attrs, \
     is_editable_h5, validate_h5_objs_in_same_h5_file
@@ -67,7 +68,6 @@ def get_all_main(parent, verbose=False):
     parent.visititems(__check)
 
     return main_list
-
 
 def find_dataset(h5_group, dset_name):
     """
@@ -322,8 +322,8 @@ def validate_main_dset(h5_main, must_be_h5):
             raise TypeError('raw_data should either be a np.ndarray or a da.core.Array')
 
     # Check dimensionality
-    if len(h5_main.shape) != 2:
-        raise ValueError('Main data is not 2D. Provided object has shape: {}'.format(h5_main.shape))
+    if len(h5_main.shape) != len(h5_main.dims):
+        raise ValueError(f'Main data does not have full set of dimensional scales. Provided object has shape: {h5_main.shape} but only {len(h5_main.dims)} dimensional scales')
 
 
 def validate_anc_h5_dsets(h5_inds, h5_vals, main_shape, is_spectroscopic=True):
@@ -413,16 +413,15 @@ def validate_dims_against_main(main_shape, dims, is_spectroscopic=True):
 
 def check_if_main(h5_main, verbose=False):
     """
-    # ToDo NEEDS to be CHANGED 
     Checks the input dataset to see if it has all the necessary
     features to be considered a Main dataset.  This means it is
-    2D and has the following attributes:
-    * Position_Indices
-    * Position_Values
-    * Spectroscopic_Indices
-    * Spectroscopic_Values
+    dataset has dimensions of correct size and has the following attributes:
     * quantity
     * units
+    * main_data_name
+    * data_type
+    * modality
+    * source
     In addition, the shapes of the ancillary matrices should match with that of
     h5_main
     Parameters
@@ -444,61 +443,62 @@ def check_if_main(h5_main, verbose=False):
         return False
 
     h5_name = h5_main.name.split('/')[-1]
+    h5_group = h5_main.parent
 
     success = True
 
     # Check for Datasets
-    dset_names = ['Position_Indices', 'Position_Values',
-                  'Spectroscopic_Indices', 'Spectroscopic_Values']
-    for name in dset_names:
-        try:
-            h5_anc_dset = h5_main.file[h5_main.attrs[name]]
-            success = np.all([success, isinstance(h5_anc_dset, h5py.Dataset)])
-        except:
-            if verbose:
-                print('{} not found as an attribute of {}.'.format(name, h5_name))
-            return False
-
-    attr_success = np.all([att in h5_main.attrs for att in ['quantity', 'units']])
-    if not attr_success:
+    
+    attrs_names = ['is_position', 'name', 'nsid_version', 'quantity', 'units']
+    attr_success = []
+    length_success = []
+    dset_success = []
+    ### Check for Validity of Dimensional Scales 
+    for i, dimension in enumerate(h5_main.dims):
+        # check for all required attributes
+        h5_dim_dset =  h5_group[dimension.label]
+        attr_success.append(np.all([att in h5_dim_dset.attrs for att in attrs_names]))
+        dset_success.append(np.all([attr_success, isinstance(h5_dim_dset, h5py.Dataset)]))
+        # dimensional scale has to be 1D
+        if len(h5_dim_dset.shape) == 1:
+            # and of the same length as the shape of the dataset
+            length_success.append(h5_main.shape[i] == h5_dim_dset.shape[0] )
+        else:
+            length_success.append(False)
+    # We have the list now and can get error messages according to which dataset is bad or not.
+    if np.all([np.all(attr_success),np.all(length_success), np.all(dset_success)]):
         if verbose:
-            print('{} does not have the mandatory "quantity" and "units" attributes'.format(h5_main.name))
+            print ('Dimensions: All Attributes: ', np.all(attr_success))
+            print ('Dimensions: All Correct Length: ',np.all(length_success))
+            print ('Dimensions: All h5 Datasets: ',np.all(dset_success))
+    else:
+        #print('Dimensions are wrong') #Could be more specific
+        print('length of dimension scale {length_success.index(False)} is wrong')
+        print('attributes in dimension scale {attr_success.index(False)} are wrong')
+        print('dimension scale {dset_success.index(False)} is not a dataset')
         return False
 
-    for attr_name in ['quantity', 'units']:
+
+
+    #Check for all required attributes in dataset
+    main_attrs_names = ['quantity', 'units', 'main_data_name','data_type', 'modality', 'source']
+    main_attr_success = np.all([att in h5_main.attrs for att in main_attrs_names])
+    if verbose:
+        print('All Attributes in dataset: ', main_attr_success)
+    if not main_attr_success:
+        if verbose:
+            print('{} does not have the mandatory attributes'.format(h5_main.name))
+        return False
+
+    for attr_name in main_attrs_names:
         val = get_attr(h5_main, attr_name)
         if not isinstance(val, (str, unicode)):
             if verbose:
                 print('Attribute {} of {} found to be {}. Expected a string'.format(attr_name, h5_main.name, val))
             return False
 
-    # Blindly linking four datasets is still not sufficient. The sizes need to match:
-    anc_shape_match = list()
-    ## Todo change this here 
-    #h5_pos_inds = h5_main.file[h5_main.attrs['Position_Indices']]
-    #5_pos_vals = h5_main.file[h5_main.attrs['Position_Values']]
-    anc_shape_match.append(np.all(h5_pos_vals.shape == h5_pos_inds.shape))
-    for anc_dset in [h5_pos_vals, h5_pos_inds]:
-        anc_shape_match.append(np.all(h5_main.shape[0] == anc_dset.shape[0]))
-    if not np.all(anc_shape_match):
-        if verbose:
-            print('The shapes of the Position indices:{}, values:{} datasets did not match with that of the main '
-                  'dataset: {}'.format(h5_pos_inds.shape, h5_pos_vals.shape, h5_main.shape))
-        return False
-
-    anc_shape_match = list()
-    #h5_spec_inds = h5_main.file[h5_main.attrs['Spectroscopic_Indices']]
-    #h5_spec_vals = h5_main.file[h5_main.attrs['Spectroscopic_Values']]
-    anc_shape_match.append(np.all(h5_spec_inds.shape == h5_spec_vals.shape))
-    for anc_dset in [h5_spec_inds, h5_spec_vals]:
-        anc_shape_match.append(np.all(h5_main.shape[1] == anc_dset.shape[1]))
-    if not np.all(anc_shape_match):
-        if verbose:
-            print('The shapes of the Spectroscopic indices:{}, values:{} datasets did not match with that of the main '
-                  'dataset: {}'.format(h5_spec_inds.shape, h5_spec_vals.shape, h5_main.shape))
-        return False
-
-    return success
+    
+    return main_attr_success
 
 
 def link_as_main(h5_main, h5_pos_inds, h5_pos_vals, h5_spec_inds, h5_spec_vals):
