@@ -34,7 +34,7 @@ class Dimension(object):
     ..autoclass::Dimension
     """
 
-    def __init__(self, name, quantity, units, values, is_position):
+    def __init__(self, name, quantity, units, values, dimension_type):
         """
         Simple object that describes a dimension in a dataset by its name, units, and values
         Parameters
@@ -48,11 +48,11 @@ class Dimension(object):
         values : array-like or int
             Values over which this dimension was varied. A linearly increasing set of values will be generated if an
             integer is provided instead of an array.
-        is_position : bool
+        dimension_type : bool
             Whether or not this is a position or spectroscopy dimensions
         """
-        #name = validate_single_string_arg(name, 'name')
-        #quantity = validate_single_string_arg(quantity, 'quantity')
+        name = validate_single_string_arg(name, 'name')
+        quantity = validate_single_string_arg(quantity, 'quantity')
 
         if not isinstance(units, (str, unicode)):
             raise TypeError('units should be a string')
@@ -68,14 +68,15 @@ class Dimension(object):
         if values.ndim > 1:
             raise ValueError('Values for dimension: {} are not 1-dimensional'.format(name))
 
-        if not isinstance(is_position, bool):
-            raise TypeError('is_position should be a bool')
+        #if not isinstance(dimension_type, bool):
+        #    raise TypeError('dimension_type should be a bool')
 
+        dimension_type = validate_single_string_arg(dimension_type, 'dimension_type')
         self.name = name
         self.quantity = quantity
         self.units = units
         self.values = values
-        self.is_position = is_position
+        self.dimension_type = dimension_type
 
     def __repr__(self):
         return '{} - {} ({}): {}'.format(self.name, self.quantity, self.units, self.values)
@@ -99,14 +100,14 @@ def validate_dimensions(this_dim,dim_shape):
     """
     Checks if the provided object is an  h5 dataset. 
     A valid dataset to be uses as dimension must be 1D not a comopound data type but 'simple'.
-    Such a dataset must have  ancillary attributes 'name', quantity', 'units', and 'is_position',
+    Such a dataset must have  ancillary attributes 'name', quantity', 'units', and 'dimension_type',
     which have to be of  types str, str, str, and bool respectively and not empty
     If it is not valid of dataset, Exceptions are raised.
 
     Parameters
     ----------
     dimensions : h5 dataset
-        with non empty attributes 'name', quantity', 'units', and 'is_position' 
+        with non empty attributes 'name', quantity', 'units', and 'dimension_type' 
     dim_shape : required length of dataset 
 
     Returns
@@ -126,15 +127,15 @@ def validate_dimensions(this_dim,dim_shape):
     # is the shape matching with the main dataset?
     if len(this_dim) != dim_shape:
         error_message += ' Dimension has wrong length;\n'
-    # Does it contain some ancillary attributes like 'name', quantity', 'units', and 'is_position' 
-    necessary_attributes =  ['name', 'quantity', 'units', 'is_position']
+    # Does it contain some ancillary attributes like 'name', quantity', 'units', and 'dimension_type' 
+    necessary_attributes =  ['name', 'quantity', 'units', 'dimension_type']
     for key in necessary_attributes:
         if key not in this_dim.attrs:
             error_message += f'Missing {key} attribute in dimension;\n ' 
         # and are these of types str, str, str, and bool respectively and not empty?
-        elif key == 'is_position':
-            if this_dim.attrs['is_position'] not in [True, False]: ## isinstance is here not working 
-                error_message += f'{key} attribute in dimension should be boolean;\n ' 
+        #elif key == 'dimension_type':
+        #    if this_dim.attrs['dimension_type'] not in [True, False]: ## isinstance is here not working 
+        #        error_message += f'{key} attribute in dimension should be boolean;\n ' 
         elif not isinstance(this_dim.attrs[key], str):
             error_message += f'{key} attribute in dimension should be string;\n ' 
     

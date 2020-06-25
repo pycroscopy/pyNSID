@@ -88,7 +88,7 @@ def find_dataset(h5_group, dset_name):
     if not isinstance(h5_group, (h5py.File, h5py.Group)):
         raise TypeError('h5_group should be a h5py.File or h5py.Group object')
     dset_name = validate_single_string_arg(dset_name, 'dset_name')
-
+    
     # print 'Finding all instances of', ds_name
     datasets = []
 
@@ -449,7 +449,7 @@ def check_if_main(h5_main, verbose=False):
 
     # Check for Datasets
     
-    attrs_names = ['is_position', 'name', 'nsid_version', 'quantity', 'units']
+    attrs_names = ['dimension_type', 'name', 'nsid_version', 'quantity', 'units', ]
     attr_success = []
     length_success = []
     dset_success = []
@@ -895,7 +895,7 @@ def create_empty_dataset(source_dset, dtype, dset_name, h5_group=None, new_attrs
     h5_new_dset.attrs.update(new_attrs)
 
     if check_if_main(h5_new_dset):
-        from ..nsi_data import NSIDataset
+        #from ..nsi_data import NSIDataset
 
         h5_new_dset = NSIDataset(h5_new_dset)
         # update book keeping attributes

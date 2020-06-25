@@ -36,180 +36,76 @@ class NSIDataset(h5py.Dataset):
         ----------
         h5_ref : :class:`h5py.Dataset`
             The dataset which is actually a USID Main dataset
-        sort_dims : bool, Optional. Default=False
-            If set to True - Dimensions will be sorted from slowest to fastest
-            Else - Dimensions will be arranged as they appear in ancillary datasets
+            This dataset has dhdf5 dimensional scales
 
         Methods
         -------
-        self.get_current_sorting
-        self.toggle_sorting
-        self.get_pos_values
-        self.get_spec_values
-        self.get_n_dim_form
+        
         self.slice
+        self.data_descriptor():
+            returns the label of the dataset
+        self.get_dimension_labels():
+            returns the labels of the dimensions 
+        self.get_dimens_types()
+            returns dictionary of dimension_types (keys) with the axis numbers as values
+        self.visualize(slice):
+            not tested 
+            basic visualization of dataset based on dimension_types and slice (optional) 
+            returns fig and axis
 
 
         Attributes
         ----------
-        self.h5_spec_vals : :class:`h5py.Dataset`
-            Associated Spectroscopic Values dataset
-        self.h5_spec_inds : :class:`h5py.Dataset`
-            Associated Spectroscopic Indices dataset
-        self.h5_pos_vals : :class:`h5py.Dataset`
-            Associated Position Values dataset
-        self.h5_pos_inds : :class:`h5py.Dataset`
-            Associated Position Indices dataset
-        self.pos_dim_labels : list of str
-            The labels for the position dimensions.
-        self.spec_dim_labels : list of str
-            The labels for the spectroscopic dimensions.
-        self.n_dim_labels : list of str
-            The labels for the n-dimensional dataset.
-        self.pos_dim_sizes : list of int
-            A list of the sizes of each position dimension.
-        self.spec_dim_sizes : list of int
-            A list of the sizes of each spectroscopic dimension.
-        self.n_dim_sizes : list of int
-            A list of the sizes of each dimension.
+        self.data_type: str
+            The data_type (supported are:  'image', 'image_stack',  'spectrum', 'linescan' and 'spectrum_image' )
+        self.quantity: str
+            The physical quantity represented in the dataset
+        self.units: str
+            The units of the dataset
+        self.axes_units: list of str
+            The units for the dimensional axes.
+        self.axes_quantities: list of str
+            The quantities (physical property) for the dimensional axes.
+        self.dimension_types: list of str
+            The dimension_types (supported is 'spatial', 'spectral', 'reciprocal' and 'time') for the dimensional axes.
+        self.axes_first_pixels: list of int
+            A list of the sizes of first pixel of each  dimension.
+        
+    """
 
-        Notes
-        -----
-        The order of all labels and sizes attributes is determined by the current value of `sort_dims`.
 
-        """
-
-        #if not check_if_main(h5_ref):
-        #    raise TypeError('Supply a h5py.Dataset object that is a USID main dataset')
-
+    def __init__(self, h5_ref):
         super(NSIDataset, self).__init__(h5_ref.id)
 
-        # User accessible properties
-        self.data_type = h5_ref.attrs['data_type'] # #ToDo: where is shape
-        # The dimension labels as they appear in the ancillary datasets
-        #self.__orig_pos_dim_labels = get_attr(self.h5_pos_inds, 'labels')
-        #self.__orig_spec_dim_labels = get_attr(self.h5_spec_inds, 'labels')
-
-        # Data descriptors
-        #self.data_descriptor = '{} ({})'.format(get_attr(self, 'quantity'), get_attr(self, 'units'))
-        #self.pos_dim_descriptors = self.__get_anc_labels(self.h5_pos_inds)
-        #self.spec_dim_descriptors = self.__get_anc_labels(self.h5_spec_inds)
-
-        # The size of each dimension
-        #self.__orig_pos_dim_sizes = np.array(get_dimensionality(np.transpose(self.h5_pos_inds)))
-        #self.__orig_spec_dim_sizes = np.array(get_dimensionality(np.atleast_2d(self.h5_spec_inds)))
-
-        # Sorted dimension order
-        #self.__pos_sort_order = get_sort_order(np.transpose(self.h5_pos_inds))
-        #self.__spec_sort_order = get_sort_order(np.atleast_2d(self.h5_spec_inds))
-
-        # internal book-keeping / we don't want users to mess with these?
-        #self.__orig_n_dim_sizes = np.append(self.__orig_pos_dim_sizes, self.__orig_spec_dim_sizes)
-        #self.__orig_n_dim_labs = np.append(self.__orig_pos_dim_labels, self.__orig_spec_dim_labels)
-        #self.__n_dim_sort_order_orig_s2f = np.append(self.__pos_sort_order[::-1],
-        #                                             self.__spec_sort_order[::-1] + len(self.__pos_sort_order))
-        #self.__n_dim_sort_order_orig_f2s = np.append(self.__pos_sort_order,
-        #                                             self.__spec_sort_order + len(self.__pos_sort_order))
-
-        #self.__n_dim_data_orig = None
-        #self.__n_dim_data_s2f = None
-        #self.__curr_ndim_form = None
-        #self.__n_dim_form_avail = False
-
-        # Should the dimensions be sorted from slowest to fastest
-        #self.__sort_dims = sort_dims
-
-        # Declaring var names within init
-        #self.pos_dim_labels = None
-        #self.spec_dim_labels = None
-        #self.pos_dim_sizes = None
-        #self.spec_dim_sizes = None
-        #self.n_dim_labels = None
-        #self.n_dim_sizes = None
-
-        self.__lazy_2d = lazy_load_array(self)
-
-        self.__set_labels_and_sizes()
-
-        try:
-            pass
-            #self.__n_dim_data_orig = self.get_n_dim_form(lazy=True)
-            #self.__n_dim_form_avail = True
-            # TODO: This line keeps failing. Fix it
-            #self.__n_dim_data_s2f = self.__n_dim_data_orig.transpose(self.__n_dim_sort_order_orig_s2f)
-        except ValueError:
-            warn('This dataset does not have an N-dimensional form')
-
-        #self.__set_n_dim_view()
-
-    def __eq__(self, other):
-        if isinstance(other, h5py.Dataset):
-            return super(USIDataset, self).__eq__(other)
-
-        return False
-
-    def __repr__(self):
-        h5_str = super(NSIDataset, self).__repr__()
-
-        #pos_str = ' \n'.join(['\t{} - size: {}'.format(dim_name, str(dim_size)) for dim_name, dim_size in
-        #                      zip(self.__orig_pos_dim_labels, self.__orig_pos_dim_sizes)])
-        #spec_str = ' \n'.join(['\t{} - size: {}'.format(dim_name, str(dim_size)) for dim_name, dim_size in
-        #                       zip(self.__orig_spec_dim_labels, self.__orig_spec_dim_sizes)])
-
-        #usid_str = ' \n'.join(['located at:',
-        #                        '\t' + self.name,
-        #                        'Data contains:', '\t' + self.data_descriptor,
-        #                        'Data dimensions and original shape:',
-        #                        'Position Dimensions:',
-        #                        pos_str,
-        #                        'Spectroscopic Dimensions:',
-        #                        spec_str])
-
-        if self.dtype.fields is not None:
-            usid_str = '\n'.join([usid_str,
-                                  'Data Fields:', '\t' + ', '.join([field for field in self.dtype.fields])])
-        else:
-            usid_str = '\n'.join([usid_str,
-                                   'Data Type:', '\t' + self.dtype.name])
-
-        if sys.version_info.major == 2:
-            usid_str = usid_str.encode('utf8')
-
-        return '\n'.join([h5_str, usid_str])
-
-    def __set_labels_and_sizes(self):
+        self.data_type = get_attr(self,'data_type')
+        self.quantity = self.attrs['quantity']
+        self.units = self.attrs['units']
+        
+        self.axes_names = [dim.label for dim in h5_ref.dims]
+        units = []
+        quantities = []
+        dimension_types = []
+        pixel_sizes = []
+        
+        for label in self.axes_names:
+            units.append(get_attr(self.parent[label],'units'))
+            quantities.append(get_attr(self.parent[label],'quantity'))
+            
+            dimension_types.append(get_attr(self.parent[label],'dimension_type'))
+            
+            pixel_sizes.append(abs(h5_ref.parent[label][1]-h5_ref.parent[label][0]))
+        self.axes_units = units
+        self.axes_quantities = quantities
+        self.dimension_types = dimension_types
+        self.axes_first_pixels = pixel_sizes
+        
+        self.data_descriptor = '{} ({})'.format(get_attr(self, 'quantity'), get_attr(self, 'units'))
+        
+        
+    def get_dimension_labels(self):
         """
-        Sets the labels and sizes attributes to the correct values based on
-        the value of `self.__sort_dims`
-        """
-        #if self.__sort_dims:
-        #    self.pos_dim_labels = self.__orig_pos_dim_labels[self.__pos_sort_order].tolist()
-        #    self.spec_dim_labels = self.__orig_spec_dim_labels[self.__spec_sort_order].tolist()
-        #    self.pos_dim_sizes = self.__orig_pos_dim_sizes[self.__pos_sort_order].tolist()
-        #    self.spec_dim_sizes = self.__orig_spec_dim_sizes[self.__spec_sort_order].tolist()
-        #    self.n_dim_labels = self.__orig_n_dim_labs[self.__n_dim_sort_order_orig_s2f].tolist()
-        #    self.n_dim_sizes = self.__orig_n_dim_sizes[self.__n_dim_sort_order_orig_s2f].tolist()
-
-        #else:
-        #    self.pos_dim_labels = self.__orig_pos_dim_labels.tolist()
-        #    self.spec_dim_labels = self.__orig_spec_dim_labels.tolist()
-        #    self.pos_dim_sizes = self.__orig_pos_dim_sizes.tolist()
-        #    self.spec_dim_sizes = self.__orig_spec_dim_sizes.tolist()
-        #    self.n_dim_labels = self.__orig_n_dim_labs.tolist()
-        #    self.n_dim_sizes = self.__orig_n_dim_sizes.tolist()
-
-    def __set_n_dim_view(self):
-        """
-        Sets the current view of the N-dimensional form of the dataset
-        """
-
-        self.__curr_ndim_form = self.__n_dim_data_s2f if self.__sort_dims else self.__n_dim_data_orig
-
-    @staticmethod
-    def __get_anc_labels(h5_dset):
-        """
-        Takes any dataset which has the labels and units attributes and returns a list of strings
-        formatted as 'label k (unit k)'
+        Takes the labels and units attributes from NSID datasetand returns a list of strings
+        formatted as 'quantity k [unit k]'
 
         Parameters
         ----------
@@ -221,11 +117,48 @@ class NSIDataset(h5py.Dataset):
         labels : list
             list of strings formatted as 'label k (unit k)'
         """
-        labels = []
-        for lab, unit in zip(get_attr(h5_dset, 'labels'), get_attr(h5_dset, 'units')):
-            labels.append('{} ({})'.format(lab, unit))
-        return labels
+        
+        axes_labels = []
+        for dim, quantity in enumerate(self.axes_quantities):
+            axes_labels.append(f"{quantity} [{self.axes_units[dim]}] ")
+        return axes_labels
+    
+    def get_dimens_types(self):
+        dim_type_dict  = {}
+        spectral_dimensions = []
+        for dim, dim_type in enumerate(self.dimension_types):
+            if dim_type not in dim_type_dict:
+                dim_type_dict[dim_type] = []
+            dim_type_dict[dim_type].append(dim)
+        return dim_type_dict
+    
+    def __repr__(self):
+        h5_str = super(NSIDataset, self).__repr__()
 
+        dim_type_dict = self.get_dimens_types()
+        usid_str = ' \n'.join(['located at:',
+                                'Data contains:', '\t' + self.data_descriptor,
+                                'Data dimensions and original shape:',  '\t' +str(self.shape),
+                                'Data type:', '\t' + self.data_type])
+        if 'spatial' in dim_type_dict:
+            usid_str = '\n'.join([usid_str,
+                                  'Position Dimensions: ',  '\t' +str(dim_type_dict['spatial'])])
+        if 'spectral' in dim_type_dict:
+            usid_str = '\n'.join([usid_str,
+                                  'Spectral Dimensions: ',  '\t' +str(dim_type_dict['spectral'])])
+            
+        if self.dtype.fields is not None:
+            usid_str = '\n'.join([usid_str,
+                                  'Data Fields:', '\t' + ', '.join([field for field in self.dtype.fields])])
+        else:
+            usid_str = '\n'.join([usid_str,
+                                   'Numeric Type:', '\t' + self.dtype.name])
+
+        if sys.version_info.major == 2:
+            usid_str = usid_str.encode('utf8')
+
+        return '\n'.join([h5_str, usid_str])
+    
     def visualize(self, slice_dict=None, verbose=False, **kwargs):
         """
         Interactive visualization of this dataset. **Only available on jupyter notebooks**
@@ -244,199 +177,170 @@ class NSIDataset(h5py.Dataset):
         axis : :class:`matplotlib.Axes.axis` object
             Axis within which the data was plotted. Note - the interactive visualizer does not return this object
         """
-
-        if slice_dict is None:
-            if len(self.pos_dim_labels) > 2 or len(self.spec_dim_labels) > 2:
-                raise NotImplementedError('Unable to support visualization of more than 2 position / spectroscopic '
-                                          'dimensions. Try slicing the dataset')
-            data_slice = self.get_n_dim_form()
-            spec_unit_values = get_unit_values(self.h5_spec_inds, self.h5_spec_vals)
-            pos_unit_values = get_unit_values(self.h5_pos_inds, self.h5_pos_vals)
-
-            pos_dims = []
-            for name, units in zip(self.pos_dim_labels, get_attr(self.h5_pos_inds, 'units')):
-                pos_dims.append(Dimension(name, units, pos_unit_values[name]))
-            spec_dims = []
-            for name, units in zip(self.spec_dim_labels, get_attr(self.h5_spec_inds, 'units')):
-                spec_dims.append(Dimension(name, units, spec_unit_values[name]))
-
-        else:
-            pos_dims, spec_dims = self._get_dims_for_slice(slice_dict=slice_dict, verbose=verbose)
-
-            # see if the total number of pos and spec keys are either 1 or 2
-            if not (0 < len(pos_dims) < 3) or not (0 < len(spec_dims) < 3):
-                raise ValueError('Number of position ({}) / spectroscopic dimensions ({}) more than 2'
-                                 '. Try slicing again'.format(len(pos_dims), len(spec_dims)))
-
-            # now should be safe to slice:
-            data_slice, success = self.slice(slice_dict, ndim_form=True, lazy=False)
-            if not success:
-                raise ValueError('Something went wrong when slicing the dataset. slice message: {}'.format(success))
-            # don't forget to remove singular dimensions via a squeeze
-            data_slice = np.squeeze(data_slice)
-            # Unlikely event that all dimensions were removed and we are left with a scalar:
-            if data_slice.ndim == 0:
-                # Nothing to visualize - just return a value
-                return data_slice
-            # There is a chance that the data dimensionality may have reduced to 1:
-            elif data_slice.ndim == 1:
-                if len(pos_dims) == 0:
-                    data_slice = np.expand_dims(data_slice, axis=0)
+        
+        dim_type_dict = self.get_dimens_types()
+        output_reference = None
+        data_slice = self
+        if 'spatial' in dim_type_dict:
+            
+            if len(dim_type_dict['spatial'])== 1: 
+                ### some kind of line
+                if len(dim_type_dict) == 1:
+                    ## simple profile
+                    return plot_curve(pos_dims, data_slice)
+                else:      
+                    print('visualization not implemented, yet')
+            else:      
+                print('visualization not implemented, yet')
+            
+            if len(dim_type_dict['spatial'])== 2: 
+                ## some kind of image data
+                if len(dim_type_dict) == 1:
+                    ## simple image
+                    self.plot_image()
+                elif 'time' in dim_type_dict:
+                    ## image stack
+                    output_reference = self.plot_stack()
+                    
+                elif 'spectral' in dim_type_dict:
+                    ### spectrum image data in dataset
+                    if len(dim_type_dict['spectral'])== 1:
+                        output_reference = self.spectrum_image()
                 else:
-                    data_slice = np.expand_dims(data_slice, axis=-1)
-
-        if verbose:
-            print('Position Dimensions:')
-            for item in pos_dims:
-                print('{}\n{}'.format(len(item.values), item))
-            print('Spectroscopic Dimensions:')
-            for item in spec_dims:
-                print('{}\n{}'.format(len(item.values), item))
-            print('N dimensional data sent to visualizer of shape: {}'.format(data_slice.shape))
-
+                    print('visualization not implemented, yet')
+                
+        elif 'reciprocal' in dim_type_dict:
+            if len(dim_type_dict['reciprocal'])== 2: 
+                ## some kind of image data
+                if len(dim_type_dict) == 1:
+                    ## simple diffraction pattern
+                    output_reference = self.plot_image()
+                else:      
+                    print('visualization not implemented, yet')
+            else:      
+                print('visualization not implemented, yet')
+        else:
+            if 'spectral' in dim_type_dict:
+                ### Only spectral data in dataset
+                if len(dim_type_dict['spectral'])== 1:
+                    fig, axis = self.plot_curve(dim_type_dict['spectral'],data_slice)
+                else:      
+                    print('visualization not implemented, yet')
+            else:      
+                print('visualization not implemented, yet')
+                
+        
+            
+    def plot_curve(self,ref_dims, curve, **kwargs):
         # Handle the simple cases first:
         fig_args = dict()
         temp = kwargs.pop('figsize', None)
         if temp is not None:
             fig_args['figsize'] = temp
 
-        def plot_curve(ref_dims, curve):
-            x_suffix = ''
-            x_exp = get_exponent(ref_dims[0].values)
-            if x_exp < -2 or x_exp > 3:
-                ref_dims[0].values /= 10 ** x_exp
-                x_suffix = ' x $10^{' + str(x_exp) + '}$'
-
-            if is_complex_dtype(curve.dtype):
-                # Plot real and image
-                fig, axes = plt.subplots(nrows=2, **fig_args)
-                for axis, ufunc, comp_name in zip(axes.flat, [np.abs, np.angle], ['Magnitude', 'Phase']):
-                    axis.plot(ref_dims[0].values, ufunc(np.squeeze(curve)), **kwargs)
-                    if comp_name is 'Magnitude':
-                        axis.set_title(self.name + '\n(' + comp_name + ')', pad=15)
-                        axis.set_ylabel(self.data_descriptor)
-                    else:
-                        axis.set_title(comp_name, pad=15)
-                        axis.set_ylabel('Phase (rad)')
-                        axis.set_xlabel(ref_dims[0].name + ' (' + ref_dims[0].units + ')' + x_suffix)
-
-                fig.tight_layout()
-                return fig, axes
-            elif len(curve.dtype) > 0:
-                plot_grid = get_plot_grid_size(len(curve.dtype))
-                fig, axes = plt.subplots(nrows=plot_grid[0], ncols=plot_grid[1], **fig_args)
-                for axis, comp_name in zip(axes.flat, curve.dtype.fields):
-                    axis.plot(ref_dims[0].values, np.squeeze(curve[comp_name]), **kwargs)
-                    axis.set_title(comp_name, pad=15)
-                    axis.set_xlabel(ref_dims[0].name + ' (' + ref_dims[0].units + ')' + x_suffix)
-                    axis.set_ylabel(comp_name)
-                # fig.suptitle(self.name)
-                fig.tight_layout()
-                return fig, axes
-            else:
-                y_exp = get_exponent(np.squeeze(curve))
-                y_suffix = ''
-                if y_exp < -2 or y_exp > 3:
-                    curve = np.squeeze(curve) / 10 ** y_exp
-                    y_suffix = ' x $10^{' + str(y_exp) + '}$'
-
-                fig, axis = plt.subplots(**fig_args)
-                axis.plot(ref_dims[0].values, np.squeeze(curve), **kwargs)
-                axis.set_xlabel(ref_dims[0].name + ' (' + ref_dims[0].units + ')' + x_suffix)
-                axis.set_ylabel(self.data_descriptor + y_suffix)
-                axis.set_title(self.name)
-
-                return fig, axis
-
-        def plot_image(ref_dims, img):
-            exponents = [get_exponent(item.values) for item in ref_dims]
-            suffix = []
-            for item, scale in zip(ref_dims, exponents):
-                curr_suff = ''
-                if scale < -1 or scale > 3:
-                    item.values /= 10 ** scale
-                    curr_suff = ' x $10^{' + str(scale) + '}$'
-                suffix.append(curr_suff)
-
-            if is_complex_dtype(img.dtype):
-                # Plot real and image
-                fig, axes = plt.subplots(nrows=2, **fig_args)
-                for axis, ufunc, comp_name in zip(axes.flat, [np.abs, np.angle], ['Magnitude', 'Phase']):
-                    cbar_label = self.data_descriptor
-                    if comp_name is 'Phase':
-                        cbar_label = 'Phase (rad)'
-                    plot_map(axis, ufunc(np.squeeze(img)), show_xy_ticks=True, show_cbar=True,
-                             cbar_label=cbar_label, x_vec=ref_dims[1].values, y_vec=ref_dims[0].values,
-                             **kwargs)
+        if len(ref_dims) > 1:
+            for dim in ref-dims:
+                plot_grid = get_plot_grid_size(len(ref_dims))
+                fig, axes = plt.subplots(nrows=plot_grid[0], ncols=plot_grid[1])#, **fig_args)
+                for i, dim in enumerate(ref_dims):
+                    axis = axes[i]
+                    axes[i].plot(self.dims[ref_dims[dim]][0], self, **kwargs)
+                    axes[i].set_title(self.name, pad=15)
+                    axes[i].set_xlabel(self.__get_anc_labels()[ref_dims[dim]])# + x_suffix)
+                    axes[i].set_ylabel(self.data_descriptor)
+                    axes[i].ticklabel_format(style='sci', scilimits=(-2, 3))
+                
+            fig.suptitle(self.name)
+            
+            fig.tight_layout()
+            return fig, axes
+        
+        elif is_complex_dtype(curve):
+            # Plot real and image
+            fig, axes = plt.subplots(nrows=2, **fig_args)
+            
+            for axis, ufunc, comp_name in zip(axes.flat, [np.abs, np.angle], ['Magnitude', 'Phase']):
+                axis.plot(self.dims[ref_dims][0], ufunc(np.squeeze(curve)), **kwargs)
+                if comp_name is 'Magnitude':
                     axis.set_title(self.name + '\n(' + comp_name + ')', pad=15)
-                    axis.set_xlabel(ref_dims[1].name + ' (' + ref_dims[1].units + ')' + suffix[1])
-                    axis.set_ylabel(ref_dims[0].name + ' (' + ref_dims[0].units + ')' + suffix[0])
-                fig.tight_layout()
-                return fig, axes
-            elif len(img.dtype) > 0:
-                # Compound
-                # I would like to have used plot_map_stack by providing it the flattened (real) image cube
-                # However, the order of the components in the cube and that provided by img.dtype.fields is not matching
-                plot_grid = get_plot_grid_size(len(img.dtype))
-                fig, axes = plt.subplots(nrows=plot_grid[0], ncols=plot_grid[1], **fig_args)
-                for axis, comp_name in zip(axes.flat, img.dtype.fields):
-                    plot_map(axis, np.squeeze(img[comp_name]), show_xy_ticks=True, show_cbar=True,
-                             x_vec=ref_dims[1].values, y_vec=ref_dims[0].values, **kwargs)
+                    axis.set_xlabel(self.__get_anc_labels()[ref_dims[0]])# + x_suffix)
+                    axis.set_ylabel(self.data_descriptor)
+                    axis.ticklabel_format(style='sci', scilimits=(-2, 3))
+                else:
                     axis.set_title(comp_name, pad=15)
-                    axis.set_xlabel(ref_dims[1].name + ' (' + ref_dims[1].units + ')' + suffix[1])
-                    axis.set_ylabel(ref_dims[0].name + ' (' + ref_dims[0].units + ')' + suffix[0])
+                    axis.set_ylabel('Phase (rad)')
+                    axis.set_xlabel(self.__get_anc_labels()[ref_dims[0]])# + x_suffix)
+                    axis.ticklabel_format(style='sci', scilimits=(-2, 3))
+            
+            fig.tight_layout()
+            return fig, axes
+        
+        else:
+            fig, axis = plt.subplots()#**fig_args)
+            axis.plot(self.dims[ref_dims[0]][0], curve, **kwargs)
+            axis.set_title(self.name, pad=15)
+            axis.set_xlabel(self.__get_anc_labels()[ref_dims[0]])# + x_suffix)
+            axis.set_ylabel(self.data_descriptor)
+            axis.ticklabel_format(style='sci', scilimits=(-2, 3))
+            fig.tight_layout()
+            return fig, axis
+   
 
-                # delete empty axes
-                for ax_ind in range(len(img.dtype), np.prod(plot_grid)):
-                    fig.delaxes(axes.flatten()[ax_ind])
-
-                # fig.suptitle(self.name)
-                fig.tight_layout()
-                return fig, axes
-            else:
-                fig, axis = plt.subplots(**fig_args)
-                # Need to convert to float since image could be unsigned integers or low precision floats
-                plot_map(axis, np.float32(np.squeeze(img)), show_xy_ticks=True, show_cbar=True,
-                         cbar_label=self.data_descriptor, x_vec=ref_dims[1].values, y_vec=ref_dims[0].values, **kwargs)
-                try:
-                    axis.set_title(self.name, pad=15)
-                except AttributeError:
-                    axis.set_title(self.name)
-
+    def plot_image(ref_dims, img):
+        fig_args = dict()
+        temp = kwargs.pop('figsize', None)
+        if temp is not None:
+            fig_args['figsize'] = temp
+        
+        if is_complex_dtype(img):
+            # Plot real and image
+            fig, axes = plt.subplots(nrows=2, **fig_args)
+            for axis, ufunc, comp_name in zip(axes.flat, [np.abs, np.angle], ['Magnitude', 'Phase']):
+                cbar_label = self.data_descriptor
+                if comp_name is 'Phase':
+                    cbar_label = 'Phase (rad)'
+                plot_map(axis, ufunc(np.squeeze(img)), show_xy_ticks=True, show_cbar=True,
+                         cbar_label=cbar_label, x_vec=ref_dims[1].values, y_vec=ref_dims[0].values,
+                         **kwargs)
+                axis.set_title(self.name + '\n(' + comp_name + ')', pad=15)
                 axis.set_xlabel(ref_dims[1].name + ' (' + ref_dims[1].units + ')' + suffix[1])
                 axis.set_ylabel(ref_dims[0].name + ' (' + ref_dims[0].units + ')' + suffix[0])
-                fig.tight_layout()
-                return fig, axis
+            fig.tight_layout()
+            return fig, axes
+        elif len(ref_dims) > 0:
+            # Compound
+            # I would like to have used plot_map_stack by providing it the flattened (real) image cube
+            # However, the order of the components in the cube and that provided by img.dtype.fields is not matching
+            plot_grid = get_plot_grid_size(len(img.dtype))
+            fig, axes = plt.subplots(nrows=plot_grid[0], ncols=plot_grid[1], **fig_args)
+            for axis, comp_name in zip(axes.flat, img.dtype.fields):
+                plot_map(axis, np.squeeze(img[comp_name]), show_xy_ticks=True, show_cbar=True,
+                         x_vec=ref_dims[1].values, y_vec=ref_dims[0].values, **kwargs)
+                axis.set_title(comp_name, pad=15)
+                axis.set_xlabel(ref_dims[1].name + ' (' + ref_dims[1].units + ')' + suffix[1])
+                axis.set_ylabel(ref_dims[0].name + ' (' + ref_dims[0].units + ')' + suffix[0])
 
-        if np.prod([len(item.values) for item in spec_dims]) == 1:
-            # No spectroscopic dimensions at all
-            if len(pos_dims) == 2:
-                # 2D spatial map
-                # Check if we need to adjust the aspect ratio of the image (only if units are same):
-                if pos_dims[0].units == pos_dims[1].units:
-                    kwargs['infer_aspect'] = True
-                return plot_image(pos_dims, data_slice)
-            elif np.prod([len(item.values) for item in pos_dims]) > 1:
-                # 1D position curve:
-                return plot_curve(pos_dims, data_slice)
+            # delete empty axes
+            for ax_ind in range(len(img.dtype), np.prod(plot_grid)):
+                fig.delaxes(axes.flatten()[ax_ind])
 
-        elif np.prod([len(item.values) for item in pos_dims]) == 1:
-            if len(spec_dims) == 2:
-                # 2D spectrogram
-                return plot_image(spec_dims, data_slice)
-            elif np.prod([len(item.values) for item in pos_dims]) == 1 and \
-                    np.prod([len(item.values) for item in spec_dims]) > 1:
-                # 1D spectral curve:
-                return plot_curve(spec_dims, data_slice)
+            # fig.suptitle(self.name)
+            fig.tight_layout()
+            return fig, axes
+        else:
+            fig, axis = plt.subplots(**fig_args)
+            # Need to convert to float since image could be unsigned integers or low precision floats
+            plot_map(axis, np.float32(np.squeeze(img).T), show_xy_ticks=True, show_cbar=True,
+                     cbar_label=self.data_descriptor, x_vec=ref_dims[1].values, y_vec=ref_dims[0].values, **kwargs)
+            try:
+                axis.set_title(self.name, pad=15)
+            except AttributeError:
+                axis.set_title(self.name)
 
-        elif len(pos_dims) == 1 and len(spec_dims) == 1 and \
-            np.prod([len(item.values) for item in pos_dims]) > 1 and \
-            np.prod([len(item.values) for item in spec_dims]) > 1:
-            # One spectroscopic and one position dimension
-            return plot_image(pos_dims + spec_dims, data_slice)
-
-        # If data has at least one dimension with 2 values in pos. AND spec., it can be visualized interactively:
-        return simple_ndim_visualizer(data_slice, pos_dims, spec_dims, verbose=verbose, **kwargs)
+            axis.set_xlabel(ref_dims[1].name + ' (' + ref_dims[1].units + ')' + suffix[1])
+            axis.set_ylabel(ref_dims[0].name + ' (' + ref_dims[0].units + ')' + suffix[0])
+            fig.tight_layout()
+            return fig, axis
 
     def reduce(self, dims, ufunc=da.mean, to_hdf5=False, dset_name=None, verbose=False):
         """

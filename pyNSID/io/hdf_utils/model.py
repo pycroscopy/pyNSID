@@ -213,7 +213,7 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
             dimensional_dict[i] = this_dim
         elif isinstance(this_dim, Dimension):
             this_dim_dset = h5_parent_group.create_dataset(this_dim.name,data=this_dim.values)
-            attrs_to_write={'name':  this_dim.name, 'units': this_dim.units, 'quantity':  this_dim.quantity, 'is_position': this_dim.is_position, 'nsid_version' : '0.0.1'}
+            attrs_to_write={'name':  this_dim.name, 'units': this_dim.units, 'quantity':  this_dim.quantity, 'dimension_type': this_dim.dimension_type, 'nsid_version' : '0.0.1'}
             write_simple_attrs(this_dim_dset, attrs_to_write)
 
         else:
@@ -221,7 +221,7 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
             pass
         dimensional_dict[i] = this_dim_dset
     
-    h5_main = link_as_main(h5_main, dimensional_dict)
+    
         
     attrs_to_write={'quantity': quantity, 'units': units, 'nsid_version' : '0.0.1'}
     attrs_to_write['main_data_name'] =  main_data_name
@@ -231,6 +231,7 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
     
     write_simple_attrs(h5_main, attrs_to_write)
 
+    
     if verbose:
         print('Wrote dimensions and attributes to main dataset')
 
@@ -240,11 +241,11 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
             print('Wrote provided attributes to main dataset')
 
     #ToDo: check if we need  write_book_keeping_attrs(h5_main)
-
+    NSID_data_main = link_as_main(h5_main, dimensional_dict)
     if verbose:
         print('Successfully linked datasets - dataset should be main now')
 
-    from ..nsi_data import NSIDataset
-    return h5_main
+    
+    return NSID_data_main#NSIDataset(h5_main)
 
 
