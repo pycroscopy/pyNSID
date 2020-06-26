@@ -22,6 +22,7 @@ if sys.version_info.major == 3:
     unicode = str
 
 
+
 class NSIDataset(h5py.Dataset):
     """
      A class that simplifies slicing, visualization, reshaping, reduction etc. of USID datasets in HDF5 files.
