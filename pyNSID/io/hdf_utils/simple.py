@@ -265,7 +265,9 @@ def copy_attributes(source, dest, skip_refs=True, verbose=False):
         skip_dset_refs = True
 
     for att_name in source.attrs.keys():
-        att_val = get_attr(source, att_name)
+        print(att_name)
+        if att_name not in ['DIMENSION_LIST']:
+            att_val = get_attr(source, att_name)
         """
         Don't copy references unless asked
         """
@@ -290,7 +292,8 @@ def copy_attributes(source, dest, skip_refs=True, verbose=False):
             try:
                 if verbose:
                     print('requested reg ref copy')
-                copy_region_refs(source, dest)
+                #copy_region_refs(source, dest)
+                pass ### ToDo activate again
             except TypeError:
                 warn(mesg)
         else:
@@ -864,7 +867,7 @@ def create_empty_dataset(source_dset, dtype, dset_name, h5_group=None, new_attrs
 
     if source_dset.file.driver == 'mpio':
         if kwargs.pop('compression', None) is not None:
-            warn('This HDF5 file has been opened wth the "mpio" communicator. '
+            warn('This HDF5 file has been opened with the "mpio" communicator. '
                  'mpi4py does not allow creation of compressed datasets. Compression kwarg has been removed')
 
     if dset_name in h5_group.keys():
@@ -887,15 +890,32 @@ def create_empty_dataset(source_dset, dtype, dset_name, h5_group=None, new_attrs
     else:
         h5_new_dset = h5_group.create_dataset(dset_name, **kwargs)
 
+    
+
+
     # This should link the ancillary datasets correctly
     h5_new_dset = copy_attributes(source_dset, h5_new_dset,
                                   skip_refs=skip_refs)
+
+    ####################
+    # Attaching Dimensional Scales
+    ####################
+    dim_dict = {}
+    for i, dimension in enumerate(source_dset.dims):
+        # check for all required attributes
+        dim_dict[i]=h5_group[dimension.label]
+
+    h5_new_dset = link_as_main(h5_new_dset,dim_dict)
+
+    ###################
+    #  Go on with old function
+    ################                              
     if source_dset.file != h5_group.file:
         copy_linked_objects(source_dset, h5_new_dset)
     h5_new_dset.attrs.update(new_attrs)
 
     if check_if_main(h5_new_dset):
-        #from ..nsi_data import NSIDataset
+        from ..nsi_data import NSIDataset
 
         h5_new_dset = NSIDataset(h5_new_dset)
         # update book keeping attributes
@@ -987,125 +1007,6 @@ def check_for_matching_attrs(h5_obj, new_parms=None, verbose=False):
 
     return all(tests)
 
-
-def write_ind_val_dsets(h5_parent_group, dimensions, is_spectral=True, verbose=False, base_name=None,
-                        slow_to_fast=False):
-    """
-    Creates h5py.Datasets for the position OR spectroscopic indices and values of the data.
-    Remember that the contents of the dataset can be changed if need be after the creation of the datasets.
-    For example if one of the spectroscopic dimensions (e.g. - Bias) was sinusoidal and not linear, The specific
-    dimension in the Spectroscopic_Values dataset can be manually overwritten.
-    Parameters
-    ----------
-    h5_parent_group : :class:`h5py.Group` or :class:`h5py.File`
-        Group under which the indices and values datasets will be created
-    dimensions : Dimension or array-like of Dimension objects
-        Sequence of Dimension objects that provides all necessary instructions for constructing the indices and values
-        datasets
-    is_spectral : bool, optional. default = True
-        Spectroscopic (True) or Position (False)
-    verbose : Boolean, optional
-        Whether or not to print statements for debugging purposes
-    base_name : str or unicode, optional
-        Prefix for the datasets. Default: 'Position' when is_spectral is False, 'Spectroscopic' otherwise
-    slow_to_fast : bool, Optional. Default=False
-        Set to True if the dimensions are arranged from slowest varying to fastest varying.
-        Set to False otherwise.
-    Returns
-    -------
-    h5_spec_inds : h5py.Dataset
-        Dataset containing the position indices
-    h5_spec_vals : h5py.Dataset
-        Dataset containing the value at each position
-    Notes
-    -----
-    `steps`, `initial_values`, `labels`, and 'units' must be the same length as
-    `dimensions` when they are specified.
-    Dimensions should be in the order from fastest varying to slowest.
-    """
-    if isinstance(dimensions, Dimension):
-        dimensions = [dimensions]
-    if not isinstance(dimensions, (list, np.ndarray, tuple)):
-        raise TypeError('dimensions should be array-like ')
-    if not np.all([isinstance(x, Dimension) for x in dimensions]):
-        raise TypeError('dimensions should be a sequence of Dimension objects')
-
-    if not isinstance(h5_parent_group, (h5py.Group, h5py.File)):
-        raise TypeError('h5_parent_group should be a h5py.File or Group object')
-    if not is_editable_h5(h5_parent_group):
-        raise ValueError('The provided h5 object is not valid / open')
-
-    if base_name is not None:
-        base_name = validate_single_string_arg(base_name, 'base_name')
-        if not base_name.endswith('_'):
-            base_name += '_'
-    else:
-        base_name = 'Position_'
-        if is_spectral:
-            base_name = 'Spectroscopic_'
-
-    if not slow_to_fast:
-        warn('In the future write_ind_val_dsets will default to requiring dimensions to be arranged from slowest to fastest varying')
-
-    # check if the datasets already exist. If they do, there's no point in going any further
-    for sub_name in ['Indices', 'Values']:
-        if base_name + sub_name in h5_parent_group.keys():
-            raise KeyError('Dataset: {} already exists in provided group: {}'.format(base_name + sub_name,
-                                                                                     h5_parent_group.name))
-    modes = [dim.mode for dim in dimensions]
-    sing_mode = np.unique(modes)
-
-    if sing_mode.size > 1:
-        raise NotImplementedError('Cannot yet work on combinations of modes for Dimensions. Consider doing manually')
-
-    sing_mode = sing_mode[0]
-
-    if sing_mode == DimType.DEFAULT:
-        if slow_to_fast:
-            # Ensure that the dimensions are arranged from fast to slow instead
-            dimensions = dimensions[::-1]
-        indices, values = build_ind_val_matrices([dim.values for dim in dimensions],
-                                                 is_spectral=is_spectral)
-        # At this point, dimensions and unit values are arranged from fastest to slowest
-        # We want dimensions to be arranged from slowest to fastest:
-        rev_func = np.flipud if is_spectral else np.fliplr
-        dimensions = dimensions[::-1]
-        indices = rev_func(indices)
-        values = rev_func(values)
-
-    elif sing_mode == DimType.INCOMPLETE:
-        lengths = np.unique([len(dim.values) for dim in dimensions])
-        if len(lengths) > 1:
-            raise ValueError('Values for dimensions not of same length')
-        single_dim = np.arange(lengths[0], dtype=INDICES_DTYPE)
-        indices = np.tile(single_dim, (2, 1)).T
-        values = np.dstack(tuple([dim.values for dim in dimensions])).squeeze()
-
-        if is_spectral:
-            indices = indices.T
-            values = values.T
-    else:
-        raise NotImplementedError('Cannot yet work on Dependent dimensions')
-
-    if verbose:
-        print('Indices:')
-        print(indices)
-        print('Values:')
-        print(values)
-
-    # Create the slices that will define the labels
-    region_slices = get_aux_dset_slicing([x.name for x in dimensions], is_spectroscopic=is_spectral)
-
-    # Create the Datasets for both Indices and Values
-    h5_indices = h5_parent_group.create_dataset(base_name + 'Indices', data=INDICES_DTYPE(indices), dtype=INDICES_DTYPE)
-    h5_values = h5_parent_group.create_dataset(base_name + 'Values', data=VALUES_DTYPE(values), dtype=VALUES_DTYPE)
-
-    for h5_dset in [h5_indices, h5_values]:
-        write_region_references(h5_dset, region_slices, verbose=verbose)
-        write_simple_attrs(h5_dset, {'units': [x.units for x in dimensions], 'labels': [x.name for x in dimensions],
-                                     'type': [dim.mode.value for dim in dimensions]})
-
-    return h5_indices, h5_values
 
 
 def copy_dataset(h5_orig_dset, h5_dest_grp, alias=None, verbose=False):
@@ -1300,23 +1201,14 @@ def copy_region_refs(h5_source, h5_target):
 
     # It is OK if objects are in different files
 
-    if are_main:
-        h5_source_inds = h5_source.file[h5_source.attrs['Spectroscopic_Indices']]
-
-        h5_spec_inds = h5_target.file[h5_target.attrs['Spectroscopic_Indices']]
-        h5_spec_vals = h5_target.file[h5_target.attrs['Spectroscopic_Values']]
-
+    
     for key in h5_source.attrs.keys():
         if not isinstance(h5_source.attrs[key], h5py.RegionReference):
             continue
 
         if are_main:
-            if h5_source_inds.shape[0] == h5_spec_inds.shape[0]:
-                '''
-                Spectroscopic dimensions are identical.
-                Do direct copy.
-                '''
-                ref_inds = simple_region_ref_copy(h5_source, h5_target, key)
+            for dim in h5_source_inds.dims:
+            ref_inds = simple_region_ref_copy(h5_source, h5_target, key)
 
             else:
                 '''
@@ -1344,160 +1236,3 @@ def copy_region_refs(h5_source, h5_target):
             simple_region_ref_copy(h5_source, h5_target, key)
 
 
-def write_reduced_anc_dsets(h5_parent_group, h5_inds, h5_vals, dim_name, basename=None, is_spec=None,
-                            verbose=False):
-    """
-    Creates new Ancillary Indices and Values datasets from the input datasets by dropping the specified dimensions
-    Parameters
-    ----------
-    h5_parent_group : :class:`h5py.Group` or h5py.File
-        Group under which the indices and values datasets will be created
-    h5_inds : HDF5 Dataset
-            Spectroscopic or Positions indices dataset
-    h5_vals : HDF5 Dataset
-            Spectroscopic or Positions values dataset
-    dim_name : str or unicode or list of strings
-            Names of the dimension(s) to remove
-    basename : str or unicode, Optional
-            String to which '_Indices' and '_Values' will be appended to get the names of the new datasets.
-            Default = 'Position' or 'Spectroscopic'
-    is_spec : bool, optional
-            Whether or not the provided ancillary datasets are position or spectroscopic
-            The user is recommended to supply this parameter whenever it is known or possible.
-            By default, this function will attempt to recognize the answer based on the shape of the datasets.
-    verbose : bool, optional. Default = False
-            Whether or not to print debugging print statements
-    Returns
-    -------
-    h5_inds_new : h5py.Dataset
-            Reduced indices dataset
-    h5_vals_new : h5py.Dataset
-            Reduces values dataset
-    """
-    if not isinstance(h5_parent_group, (h5py.Group, h5py.File)):
-        raise TypeError('h5_parent_group should either be a h5py. Group or File object')
-
-    for param, param_name in zip([h5_inds, h5_vals], ['h5_inds', 'h5_vals']):
-        if not isinstance(param, h5py.Dataset):
-            raise TypeError(param_name + ' should be a h5py.Dataset object')
-    if dim_name is not None:
-        dim_name = validate_list_of_strings(dim_name, 'dim_name')
-
-    all_dim_names = list(get_attr(h5_inds, 'labels'))
-    for item in dim_name:
-        if item not in all_dim_names:
-            raise KeyError('Requested dimension: {} not in the list of labels: {}'.format(item, all_dim_names))
-
-    ind_mat = h5_inds[()]
-    val_mat = h5_vals[()]
-
-    if is_spec is None:
-        # Attempt to recognize the type automatically
-        is_spec = False
-        if ind_mat.shape[0] == ind_mat.shape[1]:
-            raise ValueError('Unable automatically guess whether the provided datasets are position or '
-                             'spectroscopic. Please explicitely specify via the "is_spec" boolean kwarg')
-        if ind_mat.shape[0] < ind_mat.shape[1]:
-            is_spec = True
-    else:
-        if not isinstance(is_spec, bool):
-            raise TypeError('is_spec should be a boolean. Provided object is of type: {}'.format(type(is_spec)))
-
-    if basename is not None:
-        basename = validate_single_string_arg(basename, 'basename')
-        if basename.endswith('_'):
-            basename = basename[:-1]
-    else:
-        if is_spec:
-            basename = 'Spectroscopic'
-        else:
-            basename = 'Position'
-
-    for sub_name in ['_Indices', '_Values']:
-        if basename + sub_name in h5_parent_group.keys():
-            raise KeyError('Dataset: {} already exists in provided group: {}'.format(basename + sub_name,
-                                                                                     h5_parent_group.name))
-
-    if set(dim_name) != set(all_dim_names):
-        # At least one dimension will remain
-
-        if verbose:
-            print('All Dimensions: {}. Dimensions to be removed: {}'.format(all_dim_names, dim_name))
-
-        if not is_spec:
-            # Convert to spectral shape
-            ind_mat = np.transpose(ind_mat)
-            val_mat = np.transpose(val_mat)
-
-        # For all dimensions, find where the index = 0
-        # basically, we are indexing all dimensions to 0
-        first_indices = []
-        keep_dim = np.ones(len(all_dim_names), dtype=bool)
-        for cur_dim in dim_name:
-            dim_ind = all_dim_names.index(cur_dim)
-            keep_dim[dim_ind] = False
-            # check equality against the minimum value instead of 0 to account for cases when a dimension does not start
-            # from 0 (already been sliced) - think of multi-dimensional slicing!
-            first_indices.append(ind_mat[dim_ind] == np.min(ind_mat[dim_ind]))
-        first_indices = np.vstack(first_indices)
-
-        if verbose:
-            print('Raw first_indices:')
-            print(first_indices)
-            print('Dimensions to keep: {}'.format(keep_dim))
-
-        step_starts = np.all(first_indices, axis=0)
-
-        if verbose:
-            print('Columns in dataset to keep:')
-            print(step_starts)
-
-        '''
-        Extract all rows that we want to keep from input indices and values
-        '''
-        # TODO: handle TypeError: Indexing elements must be in increasing order
-        ind_mat = ind_mat[keep_dim, :][:, step_starts]
-        val_mat = val_mat[keep_dim, :][:, step_starts]
-
-        if not is_spec:
-            # Convert back to position shape
-            ind_mat = np.transpose(ind_mat)
-            val_mat = np.transpose(val_mat)
-
-        '''
-        Create new Datasets to hold the data
-        Name them based on basename
-        '''
-        h5_inds_new = h5_parent_group.create_dataset(basename + '_Indices', data=ind_mat, dtype=h5_inds.dtype)
-        h5_vals_new = h5_parent_group.create_dataset(basename + '_Values', data=val_mat, dtype=h5_vals.dtype)
-        # Extracting the labels from the original spectroscopic data sets
-        labels = h5_inds.attrs['labels'][keep_dim]
-        # Creating the dimension slices for the new spectroscopic data sets
-        reg_ref_slices = dict()
-        for row_ind, row_name in enumerate(labels):
-            # Not necessary anymore but still.....
-            if is_spec:
-                reg_ref_slices[row_name] = (slice(row_ind, row_ind + 1), slice(None))
-            else:
-                reg_ref_slices[row_name] = (slice(None), slice(row_ind, row_ind + 1))
-
-            if verbose:
-                print(reg_ref_slices)
-
-        # Adding the labels and units to the new spectroscopic data sets
-        for dset in [h5_inds_new, h5_vals_new]:
-            write_region_references(dset, reg_ref_slices, verbose=False)
-            write_simple_attrs(dset, {'labels': labels, 'units': h5_inds.attrs['units'][keep_dim]})
-
-    else:
-        # Remove all dimensions:
-        h5_inds_new = h5_parent_group.create_dataset(basename + '_Indices', data=np.array([[0]]), dtype=INDICES_DTYPE)
-        h5_vals_new = h5_parent_group.create_dataset(basename + '_Values', data=np.array([[0]]), dtype=VALUES_DTYPE)
-
-        reg_ref_slices = {'Single_Step': (slice(0, None), slice(None))}
-
-        for dset in [h5_inds_new, h5_vals_new]:
-            write_region_references(dset, reg_ref_slices, verbose=False)
-            write_simple_attrs(dset, {'labels': ['Single_Step'], 'units': ['a. u.']})
-
-    return h5_inds_new, h5_vals_new

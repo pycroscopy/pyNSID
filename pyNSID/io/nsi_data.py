@@ -7,9 +7,7 @@ import h5py
 import numpy as np
 import dask.array as da
 import matplotlib.pyplot as plt
-from .hdf_utils import check_if_main, get_attr, create_results_group, write_reduced_anc_dsets, link_as_main, \
-    write_main_dataset,  \
-    copy_attributes
+from .hdf_utils import check_if_main, get_attr, create_results_group, link_as_main, write_main_dataset, copy_attributes
 ## taken out temporarily
 #get_dimensionality, get_sort_order, get_unit_values, reshape_to_n_dims,reshape_from_n_dims,
 from .dtype_utils import  contains_integers, get_exponent, is_complex_dtype, \
