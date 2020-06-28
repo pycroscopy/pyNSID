@@ -7,14 +7,18 @@ import h5py
 import numpy as np
 import dask.array as da
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
+
 from .hdf_utils import check_if_main, get_attr, create_results_group, link_as_main, write_main_dataset, copy_attributes
 ## taken out temporarily
-#get_dimensionality, get_sort_order, get_unit_values, reshape_to_n_dims,reshape_from_n_dims,
+# get_sort_order, get_unit_values,
 from .dtype_utils import  contains_integers, get_exponent, is_complex_dtype, \
     validate_single_string_arg, validate_list_of_strings, lazy_load_array
+    
+from .write_utils import Dimension
+
 ## taken out temporarily
 #flatten_to_real, 
-from .write_utils import Dimension
 #from ..viz.jupyter_utils import simple_ndim_visualizer
 #from ..viz.plot_utils import plot_map, get_plot_grid_size
 
@@ -186,20 +190,20 @@ class NSIDataset(h5py.Dataset):
                 ### some kind of line
                 if len(dim_type_dict) == 1:
                     ## simple profile
-                    return plot_curve(pos_dims, data_slice)
+                    return self.plot_curve(pos_dims, data_slice)
                 else:      
                     print('visualization not implemented, yet')
-            else:      
-                print('visualization not implemented, yet')
             
-            if len(dim_type_dict['spatial'])== 2: 
+            
+            elif len(dim_type_dict['spatial'])== 2: 
                 ## some kind of image data
                 if len(dim_type_dict) == 1:
                     ## simple image
-                    self.plot_image()
+                    return self.plot_image(dim_type_dict['spatial'])
                 elif 'time' in dim_type_dict:
                     ## image stack
-                    output_reference = self.plot_stack()
+                    self.view = plot_stack(self, dim_type_dict['spatial'])
+                    return self.view.fig, self.view.axis
                     
                 elif 'spectral' in dim_type_dict:
                     ### spectrum image data in dataset
@@ -207,13 +211,15 @@ class NSIDataset(h5py.Dataset):
                         output_reference = self.spectrum_image()
                 else:
                     print('visualization not implemented, yet')
-                
+            else:      
+                print('visualization not implemented, yet')
+
         elif 'reciprocal' in dim_type_dict:
             if len(dim_type_dict['reciprocal'])== 2: 
                 ## some kind of image data
                 if len(dim_type_dict) == 1:
                     ## simple diffraction pattern
-                    output_reference = self.plot_image()
+                    return self.plot_image()
                 else:      
                     print('visualization not implemented, yet')
             else:      
@@ -222,13 +228,13 @@ class NSIDataset(h5py.Dataset):
             if 'spectral' in dim_type_dict:
                 ### Only spectral data in dataset
                 if len(dim_type_dict['spectral'])== 1:
-                    fig, axis = self.plot_curve(dim_type_dict['spectral'],data_slice)
+                    return self.plot_curve(dim_type_dict['spectral'],data_slice)
                 else:      
                     print('visualization not implemented, yet')
             else:      
                 print('visualization not implemented, yet')
                 
-        
+    # TODO test complex data
             
     def plot_curve(self,ref_dims, curve, **kwargs):
         # Handle the simple cases first:
@@ -237,66 +243,63 @@ class NSIDataset(h5py.Dataset):
         if temp is not None:
             fig_args['figsize'] = temp
 
-        if len(ref_dims) > 1:
-            for dim in ref-dims:
-                plot_grid = get_plot_grid_size(len(ref_dims))
-                fig, axes = plt.subplots(nrows=plot_grid[0], ncols=plot_grid[1])#, **fig_args)
-                for i, dim in enumerate(ref_dims):
-                    axis = axes[i]
-                    axes[i].plot(self.dims[ref_dims[dim]][0], self, **kwargs)
-                    axes[i].set_title(self.name, pad=15)
-                    axes[i].set_xlabel(self.__get_anc_labels()[ref_dims[dim]])# + x_suffix)
-                    axes[i].set_ylabel(self.data_descriptor)
-                    axes[i].ticklabel_format(style='sci', scilimits=(-2, 3))
-                
-            fig.suptitle(self.name)
-            
-            fig.tight_layout()
-            return fig, axes
+        if len(ref_dims) != 1:
+            print( 'data type not handled yet')
         
-        elif is_complex_dtype(curve):
+        if is_complex_dtype(curve):
             # Plot real and image
             fig, axes = plt.subplots(nrows=2, **fig_args)
             
             for axis, ufunc, comp_name in zip(axes.flat, [np.abs, np.angle], ['Magnitude', 'Phase']):
                 axis.plot(self.dims[ref_dims][0], ufunc(np.squeeze(curve)), **kwargs)
-                if comp_name is 'Magnitude':
-                    axis.set_title(self.name + '\n(' + comp_name + ')', pad=15)
-                    axis.set_xlabel(self.__get_anc_labels()[ref_dims[0]])# + x_suffix)
+                if comp_name == 'Magnitude':
+                    axis.set_title(self.file.filename.split('/')[-1] + '\n(' + comp_name + ')', pad=15)
+                    axis.set_xlabel(self.get_dimension_labels()[ref_dims[0]])# + x_suffix)
                     axis.set_ylabel(self.data_descriptor)
                     axis.ticklabel_format(style='sci', scilimits=(-2, 3))
                 else:
                     axis.set_title(comp_name, pad=15)
                     axis.set_ylabel('Phase (rad)')
-                    axis.set_xlabel(self.__get_anc_labels()[ref_dims[0]])# + x_suffix)
+                    axis.set_xlabel(self.get_dimension_labels()[ref_dims[0]])# + x_suffix)
                     axis.ticklabel_format(style='sci', scilimits=(-2, 3))
             
             fig.tight_layout()
             return fig, axes
         
         else:
-            fig, axis = plt.subplots()#**fig_args)
+            fig, axis = plt.subplots(**fig_args)
             axis.plot(self.dims[ref_dims[0]][0], curve, **kwargs)
-            axis.set_title(self.name, pad=15)
-            axis.set_xlabel(self.__get_anc_labels()[ref_dims[0]])# + x_suffix)
+            axis.set_title(self.file.filename.split('/')[-1], pad=15)
+            axis.set_xlabel(self.get_dimension_labels()[ref_dims[0]])# + x_suffix)
             axis.set_ylabel(self.data_descriptor)
             axis.ticklabel_format(style='sci', scilimits=(-2, 3))
             fig.tight_layout()
             return fig, axis
    
+    def make_extent(self, ref_dims):
+        x_axis = self.dims[ref_dims[0]][0]
+        min_x = (x_axis[0] - abs(x_axis[0]-x_axis[1])/2)
+        max_x = (x_axis[-1] + abs(x_axis[-1]-x_axis[-2])/2)
+        y_axis = self.dims[ref_dims[1]][0]
+        min_y = (y_axis[0] - abs(y_axis[0]-y_axis[1])/2)
+        max_y = (y_axis[-1] + abs(y_axis[-1]-y_axis[-2])/2)
+        extent = [min_x, max_x,max_y, min_y]
+        return extent
 
-    def plot_image(ref_dims, img):
+    def plot_image(self, ref_dims, **kwargs):
+        print(ref_dims)
         fig_args = dict()
         temp = kwargs.pop('figsize', None)
         if temp is not None:
             fig_args['figsize'] = temp
+        extent = self.make_extent(ref_dims)
         
-        if is_complex_dtype(img):
+        if is_complex_dtype(self):
             # Plot real and image
             fig, axes = plt.subplots(nrows=2, **fig_args)
             for axis, ufunc, comp_name in zip(axes.flat, [np.abs, np.angle], ['Magnitude', 'Phase']):
                 cbar_label = self.data_descriptor
-                if comp_name is 'Phase':
+                if comp_name == 'Phase':
                     cbar_label = 'Phase (rad)'
                 plot_map(axis, ufunc(np.squeeze(img)), show_xy_ticks=True, show_cbar=True,
                          cbar_label=cbar_label, x_vec=ref_dims[1].values, y_vec=ref_dims[0].values,
@@ -306,48 +309,35 @@ class NSIDataset(h5py.Dataset):
                 axis.set_ylabel(ref_dims[0].name + ' (' + ref_dims[0].units + ')' + suffix[0])
             fig.tight_layout()
             return fig, axes
-        elif len(ref_dims) > 0:
-            # Compound
-            # I would like to have used plot_map_stack by providing it the flattened (real) image cube
-            # However, the order of the components in the cube and that provided by img.dtype.fields is not matching
-            plot_grid = get_plot_grid_size(len(img.dtype))
-            fig, axes = plt.subplots(nrows=plot_grid[0], ncols=plot_grid[1], **fig_args)
-            for axis, comp_name in zip(axes.flat, img.dtype.fields):
-                plot_map(axis, np.squeeze(img[comp_name]), show_xy_ticks=True, show_cbar=True,
-                         x_vec=ref_dims[1].values, y_vec=ref_dims[0].values, **kwargs)
-                axis.set_title(comp_name, pad=15)
-                axis.set_xlabel(ref_dims[1].name + ' (' + ref_dims[1].units + ')' + suffix[1])
-                axis.set_ylabel(ref_dims[0].name + ' (' + ref_dims[0].units + ')' + suffix[0])
-
-            # delete empty axes
-            for ax_ind in range(len(img.dtype), np.prod(plot_grid)):
-                fig.delaxes(axes.flatten()[ax_ind])
-
-            # fig.suptitle(self.name)
-            fig.tight_layout()
-            return fig, axes
+        
         else:
             fig, axis = plt.subplots(**fig_args)
             # Need to convert to float since image could be unsigned integers or low precision floats
-            plot_map(axis, np.float32(np.squeeze(img).T), show_xy_ticks=True, show_cbar=True,
-                     cbar_label=self.data_descriptor, x_vec=ref_dims[1].values, y_vec=ref_dims[0].values, **kwargs)
-            try:
-                axis.set_title(self.name, pad=15)
-            except AttributeError:
-                axis.set_title(self.name)
-
-            axis.set_xlabel(ref_dims[1].name + ' (' + ref_dims[1].units + ')' + suffix[1])
-            axis.set_ylabel(ref_dims[0].name + ' (' + ref_dims[0].units + ')' + suffix[0])
+            #plot_map(axis, np.float32(np.squeeze(img).T), show_xy_ticks=True, show_cbar=True,
+            #         cbar_label=self.data_descriptor, x_vec=ref_dims[1].values, y_vec=ref_dims[0].values, **kwargs)
+            img = plt.imshow(np.squeeze(self).T, extent=extent)
+            axis.set_title(self.file.filename.split('/')[-1], pad=15)
+            axis.set_xlabel(self.get_dimension_labels()[ref_dims[0]])# + x_suffix)
+            axis.set_ylabel(self.get_dimension_labels()[ref_dims[1]])
+            axis.ticklabel_format(style='sci', scilimits=(-2, 3))
+            cbar = fig.colorbar(img)
+            cbar.set_label(self.data_descriptor)
             fig.tight_layout()
             return fig, axis
+			
+	
+    
+
 
     def reduce(self, dims, ufunc=da.mean, to_hdf5=False, dset_name=None, verbose=False):
         """
-
+        # TODO dim_dict for link_as_main not yet implemented
+        # TODO test
+        
         Parameters
         ----------
         dims : str or list of str
-            Names of the position and/or spectroscopic dimensions that need to be reduced
+            Names of the dimensions that need to be reduced
         ufunc : callable, optional. Default = dask.array.mean
             Reduction function such as dask.array.mean available in dask.array
         to_hdf5 : bool, optional. Default = False
@@ -363,13 +353,16 @@ class NSIDataset(h5py.Dataset):
         reduced_nd : dask.array object
             Dask array object containing the reduced data.
             Call compute() on this object to get the equivalent numpy array
-        h5_main_red : USIDataset
-            USIDataset reference if to_hdf5 was set to True. Otherwise - None.
+        h5_main_red : NSIDataset
+            NSIDataset reference if to_hdf5 was set to True. Otherwise - None.
         """
         dims = validate_list_of_strings(dims, 'dims')
 
-        for curr_dim in self.n_dim_labels:
-            if curr_dim not in self.n_dim_labels:
+        n_dim_labels = []
+        for dim in self.dims:
+            n_dim_labels.append(labels)
+        for curr_dim in dims: ## TODO check in pyUSID, that did not make any sense.
+            if curr_dim not in n_dim_labels:
                 raise KeyError('{} not a dimension in this dataset'.format(curr_dim))
 
         if ufunc not in [da.all, da.any, da.max, da.mean, da.min, da.moment, da.prod, da.std, da.sum, da.var,
@@ -377,11 +370,9 @@ class NSIDataset(h5py.Dataset):
             raise NotImplementedError('ufunc must be a valid reduction function such as dask.array.mean')
 
         # At this point, dims are valid
-        da_nd, status, labels = reshape_to_n_dims(self, get_labels=True, verbose=verbose, sort_dims=False,
-                                                  lazy=True)
-
+        
         # Translate the names of the dimensions to the indices:
-        dim_inds = [np.where(labels == curr_dim)[0][0] for curr_dim in dims]
+        dim_inds = [np.where(n_dim_labels == curr_dim) for curr_dim in dims]
 
         # Now apply the reduction:
         reduced_nd = ufunc(da_nd, axis=dim_inds)
@@ -398,77 +389,9 @@ class NSIDataset(h5py.Dataset):
 
         h5_group = create_results_group(self, 'Reduce')
 
-        # check if a pos dimension was sliced:
-        pos_sliced = False
-        for dim_name in dims:
-            if dim_name in self.pos_dim_labels:
-                pos_sliced = True
-                if verbose:
-                    print('Position dimension: {} was reduced. Breaking...'.format(dim_name))
-                break
-        if not pos_sliced:
-            h5_pos_inds = self.h5_pos_inds
-            h5_pos_vals = self.h5_pos_vals
-            if verbose:
-                print('Reusing this main datasets position datasets')
-        else:
-            if verbose:
-                print('Creating new Position dimensions:\n------------------------------------------')
-            # First figure out the names of the position dimensions
-            pos_dim_names = []
-            for cur_dim in dims:
-                if cur_dim in self.pos_dim_labels:
-                    pos_dim_names.append(cur_dim)
-            if verbose:
-                print('Position dimensions reduced: {}'.format(pos_dim_names))
-
-            # Now create the reduced position datasets
-            h5_pos_inds, h5_pos_vals = write_reduced_anc_dsets(h5_group, self.h5_pos_inds, self.h5_pos_vals,
-                                                               pos_dim_names, is_spec=False, verbose=verbose)
-
-            if verbose:
-                print('Position dataset created: {}. Labels: {}'.format(h5_pos_inds, get_attr(h5_pos_inds, 'labels')))
-
-        spec_sliced = False
-        for dim_name in dims:
-            if dim_name in self.spec_dim_labels:
-                spec_sliced = True
-                if verbose:
-                    print('Spectroscopic dimension: {} was reduced. Breaking...'.format(dim_name))
-                break
-        if not spec_sliced:
-            h5_spec_inds = self.h5_spec_inds
-            h5_spec_vals = self.h5_spec_vals
-            if verbose:
-                print('Reusing this main datasets spectroscopic datasets')
-        else:
-            if verbose:
-                print('Creating new spectroscopic dimensions:\n------------------------------------------')
-
-            # First figure out the names of the position dimensions
-            spec_dim_names = []
-            for cur_dim in dims:
-                if cur_dim in self.spec_dim_labels:
-                    spec_dim_names.append(cur_dim)
-            if verbose:
-                print('Spectroscopic dimensions reduced: {}'.format(spec_dim_names))
-
-            # Now create the reduced position datasets
-            h5_spec_inds, h5_spec_vals = write_reduced_anc_dsets(h5_group, self.h5_spec_inds, self.h5_spec_vals,
-                                                                 spec_dim_names, is_spec=True, verbose=verbose)
-
-            if verbose:
-                print('Spectroscopic dataset created: {}. Labels: {}'.format(h5_spec_inds,
-                                                                             get_attr(h5_spec_inds, 'labels')))
-
-                # Now put the reduced N dimensional Dask array back to 2D form:
-        reduced_2d, status = reshape_from_n_dims(reduced_nd, h5_pos=h5_pos_inds, h5_spec=h5_spec_inds, verbose=verbose)
-        if status != True and verbose:
-            print('Status from reshape_from_n_dims: {}'.format(status))
-        if verbose:
-            print('2D reduced dataset: {}'.format(reduced_2d))
-
-        # Create a HDF5 dataset to hold this flattened 2D data:
+        
+        
+        # Create a HDF5 dataset to hold this  data:
         h5_red_main = h5_group.create_dataset(dset_name, shape=reduced_2d.shape,
                                               dtype=reduced_2d.dtype)  # , compression=self.compression)
         if verbose:
@@ -479,6 +402,7 @@ class NSIDataset(h5py.Dataset):
         copy_attributes(self, h5_red_main)
 
         # Now make this dataset a main dataset:
+        ## TODO need a dim_dict here first
         link_as_main(h5_red_main, h5_pos_inds, h5_pos_vals, h5_spec_inds, h5_spec_vals)
         if verbose:
             print('{} is a main dataset?: {}'.format(h5_red_main, check_if_main(h5_red_main, verbose=verbose)))
@@ -581,3 +505,55 @@ class NSIDataset(h5py.Dataset):
         print('Successfully wrote this dataset to: ' + output_path)
 
         return output_path
+
+### Should go to viz
+
+class  plot_stack(object):
+    def __init__(self, dset, ref_dims, **kwargs):
+    
+        if dset.data_type != 'image_stack':
+            return
+        if len(dset.shape) <3:
+            return
+        
+        self.dset = dset
+        
+        extent = dset.make_extent([1,2])
+        
+        self.fig = plt.figure()
+        self.axis = plt.axes([0.0, 0.2, .9, .7])
+        self.ind = 0
+        self.img = self.axis.imshow(self.dset[self.ind].T, extent = extent)
+        
+        
+        self.axis.set_title('image stack: '+self.dset.file.filename.split('/')[-1]+'\n use scroll wheel to navigate images')
+        self.img.axes.figure.canvas.mpl_connect('scroll_event', self.onscroll)
+        self.axis.set_xlabel(self.dset.get_dimension_labels()[ref_dims[0]]);
+        cbar = self.fig.colorbar(self.img)
+        cbar.set_label(self.dset.data_descriptor)
+        
+        
+        axidx = plt.axes([0.1, 0.05, 0.8, 0.03])
+        self.slider = Slider(axidx, 'image', 0, self.dset.shape[0]-1, valinit=self.ind, valfmt='%d')
+        self.slider.on_changed(self.onSlider)
+
+        self.update()
+
+    def onSlider(self, val):
+        self.ind = int(self.slider.val+0.5)
+        self.slider.valtext.set_text(f'{self.ind}')
+        self.update()
+        
+    def onscroll(self, event):
+        print("%s %s" % (event.button, event.step))
+        if event.button == 'up':
+            self.ind = (self.ind + 1) % self.slices
+        else:
+            self.ind = (self.ind - 1) % self.slices
+        self.ind = int(self.ind)
+        self.slider.set_val(self.ind)
+        
+    def update(self):
+        self.img.set_data(self.dset[int(self.ind)].T)
+        self.axis.set_ylabel('slice %s' % self.ind)
+        self.img.axes.figure.canvas.draw_idle()

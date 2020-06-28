@@ -293,7 +293,8 @@ def copy_attributes(source, dest, skip_refs=True, verbose=False):
                 if verbose:
                     print('requested reg ref copy')
                 #copy_region_refs(source, dest)
-                pass ### ToDo activate again
+                pass ### TODO activate again
+            
             except TypeError:
                 warn(mesg)
         else:
@@ -1206,16 +1207,16 @@ def copy_region_refs(h5_source, h5_target):
         if not isinstance(h5_source.attrs[key], h5py.RegionReference):
             continue
 
-        if are_main:
-            for dim in h5_source_inds.dims:
-            ref_inds = simple_region_ref_copy(h5_source, h5_target, key)
+        if are_main:# TODO: Region Reference copy not implemented
+            #for dim in h5_source_inds.dims:
+            #ref_inds = simple_region_ref_copy(h5_source, h5_target, key)
 
-            else:
-                '''
-                Spectroscopic dimensions are different.
-                Do the dimension reducing copy.
-                '''
-                ref_inds = copy_reg_ref_reduced_dim(h5_source, h5_target, h5_source_inds, h5_spec_inds, key)
+            #else:
+            '''
+            Spectroscopic dimensions are different.
+            Do the dimension reducing copy.
+            '''
+            #ref_inds = copy_reg_ref_reduced_dim(h5_source, h5_target, h5_source_inds, h5_spec_inds, key)
 
             '''
             Create references for Spectroscopic Indices and Values
