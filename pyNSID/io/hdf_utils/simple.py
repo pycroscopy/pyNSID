@@ -96,8 +96,9 @@ def find_dataset(h5_group, dset_name):
         if dset_name in name.split('/')[-1] and isinstance(obj, h5py.Dataset):
             try:
                 datasets.append(NSIDataset(obj))
-            except TypeError:
-                datasets.append(obj)
+            except:# TypeError: #TODO: fix this 
+                pass
+                #datasets.append(obj)
         return
 
     h5_group.visititems(__find_name)
