@@ -16,6 +16,9 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../..'))
 sys.setrecursionlimit(1500)
+import matplotlib
+matplotlib.use('agg')
+import sphinx_rtd_theme
 
 
 # -- Project information -----------------------------------------------------
@@ -57,6 +60,9 @@ templates_path = ['_templates']
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
 
+# The encoding of source files.
+#source_encoding = 'utf-8-sig'
+
 # The master toctree document.
 master_doc = 'index'
 
@@ -67,10 +73,31 @@ master_doc = 'index'
 # Usually you set "language" from the command line for these cases.
 language = None
 
+# There are two options for replacing |today|: either, you set today to some
+# non-false value, then it is used:
+#today = ''
+# Else, today_fmt is used as the format for a strftime call.
+#today_fmt = '%B %d, %Y'
+
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'supporting_docs']
+
+# The reST default role (used for this markup: `text`) to use for all
+# documents.
+#default_role = None
+
+# If true, '()' will be appended to :func: etc. cross-reference text.
+add_function_parentheses = True
+
+# If true, the current module name will be prepended to all description
+# unit titles (such as .. function::).
+add_module_names = False
+
+# If true, sectionauthor and moduleauthor directives will be shown in the
+# output. They are ignored by default.
+show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -81,13 +108,17 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 # html_theme_options = {}
+
+# Add any paths that contain custom themes here, relative to this directory.
+#html_theme_path = []
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -157,7 +188,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'pyNSID', 'pyNSID Documentation',
-     author, 'pyNSID', 'One line description of project.',
+     author, 'pyNSID', 'Framework for storing, visualizing, and processing N-Dimensional Spectroscopic and Imaging Data (NSID)',
      'Miscellaneous'),
 ]
 
@@ -188,4 +219,28 @@ epub_exclude_files = ['search.html']
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {'python': ('https://docs.python.org/{.major}'.format(sys.version_info), None),
+                       'numpy': ('https://docs.scipy.org/doc/numpy/', None),
+                       'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
+                       'matplotlib': ('https://matplotlib.org/', None),
+                       'h5py': ('http://docs.h5py.org/en/latest/', None),
+                       'sphinx': ('http://www.sphinx-doc.org/en/stable', None),
+                       }
+
+# -- Options for todo extension ----------------------------------------------
+
+# -------------------------------------------------
+from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder  # Can't use until next release of sphinx-gallery
+# Sphinx-gallery configuration
+sphinx_gallery_conf = dict(examples_dirs=['../examples'],
+                           gallery_dirs=['auto_examples'],
+                           within_subsection_order=ExampleTitleSortKey,
+                           reference_url=dict(pyUSID=None,
+                                              matplotlib='https://matplotlib.org',
+                                              numpy='https://docs.scipy.org/doc/numpy',
+                                              scipy='https://docs.scipy.org/doc/scipy/reference',
+                                              h5py='http://docs.h5py.org/en/latest/'),
+                           # directory where function granular galleries are stored
+                           backreferences_dir='_autosummary/backreferences',
+                           # Modules for which function level galleries are created.
+                           doc_module='pyUSID')
