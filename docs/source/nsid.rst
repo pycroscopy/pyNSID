@@ -72,4 +72,13 @@ Do get in touch if you know of a better solution
 
 Existing solutions
 ------------------
-These are the requirements for the materials characterization domain. I am not sure if something like NSID or a python API like pyNSID exist. We would need to survey the web for existing solutions to avoid duplicating efforts and for supporting an existing central effort.
+A while ago, I had come across the following resources:
+
+* From UIUC folks - a webpage called `electron microscopy data <https://emdatasets.com/format/>`_
+* from the DREAM.3D folks - "`MXA: a customizable HDF5-based data format for multi-dimensional data sets <https://iopscience.iop.org/article/10.1088/0965-0393/18/6/065008>`_" by Michael Jackson
+* From APS folks at Argonne - "`Scientific data exchange: a schema for HDF5-based storage of raw and analyzed data <https://onlinelibrary.wiley.com/doi/full/10.1107/S160057751401604X?sentby=iucr>`_" by Francesco de Carlo.
+
+However, all of these were targeting a specific scientific sub-domain / modality. They were not as simple / general as pyNSID.
+
+I am not sure if something like NSID or a python API like pyNSID exist now.
+We would need to survey literature again for existing solutions to avoid duplicating efforts and for supporting an existing central effort.
