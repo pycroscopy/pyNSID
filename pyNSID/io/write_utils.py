@@ -34,7 +34,7 @@ class Dimension(object):
     ..autoclass::Dimension
     """
 
-    def __init__(self, name, quantity, units, values, dimension_type):
+    def __init__(self, name, values, quantity='generic', units='generic',  dimension_type='generic'):
         """
         Simple object that describes a dimension in a dataset by its name, units, and values
         Parameters
@@ -48,16 +48,31 @@ class Dimension(object):
         values : array-like or int
             Values over which this dimension was varied. A linearly increasing set of values will be generated if an
             integer is provided instead of an array.
-        dimension_type : bool
-            Whether or not this is a position or spectroscopy dimensions
+        dimension_type : str or unicode for example: 'spectral' or 'spatial', 'time', 'frame', 'reciprocal'
+            This will determine how the data are visualized. 'spatial' are image dimensions.
+            'spectral' indicate spectroscopy data dimensions.
         """
-        name = validate_single_string_arg(name, 'name')
-        quantity = validate_single_string_arg(quantity, 'quantity')
 
-        if not isinstance(units, (str, unicode)):
-            raise TypeError('units should be a string')
-        units = units.strip()
+        self.set_name(name)
+        self.set_values(values)
 
+        self.set_quantity(name)
+        self.set_units(units)
+        self.set_dimension_type(dimension_type)
+
+    def set_name(self, name):
+        self.name = validate_single_string_arg(name, 'name')
+
+    def set_quantity(self, quantity):
+        self.quantity  = validate_single_string_arg(quantity, 'quantity')
+
+    def set_units(self, units):
+        self.units  = validate_single_string_arg(units, 'units')
+
+    def set_dimension_type(self, dimension_type):
+        self.dimension_type  = validate_single_string_arg(dimension_type, 'dimension_type')
+
+    def set_values(self, values):
         if isinstance(values, int):
             if values < 1:
                 raise ValueError('values should at least be specified as a positive integer')
@@ -66,17 +81,9 @@ class Dimension(object):
             raise TypeError('values should be array-like')
         values = np.array(values)
         if values.ndim > 1:
-            raise ValueError('Values for dimension: {} are not 1-dimensional'.format(name))
+            raise ValueError('Values for dimension: {} are not 1-dimensional'.format(self.name))
 
-        #if not isinstance(dimension_type, bool):
-        #    raise TypeError('dimension_type should be a bool')
-
-        dimension_type = validate_single_string_arg(dimension_type, 'dimension_type')
-        self.name = name
-        self.quantity = quantity
-        self.units = units
         self.values = values
-        self.dimension_type = dimension_type
 
     def __repr__(self):
         return '{} - {} ({}): {}'.format(self.name, self.quantity, self.units, self.values)

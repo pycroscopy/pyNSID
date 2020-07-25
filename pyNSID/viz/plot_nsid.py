@@ -48,6 +48,7 @@ class plot_curve(object):
             self.fig = figure
 
         self.dset = dset
+        self.kwargs = kwargs
 
         # Handle the simple cases first:
         fig_args = dict()
@@ -57,6 +58,11 @@ class plot_curve(object):
 
         if len(ref_dims) != 1:
             print( 'data type not handled yet')
+        self.axis = self.fig.add_subplot(1, 1, 1, **fig_args)
+
+        self._update()
+
+    def _update(self):
 
         if False:#is_complex_dtype(np.array(dset)):
             # Plot real and image
@@ -79,8 +85,9 @@ class plot_curve(object):
             return fig, axes
 
         else:
-            self.axis = self.fig.add_subplot(1,1,1, **fig_args)
-            self.axis.plot(self.dset.dims[0][0], self.dset, **kwargs)
+
+            self.axis.clear()
+            self.axis.plot(self.dset.dims[0][0], self.dset, **self.kwargs)
             self.axis.set_title(self.dset.file.filename.split('/')[-1], pad=15)
             self.axis.set_xlabel(self.dset.get_dimension_labels()[0])# + x_suffix)
             self.axis.set_ylabel(self.dset.data_descriptor)

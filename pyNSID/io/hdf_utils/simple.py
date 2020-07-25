@@ -1090,7 +1090,7 @@ def copy_dataset(h5_orig_dset, h5_dest_grp, alias=None, verbose=False):
               'destination dataset: {}'.format(h5_orig_dset, h5_new_dset))
 
     copy_attributes(h5_orig_dset, h5_new_dset, skip_refs=True)
-    copy_all_region_refs(h5_orig_dset, h5_new_dset)
+    #copy_all_region_refs(h5_orig_dset, h5_new_dset)
 
     return h5_new_dset
 
