@@ -53,26 +53,48 @@ class Dimension(object):
             'spectral' indicate spectroscopy data dimensions.
         """
 
-        self.set_name(name)
-        self.set_values(values)
+        self.name = name
+        self.values= values
 
-        self.set_quantity(name)
-        self.set_units(units)
-        self.set_dimension_type(dimension_type)
+        self.quantity = quantity
+        self.units = units
+        self.dimension_type =dimension_type
 
-    def set_name(self, name):
-        self.name = validate_single_string_arg(name, 'name')
 
-    def set_quantity(self, quantity):
-        self.quantity  = validate_single_string_arg(quantity, 'quantity')
+    @property
+    def name(self):
+        return self._name
+    @name.setter
+    def name(self, value):
+        self._name = validate_single_string_arg(value, 'name')
 
-    def set_units(self, units):
-        self.units  = validate_single_string_arg(units, 'units')
+    @property
+    def quantity(self):
+        return self._quantity
+    @quantity.setter
+    def quantity(self, value):
+        self._quantity = validate_single_string_arg(value, 'quantity')
 
-    def set_dimension_type(self, dimension_type):
-        self.dimension_type  = validate_single_string_arg(dimension_type, 'dimension_type')
+    @property
+    def units(self):
+        return self._units
+    @units.setter
+    def units(self, value):
+        self._units = validate_single_string_arg(value, 'units')
 
-    def set_values(self, values):
+
+    @property
+    def dimension_type(self):
+        return self._dimension_type
+    @dimension_type.setter
+    def dimension_type(self, value):
+        self._dimension_type  = validate_single_string_arg(value, 'dimension_type')
+
+    @property
+    def values(self):
+        return self._values
+    @values.setter
+    def values(self, values):
         if isinstance(values, int):
             if values < 1:
                 raise ValueError('values should at least be specified as a positive integer')
@@ -83,7 +105,7 @@ class Dimension(object):
         if values.ndim > 1:
             raise ValueError('Values for dimension: {} are not 1-dimensional'.format(self.name))
 
-        self.values = values
+        self._values = values
 
     def __repr__(self):
         return '{} - {} ({}): {}'.format(self.name, self.quantity, self.units, self.values)
