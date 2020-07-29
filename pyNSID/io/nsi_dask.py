@@ -83,6 +83,8 @@ class NSIDask(da.Array):
     -data_type: str ('image', 'image_stack',  spectrum_image', ...
     -units: str
     -title: name of the data set
+    -modality
+    -source
     -axes: dictionary of NSID Dimensions one for each data dimension
                     (the axes are dimension datsets with name, label, units, and 'dimension_type' attributes).
 
@@ -121,9 +123,10 @@ class NSIDask(da.Array):
         cls.data_type = 'generic'
         cls.units = ''
         cls.title = ''
+        cls.quantity = 'generic'
 
-        self.modality = ''
-        self.source = ''
+        cls.modality = ''
+        cls.source = ''
         cls.data_descriptor = ''
 
         cls.axes = {}
@@ -193,10 +196,13 @@ class NSIDask(da.Array):
     def to_hdf5(self, h5_group):
         if  self.title.strip() == '':
             main_data_name = 'nDim_Data'
+        else:
+            main_data_name = self.title
 
-        dset = nsid.io.hdf_utils.write_main_dataset(h5_group, np.array(self), main_data_name,
-                                                    self.quantity, self.units, self.data_type, self.modality,
-                                                    self.source, self.axes, verbose=False)
+
+        dset = write_main_dataset(h5_group, np.array(self), main_data_name,
+                                 self.quantity, self.units, self.data_type, self.modality,
+                                 self.source, self.axes, verbose=False)
         for key, item in self.attrs.items():
             #TODO: Check item to be simple
             dset.attrs[key] = item
