@@ -16,6 +16,7 @@ Submodules
 
 """
 from . import nsi_data
+from . import nsi_dask
 
 from . import hdf_utils
 from . import io_utils
@@ -23,6 +24,7 @@ from . import dtype_utils
 from . import write_utils
 
 from .nsi_data import NSIDataset
+from .nsi_dask import NSIDask
 from .write_utils import Dimension #, DimType
 
-__all__ = ['NSIDataset', 'hdf_utils', 'io_utils', 'dtype_utils', 'Dimension', ] # 'DimType','ArrayTranslator
+__all__ = ['NSIDask', 'NSIDataset', 'hdf_utils', 'io_utils', 'dtype_utils', 'Dimension', ] # 'DimType','ArrayTranslator
