@@ -57,7 +57,7 @@ class plot_curve(object):
 
         if len(ref_dims) != 1:
             print( 'data type not handled yet')
-
+        self.dim = self.axes[ref_dims[0]]
         if False:#is_complex_dtype(np.array(dset)):
             # Plot real and image
             fig, axes = plt.subplots(nrows=2, **fig_args)
@@ -80,10 +80,10 @@ class plot_curve(object):
 
         else:
             self.axis = self.fig.add_subplot(1,1,1, **fig_args)
-            self.axis.plot(self.dset.dims[0][0], self.dset, **kwargs)
-            self.axis.set_title(self.dset.file.filename.split('/')[-1], pad=15)
-            self.axis.set_xlabel(self.dset.get_dimension_labels()[0])# + x_suffix)
-            self.axis.set_ylabel(self.dset.data_descriptor)
+            self.axis.plot(self.dim.values, self.dset, **kwargs)
+            self.axis.set_title(self.dset.title, pad=15)
+            self.axis.set_xlabel(f'{self.dim.label}, [{self.dim.units}]')# + x_suffix)
+            self.axis.set_ylabel(f'{self.dset.quantity}, [{self.dset.units}]')
             self.axis.ticklabel_format(style='sci', scilimits=(-2, 3))
             self.fig.canvas.draw_idle()
 
@@ -101,12 +101,14 @@ class plot_image(object):
 
     Input:
     ------
-    - dset: NSI_dataset
+    - dset: NSIDask _dataset
     - dim_dict: dictionary
         with key: "spatial" list of int: dimension of image
     """
-    def __init__(self, dset, dim_dict, figure =None,**kwargs):
-
+    def __init__(self, dset,  figure =None,**kwargs):
+        """
+        plotting of data according to two axis marked as 'spatial' in the dimensions
+        """
         fig_args = dict()
         temp = kwargs.pop('figsize', None)
         if temp is not None:
@@ -118,9 +120,22 @@ class plot_image(object):
             self.fig = figure
 
         self.dset = dset
-        extent = self.dset.make_extent(dim_dict['spatial'])
 
-        if is_complex_dtype(self.dset):
+
+        selection = []
+        image_dims = []
+        for dim, axis in dset.axes.items():
+            if axis.dimension_type == 'spatial':
+                selection.append(slice(None))
+                image_dims.append(dim)
+            else:
+                selection.append(slice(0, 1))
+        if len(image_dims) != 2:
+            raise ValueError('We need two dimensions with dimension_type spatial to plot an image')
+
+
+
+        if False:#is_complex_dtype(self.dset):
             # Plot real and image
             fig, axes = plt.subplots(nrows=2, **fig_args)
             for axis, ufunc, comp_name in zip(axes.flat, [np.abs, np.angle], ['Magnitude', 'Phase']):
@@ -139,13 +154,15 @@ class plot_image(object):
         else:
 
             self.axis = self.fig.add_subplot(1,1,1)
-            self.img = self.axis.imshow(np.squeeze(self.dset).T, extent=extent, **kwargs)
-            self.axis.set_title(self.dset.file.filename.split('/')[-1], pad=15)
-            self.axis.set_xlabel(self.dset.get_dimension_labels()[dim_dict['spatial'][0]])# + x_suffix)
-            self.axis.set_ylabel(self.dset.get_dimension_labels()[dim_dict['spatial'][1]])
-            self.axis.ticklabel_format(style='sci', scilimits=(-2, 3))
+            self.axis.set_title(dset.title)
+            self.img = self.axis.imshow(self.dset[tuple(selection)].T, extent=dset.get_extent(image_dims))
+            self.axis.set_xlabel(f"{self.dset.axes[image_dims[0]].quantity} [{self.dset.axes[image_dims[0]].units}]")
+            self.axis.set_ylabel(f"{self.dset.axes[image_dims[1]].quantity} [{self.dset.axes[image_dims[1]].units}]")
+
             cbar = self.fig.colorbar(self.img)
-            cbar.set_label(self.dset.data_descriptor)
+            cbar.set_label(f"{dset.quantity} [{dset.units}]")
+
+            self.axis.ticklabel_format(style='sci', scilimits=(-2, 3))
             self.fig.tight_layout()
             self.img.axes.figure.canvas.draw_idle()
 
@@ -170,7 +187,7 @@ class  plot_stack(object):
         with key: "time" or "stack": list of int: dimension of image stack
 
     """
-    def __init__(self, dset, dim_dict, figure =None,**kwargs):
+    def __init__(self, dset, figure =None,**kwargs):
 
         fig_args = dict()
         temp = kwargs.pop('figsize', None)
@@ -184,52 +201,47 @@ class  plot_stack(object):
             self.fig = figure
 
 
-        if len(dset.shape) <3:
+        if dset.ndim <3:
             raise KeyError('dataset must have at least three dimensions')
             return
-
-        ### We need one stack dimension and two image dimensions as lists in dictionary
-        if 'spatial' not in dim_dict:
-            raise KeyError('dimension_dictionary must contain a spatial key')
-            return
-        image_dims = dim_dict['spatial']
+        stack_dim = -1
+        image_dims=[]
+        for dim, axis in dset.axes.items():
+            if axis.dimension_type == 'spatial':
+                image_dims.append(dim)
+            else:
+                stack_dim = dim
         if len(image_dims)<2:
             raise KeyError('spatial key in dimension_dictionary must be list of length 2')
             return
 
-        if 'stack' not in dim_dict:
-            if 'time' in dim_dict:
-                stack_dim = dim_dict['time']
-            else:
-                raise KeyError('dimension_dictionary must contain key stack or time')
-                return
-        else:
-            stack_dim = dim_dict['stack']
-        if len(stack_dim) < 1:
-            raise KeyError('stack key in dimension_dictionary must be list of length 1')
+        ### We need one stack dimension and two image dimensions as lists in dictionary
+        if stack_dim< 0:
+            raise KeyError('dimension_dictionary must contain a spatial key')
             return
 
-        if stack_dim[0] != 0 or image_dims != [1,2]:
+
+        if stack_dim != 0 or image_dims != [1,2]:
             ## axes not in expected order, displaying a copy of data with right dimensional oreder:
             self.cube =  np.transpose(dset, (stack_dim[0], image_dims[0],image_dims[1]))
         else:
             self.cube  = dset
-
-        extent = dset.make_extent([image_dims[0],image_dims[1]])
+        self.dset = dset
 
         self.axis = self.fig.add_axes([0.0, 0.2, .9, .7])
         self.ind = 0
-        self.img = self.axis.imshow(self.cube[self.ind].T, extent = extent, **kwargs )
+        self.img = self.axis.imshow(self.cube[self.ind].T, extent=dset.get_extent(image_dims), **kwargs )
+
         interval = 100 # ms, time between animation frames
 
         self.number_of_slices= self.cube.shape[0]
 
-        self.axis.set_title('image stack: '+dset.file.filename.split('/')[-1]+'\n use scroll wheel to navigate images')
+        self.axis.set_title('image stack: '+dset.title+'\n use scroll wheel to navigate images')
         self.img.axes.figure.canvas.mpl_connect('scroll_event', self._onscroll)
-        self.axis.set_xlabel(dset.get_dimension_labels()[image_dims[0]]);
-        self.axis.set_ylabel(dset.get_dimension_labels()[image_dims[1]]);
+        self.axis.set_xlabel(f"{self.dset.axes[image_dims[0]].quantity} [{self.dset.axes[image_dims[0]].units}]");
+        self.axis.set_ylabel(f"{self.dset.axes[image_dims[1]].quantity} [{self.dset.axes[image_dims[1]].units}]")
         cbar = self.fig.colorbar(self.img)
-        cbar.set_label(dset.data_descriptor)
+        cbar.set_label(f"{dset.quantity} [{dset.units}]")
 
 
         axidx = self.fig.add_axes([0.1, 0.05, 0.55, 0.03])
