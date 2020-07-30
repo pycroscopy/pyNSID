@@ -199,7 +199,6 @@ class NSIDask(da.Array):
         else:
             main_data_name = self.title
 
-
         dset = write_main_dataset(h5_group, np.array(self), main_data_name,
                                  self.quantity, self.units, self.data_type, self.modality,
                                  self.source, self.axes, verbose=False)
