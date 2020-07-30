@@ -14,11 +14,12 @@
 #
 import os
 import sys
+import matplotlib
+import sphinx_rtd_theme
+matplotlib.use('agg')
 sys.path.insert(0, os.path.abspath('..'))
 sys.setrecursionlimit(1500)
-import matplotlib
-matplotlib.use('agg')
-import sphinx_rtd_theme
+from pyNSID import __version__ as pynsid_version
 
 
 # -- Project information -----------------------------------------------------
@@ -28,9 +29,9 @@ copyright = '2020, Suhas Somnath, Gerd Duscher, Rama K. Vasudevan, Raj Giridhar,
 author = 'Suhas Somnath, Gerd Duscher, Rama K. Vasudevan, Raj Giridhar, and contributors'
 
 # The short X.Y version
-version = ''
+version = pynsid_version
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = pynsid_version
 
 
 # -- General configuration ---------------------------------------------------
@@ -44,11 +45,14 @@ release = '0.0.1'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
     'sphinx.ext.mathjax',
-    'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages',
+    'sphinx.ext.autosummary',
+    'sphinx_gallery.gen_gallery',
+    'sphinx.ext.napoleon',          # Use either napoleon or numpydoc not both.
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -82,7 +86,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'supporting_docs']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -102,6 +106,25 @@ show_authors = False
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
+# A list of ignored prefixes for module index sorting.
+#modindex_common_prefix = []
+
+# If true, keep warnings as "system message" paragraphs in the built documents.
+#keep_warnings = False
+
+# If true, `todo` and `todoList` produce output, else they produce nothing.
+todo_include_todos = True
+
+# Generate autosummary even if no references
+autosummary_generate = True
+
+autoclass_content = 'both'
+
+autodoc_default_flags = ['members',
+                         'inherited-members',
+                         # 'private-members',
+                         # 'show-inheritance'
+                         ]
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -120,10 +143,40 @@ html_theme = 'sphinx_rtd_theme'
 #html_theme_path = []
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
+# The name for this set of Sphinx documents.
+# "<project> v<release> documentation" by default.
+# html_title = u'pyNSID ' + pynsid_version
+
+# A shorter title for the navigation bar.  Default is the same as html_title.
+#html_short_title = None
+
+# The name of an image file (relative to this directory) to place at the top
+# of the sidebar.
+# html_logo = 'logo_v01.png'
+
+# The name of an image file (relative to this directory) to use as a favicon of
+# the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
+# pixels large.
+#html_favicon = None
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# Add any extra paths that contain custom files (such as robots.txt or
+# .htaccess) here, relative to this directory. These files are copied
+# directly to the root of the documentation.
+#html_extra_path = []
+
+# If not None, a 'Last updated on:' timestamp is inserted at every page
+# bottom, using the given strftime format.
+# The empty string is equivalent to '%b %d, %Y'.
+#html_last_updated_fmt = None
+
+# If true, SmartyPants will be used to convert quotes and dashes to
+# typographically correct entities.
+#html_use_smartypants = True
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -134,7 +187,50 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+# Additional templates that should be rendered to pages, maps page names to
+# template names.
+#html_additional_pages = {}
 
+# If false, no module index is generated.
+#html_domain_indices = True
+
+# If false, no index is generated.
+#html_use_index = True
+
+# If true, the index is split into individual pages for each letter.
+#html_split_index = False
+
+# If true, links to the reST sources are added to the pages.
+html_show_sourcelink = True
+
+# If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
+#html_show_sphinx = True
+
+# If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
+#html_show_copyright = True
+
+# If true, an OpenSearch description file will be output, and all pages will
+# contain a <link> tag referring to it.  The value of this option must be the
+# base URL from which the finished HTML is served.
+#html_use_opensearch = ''
+
+# This is the file name suffix for HTML files (e.g. ".xhtml").
+#html_file_suffix = None
+
+# Language to be used for generating the HTML full-text search index.
+# Sphinx supports the following languages:
+#   'da', 'de', 'en', 'es', 'fi', 'fr', 'hu', 'it', 'ja'
+#   'nl', 'no', 'pt', 'ro', 'ru', 'sv', 'tr', 'zh'
+html_search_language = 'en'
+
+# A dictionary with options for the search language support, empty by default.
+# 'ja' uses this config value.
+# 'zh' user can custom change `jieba` dictionary path.
+#html_search_options = {'type': 'default'}
+
+# The name of a javascript file (relative to the configuration directory) that
+# implements a search results scorer. If empty, the default will be used.
+#html_search_scorer = 'scorer.js'
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
@@ -167,7 +263,8 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'pyNSID.tex', 'pyNSID Documentation',
-     'Suhas Somnath, Gerd Duscher, Rama K. Vasudevan, Raj Giridhar, and contributors', 'manual'),
+     'Suhas Somnath, Gerd Duscher, Rama K. Vasudevan, Raj Giridhar, and '
+     'contributors', 'manual'),
 ]
 
 
@@ -188,10 +285,22 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'pyNSID', 'pyNSID Documentation',
-     author, 'pyNSID', 'Framework for storing, visualizing, and processing N-Dimensional Spectroscopic and Imaging Data (NSID)',
+     author, 'pyNSID', 'Framework for storing, visualizing, and processing '
+                       'N-Dimensional Spectroscopic and Imaging Data (NSID)',
      'Miscellaneous'),
 ]
 
+# Documents to append as an appendix to all manuals.
+#texinfo_appendices = []
+
+# If false, no module index is generated.
+#texinfo_domain_indices = True
+
+# How to display URL addresses: 'footnote', 'no', or 'inline'.
+#texinfo_show_urls = 'footnote'
+
+# If true, do not generate a @detailmenu in the "Top" node's menu.
+#texinfo_no_detailmenu = False
 
 # -- Options for Epub output -------------------------------------------------
 
@@ -200,6 +309,22 @@ epub_title = project
 epub_author = author
 epub_publisher = author
 epub_copyright = copyright
+
+# The basename for the epub file. It defaults to the project name.
+#epub_basename = project
+
+# The HTML theme for the epub output. Since the default themes are not
+# optimized for small screen space, using the same theme for HTML and epub
+# output is usually not wise. This defaults to 'epub', a theme designed to save
+# visual space.
+#epub_theme = 'epub'
+
+# The language of the text. It defaults to the language option
+# or 'en' if the language is not set.
+#epub_language = ''
+
+# The scheme of the identifier. Typical schemes are ISBN or URL.
+#epub_scheme = ''
 
 # The unique identifier of the text. This can be a ISBN number
 # or the project homepage.
@@ -210,8 +335,43 @@ epub_copyright = copyright
 #
 # epub_uid = ''
 
+# A tuple containing the cover image and cover page html template filenames.
+#epub_cover = ()
+
+# A sequence of (type, uri, title) tuples for the guide element of content.opf.
+#epub_guide = ()
+
+# HTML files that should be inserted before the pages created by sphinx.
+# The format is a list of tuples containing the path and title.
+#epub_pre_files = []
+
+# HTML files that should be inserted after the pages created by sphinx.
+# The format is a list of tuples containing the path and title.
+#epub_post_files = []
+
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
+
+# The depth of the table of contents in toc.ncx.
+#epub_tocdepth = 3
+
+# Allow duplicate toc entries.
+#epub_tocdup = True
+
+# Choose between 'default' and 'includehidden'.
+#epub_tocscope = 'default'
+
+# Fix unsupported image types using the Pillow.
+#epub_fix_images = False
+
+# Scale large images.
+#epub_max_image_width = 0
+
+# How to display URL addresses: 'footnote', 'no', or 'inline'.
+#epub_show_urls = 'inline'
+
+# If false, no index is generated.
+#epub_use_index = True
 
 
 # -- Extension configuration -------------------------------------------------
