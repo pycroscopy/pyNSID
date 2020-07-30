@@ -328,7 +328,10 @@ def validate_main_dset(h5_main, must_be_h5):
 
     # Check dimensionality
     if len(h5_main.shape) != len(h5_main.dims):
-        raise ValueError(f'Main data does not have full set of dimensional scales. Provided object has shape: {h5_main.shape} but only {len(h5_main.dims)} dimensional scales')
+        raise ValueError('Main data does not have full set of dimensional '
+                         'scales. Provided object has shape: {} but only {} '
+                         'dimensional scales'
+                         ''.format(h5_main.shape, len(h5_main.dims)))
 
 
 def validate_anc_h5_dsets(h5_inds, h5_vals, main_shape, is_spectroscopic=True):
@@ -541,15 +544,15 @@ def link_as_main(h5_main, dim_dict):
         if isinstance(this_dim, h5py.Dataset):
             error_message = validate_dimensions(this_dim, main_shape[index])
             if len(error_message)>0:
-                raise TypeError(f'Dimension {index} has the following error_message:\n', error_message)
+                raise TypeError('Dimension {} has the following error_message:\n'.format(index), error_message)
             else:
                 #if this_dim.name not in dim_names:
                 if this_dim.name not in dim_names: ## names must be unique
                     dim_names.append(this_dim.name)
                 else:
-                    raise TypeError(f'All dimension names must be unique, found {this_dim.name} twice')
+                    raise TypeError('All dimension names must be unique, found {} twice'.format(this_dim.name))
                 if this_dim.file != h5_parent_group.file:
-                    this_dim = copy_dataset(this_dim, h5_parent_group, verbose=verbose)
+                    this_dim = copy_dataset(this_dim, h5_parent_group, verbose=False)
         else: 
             raise TypeError('Items in dictionary must all  be h5py.Datasets !')
 
