@@ -27,6 +27,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from mpl_toolkits.axes_grid1 import ImageGrid
 from ..io.dtype_utils import contains_integers, get_exponent, is_complex_dtype
 import dask.array as da
+from .plot_utils import plot_map
 
 if sys.version_info.major == 3:
     unicode = str
@@ -271,7 +272,7 @@ class  plot_stack(object):
 
     def _onSlider(self, val):
         self.ind = int(self.slider.val+0.5)
-        self.slider.valtext.set_text(f'{self.ind}')
+        self.slider.valtext.set_text('{}'.format(self.ind))
         self._update()
 
     def _onscroll(self, event):
@@ -387,7 +388,7 @@ class plot_spectrum_image(object):
         self.spectrum = self.get_spectrum()
 
         self.axes[1].plot(self.energy_scale,self.spectrum)
-        self.axes[1].set_title(f' spectrum {self.x},{self.y} ')
+        self.axes[1].set_title(' spectrum {},{} '.format(self.x, self.y))
         self.xlabel = dset.get_dimension_labels()[spec_dim[0]]
         self.axes[1].set_xlabel(self.xlabel)# + x_suffix)
         self.ylabel = dset.data_descriptor
@@ -466,7 +467,7 @@ class plot_spectrum_image(object):
 
         self.axes[1].plot(self.energy_scale,self.spectrum, label = 'experiment')
 
-        self.axes[1].set_title(f' spectrum {self.x},{self.y} ')
+        self.axes[1].set_title(' spectrum {},{} '.format(self.x, self.y))
 
 
         self.axes[1].set_xlim(xlim)
