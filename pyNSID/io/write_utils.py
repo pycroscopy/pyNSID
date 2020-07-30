@@ -10,19 +10,16 @@ Created on Thu Sep  7 21:14:25 2017
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import sys
-from warnings import warn
-from enum import Enum
 from itertools import groupby
 import numpy as np
 import h5py #new
-from .dtype_utils import contains_integers, validate_list_of_strings, validate_single_string_arg
+from .dtype_utils import validate_single_string_arg
 if sys.version_info.major == 3:
     from collections.abc import Iterable
 else:
     from collections import Iterable
 
-__all__ = ['clean_string_att', 'get_aux_dset_slicing', 'make_indices_matrix', 'INDICES_DTYPE', 'VALUES_DTYPE', 'get_slope',
-           'Dimension', 'build_ind_val_matrices', 'calc_chunks', 'create_spec_inds_from_vals', 'validate_dimensions', 'DimType',
+__all__ = ['clean_string_att', 'get_slope', 'Dimension', 'validate_dimensions',
            'to_ranges']
 
 if sys.version_info.major == 3:
@@ -160,76 +157,16 @@ def validate_dimensions(this_dim,dim_shape):
     necessary_attributes =  ['name', 'quantity', 'units', 'dimension_type']
     for key in necessary_attributes:
         if key not in this_dim.attrs:
-            error_message += f'Missing {key} attribute in dimension;\n ' 
+            error_message += 'Missing {} attribute in dimension;\n '.format(key)
         # and are these of types str, str, str, and bool respectively and not empty?
         #elif key == 'dimension_type':
         #    if this_dim.attrs['dimension_type'] not in [True, False]: ## isinstance is here not working 
         #        error_message += f'{key} attribute in dimension should be boolean;\n ' 
         elif not isinstance(this_dim.attrs[key], str):
-            error_message += f'{key} attribute in dimension should be string;\n ' 
+            error_message += '{} attribute in dimension should be string;\n '.format(key)
     
     return error_message
 
-
-def validate_main_dimensions(main_shape, dim_dict, h5_parent_group ):
-    # Each item could either be a Dimension object or a HDF5 dataset
-    # Collect the file within which these ancillary HDF5 objectsa are present if they are provided
-    which_h5_file = {}
-    # Also collect the names of the dimensions. We want them to be unique
-    dim_names = []
-    
-    dimensions_correct = []
-    for index, dim_exp_size in enumerate(main_shape):
-        this_dim = dim_dict[index]
-        if isinstance(this_dim, h5py.Dataset):
-            #print(f'{index} is a dataset')
-            error_message = validate_dimensions(this_dim, main_shape[index])
-                
-            # All these checks should live in a helper function for cleaniness
-            
-            if len(error_message)>0:
-                print(f'Dimension {index} has the following error_message:\n', error_message)
-            
-            else:
-                if this_dim.name not in dim_names: ## names must be unique
-                    dim_names.append(this_dim.name)
-                else:
-                    raise TypeError(f'All dimension names must be unique, found {this_dim.name} twice')
-                
-                # are all datasets in the same file?
-                if this_dim.file != h5_parent_group.file:
-                    this_dim = copy_dataset(this_dim, h5_parent_group, verbose=verbose)
-
-        elif isinstance(this_dim, Dimension):
-            #print('Dimension')
-            #print(len(this_dim.values))
-            # is the shape matching with the main dataset?
-            dimensions_correct.append(len(this_dim.values) == dim_exp_size)
-            # Is there a HDF5 dataset with the same name already in the provided group where this dataset will be created?
-            if  this_dim.name in h5_parent_group:
-                # check if this object with the same name is a dataset and if it satisfies the above tests
-                if isinstance(h5_parent_group[this_dim.name], h5py.Dataset):
-                    print('needs more checking')
-                    dimensions_correct[-1] = False
-                else:
-                    dimensions_correct[-1] = True
-            # Otherwise, just append the dimension name for the uniqueness test
-            elif this_dim.name not in dim_names:
-                dim_names.append(this_dim.name)
-            else:
-                dimensions_correct[-1] = False
-        else:
-            raise TypeError(f'Values of dim_dict should either be h5py.Dataset objects or Dimension. '
-                            'Object at index: {index} was of type: {index}')
-        
-        for dim in which_h5_file:
-            if which_h5_file[dim] != h5_parent_group.file.filename:
-                print('need to copy dimension', dim)
-        for i, dim_name in enumerate(dim_names[:-1]):
-            if dim_name in  dim_names[i+1:]:
-                print(dim_name, ' is not unique')
-    
-    return dimensions_correct 
 
 def clean_string_att(att_val):
     """

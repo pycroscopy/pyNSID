@@ -14,13 +14,14 @@ import sys
 import h5py
 import numpy as np
 from dask import array as da
-from ..write_utils import  Dimension #new
+from ..write_utils import Dimension, validate_dimensions  # new
 from ..dtype_utils import contains_integers, validate_dtype, validate_single_string_arg, validate_string_args, \
     validate_list_of_strings, lazy_load_array
 from .base import get_attr, write_simple_attrs, is_editable_h5, write_book_keeping_attrs
 from .simple import link_as_main, check_if_main, validate_dims_against_main, validate_anc_h5_dsets, copy_dataset
-from pyNSID.io.write_utils import validate_dimensions , validate_main_dimensions
+from pyNSID.io.write_utils import validate_dimensions
 #from ..write_utils import INDICES_DTYPE, make_indices_matrix
+from ... import Dimension
 
 if sys.version_info.major == 3:
     unicode = str
@@ -249,3 +250,62 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
     return NSID_data_main#NSIDataset(h5_main)
 
 
+def validate_main_dimensions(main_shape, dim_dict, h5_parent_group ):
+    # Each item could either be a Dimension object or a HDF5 dataset
+    # Collect the file within which these ancillary HDF5 objectsa are present if they are provided
+    which_h5_file = {}
+    # Also collect the names of the dimensions. We want them to be unique
+    dim_names = []
+
+    dimensions_correct = []
+    for index, dim_exp_size in enumerate(main_shape):
+        this_dim = dim_dict[index]
+        if isinstance(this_dim, h5py.Dataset):
+            #print(f'{index} is a dataset')
+            error_message = validate_dimensions(this_dim, main_shape[index])
+
+            # All these checks should live in a helper function for cleaniness
+
+            if len(error_message)>0:
+                print('Dimension {} has the following error_message:\n'.format(index), error_message)
+
+            else:
+                if this_dim.name not in dim_names: ## names must be unique
+                    dim_names.append(this_dim.name)
+                else:
+                    raise TypeError('All dimension names must be unique, found {} twice'.format(this_dim.name))
+
+                # are all datasets in the same file?
+                if this_dim.file != h5_parent_group.file:
+                    this_dim = copy_dataset(this_dim, h5_parent_group, verbose=False)
+
+        elif isinstance(this_dim, Dimension):
+            #print('Dimension')
+            #print(len(this_dim.values))
+            # is the shape matching with the main dataset?
+            dimensions_correct.append(len(this_dim.values) == dim_exp_size)
+            # Is there a HDF5 dataset with the same name already in the provided group where this dataset will be created?
+            if  this_dim.name in h5_parent_group:
+                # check if this object with the same name is a dataset and if it satisfies the above tests
+                if isinstance(h5_parent_group[this_dim.name], h5py.Dataset):
+                    print('needs more checking')
+                    dimensions_correct[-1] = False
+                else:
+                    dimensions_correct[-1] = True
+            # Otherwise, just append the dimension name for the uniqueness test
+            elif this_dim.name not in dim_names:
+                dim_names.append(this_dim.name)
+            else:
+                dimensions_correct[-1] = False
+        else:
+            raise TypeError('Values of dim_dict should either be h5py.Dataset objects or Dimension. '
+                            'Object at index: {} was of type: {}'.format(index, type(index)))
+
+        for dim in which_h5_file:
+            if which_h5_file[dim] != h5_parent_group.file.filename:
+                print('need to copy dimension', dim)
+        for i, dim_name in enumerate(dim_names[:-1]):
+            if dim_name in  dim_names[i+1:]:
+                print(dim_name, ' is not unique')
+
+    return dimensions_correct
