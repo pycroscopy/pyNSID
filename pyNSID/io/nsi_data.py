@@ -120,7 +120,7 @@ class NSIDataset(h5py.Dataset):
 
         axes_labels = []
         for dim, quantity in enumerate(self.axes_quantities):
-            axes_labels.append(f"{quantity} [{self.axes_units[dim]}] ")
+            axes_labels.append("{} [{}]".format(quantity, self.axes_units[dim]))
         return axes_labels
 
     def get_dimens_types(self):

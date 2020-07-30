@@ -19,9 +19,9 @@ from ..dtype_utils import contains_integers, validate_dtype, validate_single_str
     validate_list_of_strings, lazy_load_array
 from .base import get_attr, write_simple_attrs, is_editable_h5, write_book_keeping_attrs
 from .simple import link_as_main, check_if_main, validate_dims_against_main, validate_anc_h5_dsets, copy_dataset
-from pyNSID.io.write_utils import validate_dimensions
+from ..write_utils import validate_dimensions
 #from ..write_utils import INDICES_DTYPE, make_indices_matrix
-from ... import Dimension
+from ..write_utils import Dimension
 
 if sys.version_info.major == 3:
     unicode = str
