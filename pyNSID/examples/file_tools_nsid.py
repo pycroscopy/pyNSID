@@ -492,7 +492,7 @@ def h5_open_file(filename = None,current_channel =None, saveFile = False):
             current_channel['title'][()] = basename
 
         dset.attrs['title'] = basename
-        return dset
+        return nsid.NSIDask.from_hdf5(dset)
     elif extension  in ['.dm3','.dm4','.ndata', '.h5']:
         h5_file = None
 
@@ -511,8 +511,8 @@ def h5_open_file(filename = None,current_channel =None, saveFile = False):
             
         current_channel['title'] = basename
 
-        dset = make_h5_dataset(current_channel, tags)
-        dset.attrs['title'] = basename
+        dset = make_dask_dataset(current_channel, tags)
+        dset.title = basename
         
         #h5_file.flush()
         return dset
@@ -1080,8 +1080,9 @@ def get_dimension_tags(tags):
     elif stack_dimension >-1:
         if stack_dimension !=0:
             data = np.moveaxis(tags['data'],stack_dimension, 0)
-        else:
-            data = np.swapaxes(tags['data'],1, 2)
+        #h5_groupelse:
+        data = np.swapaxes(tags['data'],1, 2)
+
         tags['data_type'] = 'image_stack'
         dimension_tags[0] = dim_dict['stack']
         dimension_tags[1] = dim_dict['x']
@@ -1114,6 +1115,46 @@ def flatten_directory(d, parent_key='', sep='.'):
                 items.append((new_key, v))
 
     return dict(items)
+
+def make_dask_dataset(tags):
+    tags_dimension, main_data = get_dimension_tags(tags)
+    data = nsid.NSIDask.from_array(main_data)
+    for index, dimension in tags_dimension.items():
+        data.set_dimension(index, dimension)
+
+    data.quantity = 'intensity'
+    data.units = "counts"
+    data.data_type = tags['data_type']
+    data.modality = 'STEM/TEM'
+    if 'spectrum' in data.data_type:
+        if 'EDS' in data.data_type:
+            data.source = 'EDS'
+        else:
+            data.source = 'EELS'
+    else:
+        data.source = 'detector'
+
+    data.original_metadata = flatten_directory(tags['original_metadata'])
+
+    if 'aberrations' in tags:
+        # set_attribute('aberrations')
+        data.aberrations = tags['aberrations']
+    if 'annotations' in tags:
+        data.annotations = tags['annotations']
+
+    if 'image' in tags:
+        data.attrs.update(tags['image'])
+
+    for key, value in tags.items():
+        if isinstance(value, dict):
+            pass
+        elif 'data' == key:
+            pass
+        else:
+            data.attrs[key] = value
+
+    return data
+
 
 def make_h5_dataset(current_channel, tags):
     

@@ -191,6 +191,11 @@ class NSIDask(da.Array):
                                                  dset.dimension_types[dim]))
         cls.attrs = dict(dset.attrs)
 
+        cls.original_metadata = {}
+        if 'original_metadata' in dset.parent:
+            cls.original_metadata = dict(dset.parent['original_metadata'].attrs)
+
+
         return cls
 
     def to_hdf5(self, h5_group):
@@ -206,9 +211,21 @@ class NSIDask(da.Array):
             #TODO: Check item to be simple
             dset.attrs[key] = item
 
+        original_group = h5_group.create_group('original_metadata')
         for key, item in self.original_metadata.items():
-            dset.parents['original_metadata'] = []
-            dset.parents['original_metadata'].attrs[key] = item
+            original_group.attrs[key] = item
+
+        if hasattr(self, 'aberrations'):
+            aberrations_group = h5_group.create_group('aberrations')
+            for key, item in self.aberrations.items():
+                aberrations_group.attrs[key] = item
+
+        if hasattr(self, 'annotations'):
+            annotations_group = h5_group.create_group('annotations')
+            for key, item in self.annotations.items():
+                annotations_group.attrs[key] = item
+
+
 
     def set_dimension(self,dim, dimension):
         #TODO: Check whether dimension valid
