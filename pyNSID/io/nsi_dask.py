@@ -225,7 +225,22 @@ class NSIDask(da.Array):
             for key, item in self.annotations.items():
                 annotations_group.attrs[key] = item
 
+    def copy(self):
+        dset_copy = NSIDask.from_array(self, self.chunks, self.name)
 
+        dset_copy.title = self.title
+        dset_copy.units = self.units
+        dset_copy.quantity = self.quantity
+        dset_copy.data_type = self.data_type
+        dset_copy.modality = self.modality
+        dset_copy.source = self.source
+
+        dset_copy.axes =self.axes.copy()
+        for dim in range(dset_copy.ndim):
+            dset_copy.set_dimension(dim, dset_copy.axes[dim])
+        dset_copy.attrs = dit(self.attrs).copy()
+
+        return dset_copy
 
     def set_dimension(self,dim, dimension):
         #TODO: Check whether dimension valid
