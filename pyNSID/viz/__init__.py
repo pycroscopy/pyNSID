@@ -7,11 +7,9 @@ Submodules
 .. autosummary::
     :toctree: _autosummary
 
-    plot_utils
-    jupyter_utils
+    plot_nsid
 
 """
+from . import plot_nsid
 
-from . import plot_utils, jupyter_utils, plot_nsid
-
-__all__ = ['plot_utils', 'jupyter_utils', 'plot_nsid']
+__all__ = ['plot_nsid']
