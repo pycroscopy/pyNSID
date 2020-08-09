@@ -15,9 +15,9 @@ Submodules
     write_utils
 
 """
-from . import dtype_utils, io_utils, hdf_utils, write_utils
+from sidpy.sid import Dimension, Translator
+from . import hdf_utils, write_utils
 from .nsi_data import NSIDataset
-from .write_utils import Dimension
 
-__all__ = ['NSIDataset', 'hdf_utils', 'io_utils', 'dtype_utils', 'Dimension',
-           'write_utils'] # 'DimType','ArrayTranslator
+__all__ = ['NSIDataset', 'hdf_utils', 'write_utils',
+           'Dimension', 'Translator']
