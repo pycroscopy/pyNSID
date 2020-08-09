@@ -23,7 +23,7 @@ from sidpy.hdf.hdf_utils import get_auxiliary_datasets, link_h5_obj_as_alias, \
     validate_h5_objs_in_same_h5_file
 
 from .base import write_book_keeping_attrs
-from ..write_utils import validate_dimensions
+from ..dimension import validate_dimensions
 
 if sys.version_info.major == 3:
     unicode = str

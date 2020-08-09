@@ -8,16 +8,13 @@ Submodules
     :toctree: _autosummary
 
     hdf_utils
-    dtype_utils
-    image
-    io_utils
     nsi_data
-    write_utils
+    dimension
 
 """
 from sidpy.sid import Dimension, Translator
-from . import hdf_utils, write_utils
+from . import hdf_utils, dimension
 from .nsi_data import NSIDataset
 
-__all__ = ['NSIDataset', 'hdf_utils', 'write_utils',
+__all__ = ['NSIDataset', 'hdf_utils', 'dimension',
            'Dimension', 'Translator']

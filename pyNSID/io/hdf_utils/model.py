@@ -24,7 +24,7 @@ from sidpy.hdf.hdf_utils import lazy_load_array, get_attr, write_simple_attrs, \
 from sidpy.sid import Dimension
 
 from .simple import link_as_main, check_if_main, validate_dims_against_main, validate_anc_h5_dsets, copy_dataset
-from ..write_utils import validate_dimensions
+from ..dimension import validate_dimensions
 
 if sys.version_info.major == 3:
     unicode = str
