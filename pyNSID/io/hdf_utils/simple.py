@@ -12,15 +12,18 @@ import h5py
 import numpy as np
 import dask.array as da
 
-from ..dtype_utils import validate_dtype, validate_single_string_arg, validate_list_of_strings, contains_integers, lazy_load_array
+from sidpy.base.num_utils import contains_integers
+from sidpy.base.string_utils import validate_single_string_arg, \
+    clean_string_att, validate_list_of_strings
+from sidpy.sid import Dimension
+from sidpy.hdf.dtype_utils import validate_dtype
 ## Must be reimplemented
-#from ..reg_ref import write_region_references, simple_region_ref_copy, copy_reg_ref_reduced_dim, \
-#    create_region_reference, copy_all_region_refs
-from ..write_utils import clean_string_att, Dimension , validate_dimensions# build_ind_val_matrices, get_aux_dset_slicing, INDICES_DTYPE, \
-#    VALUES_DTYPE, Dimension, DimType
-from .base import get_auxiliary_datasets, link_h5_obj_as_alias, get_attr, \
-    link_h5_objects_as_attrs, write_book_keeping_attrs, write_simple_attrs, \
-    is_editable_h5, validate_h5_objs_in_same_h5_file
+from sidpy.hdf.hdf_utils import get_auxiliary_datasets, link_h5_obj_as_alias, \
+    get_attr, write_simple_attrs, lazy_load_array, \
+    validate_h5_objs_in_same_h5_file
+
+from .base import write_book_keeping_attrs
+from ..write_utils import validate_dimensions
 
 if sys.version_info.major == 3:
     unicode = str

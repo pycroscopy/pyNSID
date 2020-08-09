@@ -21,13 +21,14 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
 import matplotlib.patches as patches
 import matplotlib.animation as animation
-
 import matplotlib.ticker as mtick
 from matplotlib.colors import LinearSegmentedColormap
 from mpl_toolkits.axes_grid1 import ImageGrid
-from ..io.dtype_utils import contains_integers, get_exponent, is_complex_dtype
 import dask.array as da
-from .plot_utils import plot_map
+
+from sidpy.hdf.dtype_utils import is_complex_dtype
+from sidpy.base.num_utils import contains_integers, get_exponent
+from sidpy.viz.plot_utils import plot_map
 
 if sys.version_info.major == 3:
     unicode = str

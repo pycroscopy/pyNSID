@@ -9,23 +9,23 @@ import dask.array as da
 import matplotlib.pyplot as plt
 
 
-from .hdf_utils import check_if_main, get_attr, create_results_group, link_as_main, write_main_dataset, copy_attributes
+from sidpy.hdf.hdf_utils import get_attr
 ## taken out temporarily
-# get_sort_order, get_unit_values,
-from .dtype_utils import  contains_integers, get_exponent, is_complex_dtype, \
-    validate_single_string_arg, validate_list_of_strings, lazy_load_array
-
-from .write_utils import Dimension
-
+from sidpy.base.num_utils import contains_integers, get_exponent
+from sidpy.base.string_utils import validate_single_string_arg, validate_list_of_strings
+from sidpy.hdf.hdf_utils import lazy_load_array
+from sidpy.hdf.dtype_utils import is_complex_dtype
+from sidpy.sid import Dimension
 ## taken out temporarily
-#flatten_to_real,
-from ..viz.jupyter_utils import simple_ndim_visualizer
-from ..viz.plot_utils import plot_map, get_plot_grid_size
+from sidpy.hdf.dtype_utils import flatten_to_real
+from sidpy.viz.jupyter_utils import simple_ndim_visualizer
+from sidpy.viz.plot_utils import plot_map, get_plot_grid_size
+
+from .hdf_utils import check_if_main, create_results_group, link_as_main, write_main_dataset, copy_attributes
 from ..viz.plot_nsid import plot_stack, plot_spectrum_image, plot_curve, plot_image
 
 if sys.version_info.major == 3:
     unicode = str
-
 
 
 class NSIDataset(h5py.Dataset):

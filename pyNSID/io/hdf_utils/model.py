@@ -14,14 +14,17 @@ import sys
 import h5py
 import numpy as np
 from dask import array as da
-from ..write_utils import Dimension, validate_dimensions  # new
-from ..dtype_utils import contains_integers, validate_dtype, validate_single_string_arg, validate_string_args, \
-    validate_list_of_strings, lazy_load_array
-from .base import get_attr, write_simple_attrs, is_editable_h5, write_book_keeping_attrs
+
+from sidpy.base.num_utils import contains_integers
+from sidpy.base.string_utils import validate_single_string_arg, \
+    validate_string_args, validate_list_of_strings
+from sidpy.hdf.dtype_utils import validate_dtype
+from sidpy.hdf.hdf_utils import lazy_load_array, get_attr, write_simple_attrs, \
+    is_editable_h5, write_book_keeping_attrs
+from sidpy.sid import Dimension
+
 from .simple import link_as_main, check_if_main, validate_dims_against_main, validate_anc_h5_dsets, copy_dataset
 from ..write_utils import validate_dimensions
-#from ..write_utils import INDICES_DTYPE, make_indices_matrix
-from ..write_utils import Dimension
 
 if sys.version_info.major == 3:
     unicode = str
