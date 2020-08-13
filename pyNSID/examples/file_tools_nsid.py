@@ -21,7 +21,7 @@ except:
 
 import json
 import struct
-import ipywidgets as ipyw
+
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 import sys, os
@@ -49,8 +49,12 @@ import pyTEMlib.dm3lib_v1_0b as dm3 # changed this dm3 reader library to support
 from pyTEMlib.config_dir import config_path
 
 import os, sys
-sys.path.append('../pyNSID/')
+sys.path.append('../../../pyNSID/')
+sys.path.append('../../../sidpy/')
+
 import pyNSID as nsid
+import sidpy as sid
+
 
 __version__ = '06.20.2020' 
 ####
@@ -258,22 +262,7 @@ def openfile_dialog(file_types = None, multiple_files = False, gui = 'None'):
 
     
     """
-    if gui not in ['Qt','Tk']:
-        if QT_available:
-            gui = 'Qt'
-        elif TK_available:
-            gui = 'Tk'
-        else:
-            return None
-    ## try to find a parent the file dialog can appear on top
-    try:
-        app = get_QT_app()
-        #import IPython.lib.guisupport as gui_support
-        #parent = gui_support.get_app_qt().activeWindow()
-        
-    except:
-        pass
-    parent = None
+
 
     ## determine file types by extension
     if file_types == None:
@@ -288,46 +277,20 @@ def openfile_dialog(file_types = None, multiple_files = False, gui = 'None'):
         path = fp.read()
         fp.close()
     except:
-        path = ''
-    
-    if len(path)<2:
         path = '.'
 
-    if gui == 'Qt':
-        if multiple_files:
-            fnames, file_filter = QtWidgets.QFileDialog.getOpenFileNames(parent, "Select a file...", path, filter=file_types, options = [QtCore.Qt.WindowStaysOnTopHint])
-            if len(fnames) >0:
-                fname = fnames[0]
-            else:
-                return 
-        else:
-            fname, file_filter = QtWidgets.QFileDialog.getOpenFileName(parent, "Select a file...", path, filter=file_types)
-    
-    else:
-        multiple_files = False
-        root = tkinter.Tk()
-        root.withdraw()
-        root.call('wm', 'attributes', '.', '-topmost', True)
-
-        tk_list = []
-        for ffilter in  file_types.split(';;' ):
-            split_filter = ffilter.split('(')
-            tk_list.append((split_filter[0],split_filter[1][:-1].split(' ')))
-        fnames =  filedialog.askopenfilename(initialdir = path, title = "Select file", filetypes = tk_list, multiple = multiple_files)
-        
-    if len(fname) > 1:
+    import sidpy.io.interface_utils as iu
+    filename = iu.openfile_dialog(file_types = file_types, file_path = path)
+    if len(filename) > 1:
         
         fp = open(config_path+'\path.txt','w')
-        path, fileName = os.path.split(fname)
+        path, fName = os.path.split(filename)
         fp.write(path)
         fp.close()
     else:
         return ''
         
-    if multiple_files:
-         return fnames
-    else:
-        return str(fname)
+    return str(filename)
 
 def h5_get_dictionary(current_channel):
     tags = {}
@@ -479,6 +442,7 @@ def h5_open_file(filename = None,current_channel =None, saveFile = False):
         h5_file = h5py.File(filename, mode='a')
 
         dset = get_main_dataset(h5_file)
+        print(dset)
         if current_channel == None:
             current_channel = dset.parent
         else:
@@ -511,7 +475,7 @@ def h5_open_file(filename = None,current_channel =None, saveFile = False):
             
         current_channel['title'] = basename
 
-        dset = make_dask_dataset(current_channel, tags)
+        dset = make_dask_dataset(tags)
         dset.title = basename
         
         #h5_file.flush()
@@ -834,10 +798,14 @@ def get_next_channel(current_channel):
 
 def get_nsid_dataset(current_channel):
     dset_list =  nsid.io.hdf_utils.find_dataset(current_channel,'nDim_Data')
+    print(dset_list, current_channel,current_channel.keys())
     if len(dset_list)>0:
         return dset_list[-1]
     else:
-        return None
+        if 'nDim_Data' in current_channel:
+            return current_channel['nDim_Data']
+        else:
+            return None
 
 def get_start_channel(h5_file):
     return get_main_channel(h5_file)

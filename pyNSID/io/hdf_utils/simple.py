@@ -16,7 +16,7 @@ from ..dtype_utils import validate_dtype, validate_single_string_arg, validate_l
 ## Must be reimplemented
 #from ..reg_ref import write_region_references, simple_region_ref_copy, copy_reg_ref_reduced_dim, \
 #    create_region_reference, copy_all_region_refs
-from ..write_utils import clean_string_att, Dimension , validate_dimensions# build_ind_val_matrices, get_aux_dset_slicing, INDICES_DTYPE, \
+from ..write_utils import clean_string_att, validate_dimensions# build_ind_val_matrices, get_aux_dset_slicing, INDICES_DTYPE, \
 #    VALUES_DTYPE, Dimension, DimType
 from .base import get_auxiliary_datasets, link_h5_obj_as_alias, get_attr, \
     link_h5_objects_as_attrs, write_book_keeping_attrs, write_simple_attrs, \

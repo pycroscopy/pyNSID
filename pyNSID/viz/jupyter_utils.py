@@ -12,7 +12,7 @@ import numpy as np
 import sys
 
 from .plot_utils import plot_map, set_tick_font_size, export_fig_data
-from ..io.write_utils import Dimension
+from sidpy.sid import Dimension
 
 if sys.version_info.major == 3:
     unicode = str

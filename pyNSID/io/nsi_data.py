@@ -1,21 +1,25 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
-import os
-import sys
 from warnings import warn
 import h5py
 import numpy as np
 import dask.array as da
-import matplotlib.pyplot as plt
+
+import os, sys
+sys.path.append('../../../sidpy/')
+import sidpy as sid
 
 
 from .hdf_utils import check_if_main, get_attr, create_results_group, link_as_main, write_main_dataset, copy_attributes
 ## taken out temporarily
 # get_sort_order, get_unit_values,
-from .dtype_utils import  contains_integers, get_exponent, is_complex_dtype, \
-    validate_single_string_arg, validate_list_of_strings, lazy_load_array
+from sidpy.base.num_utils import  contains_integers, get_exponent
+from sidpy.hdf.dtype_utils import  is_complex_dtype
+from sidpy.base.string_utils import validate_single_string_arg, validate_list_of_strings
+from sidpy.hdf.hdf_utils import  lazy_load_array
 
-from .write_utils import Dimension
+
+from sidpy.sid import  Dimension
 
 ## taken out temporarily
 #flatten_to_real,
@@ -120,7 +124,7 @@ class NSIDataset(h5py.Dataset):
 
         axes_labels = []
         for dim, quantity in enumerate(self.axes_quantities):
-            axes_labels.append(f"{quantity} [{self.axes_units[dim]}] ")
+            axes_labels.append('{} [{}]'.format(quantity, self.axes_units[dim]))
         return axes_labels
 
     def get_dimens_types(self):

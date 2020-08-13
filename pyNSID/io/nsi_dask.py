@@ -6,13 +6,14 @@ import string
 
 import dask.array as da
 
-import os
-import sys
+import os, sys
+sys.path.append('../../../sidpy/')
+import sidpy as sid
+
 from warnings import warn
 import h5py
 
 from .hdf_utils import check_if_main, get_attr, create_results_group, link_as_main, write_main_dataset, copy_attributes
-from .write_utils import  Dimension
 
 
 def get_chunks(data, chunks=None):
@@ -100,6 +101,34 @@ class NSIDask(da.Array):
     def __init__(self, *args, **kwargs):
         super(NSIDask, self).__init__()
 
+    def like_data(self, data,  name=None, lock=False):
+
+        new_data = self.from_array(data, chunks=None, name=None, lock=False)
+
+
+        new_data.data_type = self.data_type
+        new_data.units = self.units
+        new_data.title = self.title+"_new"
+        new_data.quantity = self.quantity
+
+        new_data.modality = self.modality
+        new_data.source = self.source
+        #new_data.data_descriptor = self.data_descriptor
+
+        new_data.axes = {}
+        for dim in range(new_data.ndim):
+            # TODO: add parent to dimension to set attribute if name changes
+            new_data.labels.append(string.ascii_lowercase[dim])
+            if len(self.axes[dim].values) ==  new_data.shape[dim]:
+                new_data.set_dimension(dim,self.axes[dim])
+            else:
+                print('use generic axis for dimension ', dim)
+
+        new_data.attrs = dict(self.attrs).copy()
+        new_data.group_attrs = {}#dict(self.group_attrs).copy()
+        new_data.original_metadata = {}
+        return new_data
+
 
     @classmethod
     def from_array(cls, x, chunks=None, name=None, lock=False):
@@ -133,7 +162,7 @@ class NSIDask(da.Array):
         for dim in range(cls.ndim):
             # TODO: add parent to dimension to set attribute if name changes
             cls.labels.append(string.ascii_lowercase[dim])
-            cls.set_dimension(dim, Dimension(string.ascii_lowercase[dim], np.arange(cls.shape[dim]), 'generic',
+            cls.set_dimension(dim, sid.sid.Dimension(string.ascii_lowercase[dim], np.arange(cls.shape[dim]), 'generic',
                                                    'generic', 'generic'))
         cls.attrs = {}
         cls.group_attrs = {}
@@ -185,10 +214,17 @@ class NSIDask(da.Array):
             cls.source = 'generic'
 
         cls.axes ={}
+
         for dim in range(dset.ndim):
-            cls.set_dimension(dim, Dimension(dset.dims[dim].label, np.array(dset.dims[dim][0]),
-                                                 dset.axes_quantities[dim], dset.axes_units[dim],
-                                                 dset.dimension_types[dim]))
+            #print(dim, dset.dims[dim].label)
+            #print(dset.dims[dim][0][0])
+            dim_dict = dict(dset.parent[dset.dims[dim].label].attrs)
+            #print(dset.dims[dim].label, np.array(dset.dims[dim][0]))
+            #print(dset.parent[dset.dims[0].label][()])
+            #print(dim_dict['quantity'], dim_dict['units'], dim_dict['dimension_type'])
+            cls.set_dimension(dim, sid.sid.Dimension(dset.dims[dim].label, np.array(dset.parent[dset.dims[dim].label][()]),
+                                                    dim_dict['quantity'], dim_dict['units'],
+                                                    dim_dict['dimension_type']))
         cls.attrs = dict(dset.attrs)
 
         cls.original_metadata = {}
@@ -207,6 +243,7 @@ class NSIDask(da.Array):
         dset = write_main_dataset(h5_group, np.array(self), main_data_name,
                                  self.quantity, self.units, self.data_type, self.modality,
                                  self.source, self.axes, verbose=False)
+        print(dset)
         for key, item in self.attrs.items():
             #TODO: Check item to be simple
             dset.attrs[key] = item
@@ -235,17 +272,17 @@ class NSIDask(da.Array):
         dset_copy.modality = self.modality
         dset_copy.source = self.source
 
-        dset_copy.axes =self.axes.copy()
+        dset_copy.axes = {}
         for dim in range(dset_copy.ndim):
-            dset_copy.set_dimension(dim, dset_copy.axes[dim])
-        dset_copy.attrs = dit(self.attrs).copy()
+            dset_copy.set_dimension(dim, self.axes[dim].copy())
+        dset_copy.attrs = dict(self.attrs).copy()
 
         return dset_copy
 
     def set_dimension(self,dim, dimension):
         #TODO: Check whether dimension valid
         setattr(self, dimension.name,dimension)
-        setattr(self, f'dim_{dim}', dimension)
+        setattr(self, 'dim_{}'.format(dim), dimension)
 
         self.axes[dim] = dimension
 

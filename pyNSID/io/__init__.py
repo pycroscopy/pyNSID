@@ -25,6 +25,6 @@ from . import write_utils
 
 from .nsi_data import NSIDataset
 from .nsi_dask import NSIDask
-from .write_utils import Dimension #, DimType
+from sidpy.sid import Dimension #, DimType
 
 __all__ = ['NSIDask', 'NSIDataset', 'hdf_utils', 'io_utils', 'dtype_utils', 'Dimension', ] # 'DimType','ArrayTranslator

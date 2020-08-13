@@ -309,7 +309,7 @@ class plot_spectrum_image(object):
 
     """
 
-    def __init__(self, dset,  dim_dict,  figure =None, horizontal = True, **kwargs):
+    def __init__(self, dset,  figure =None, horizontal = True, **kwargs):
 
         fig_args = dict()
         temp = kwargs.pop('figsize', None)
@@ -326,29 +326,32 @@ class plot_spectrum_image(object):
             return
 
         ### We need one stack dimension and two image dimensions as lists in dictionary
-        if 'spatial' not in dim_dict:
-            raise KeyError('dimension_dictionary must contain a spatial key')
-            return
-        image_dims = dim_dict['spatial']
-        if len(image_dims)<2:
+
+        selection = []
+        image_dims = []
+        spectral_dims = []
+        for dim, axis in dset.axes.items():
+            if axis.dimension_type == 'spatial':
+                selection.append(slice(None))
+                image_dims.append(dim)
+            elif axis.dimension_type == 'spectral':
+                selection.append(slice(0,1))
+                spectral_dims.append(dim)
+            else:
+                selection.append(slice(0, 1))
+        if len(image_dims) != 2:
+            raise ValueError('We need two dimensions with dimension_type spatial to plot an image')
+
+
+        if len(image_dims) !=2 :
             raise KeyError('spatial key in dimension_dictionary must be list of length 2')
             return
 
-        if 'spectral' not in dim_dict:
-            raise KeyError('dimension_dictionary must contain key stack or time')
-            return
-        spec_dim = dim_dict['spectral']
-        if len(spec_dim) < 1:
+        if len(spectral_dims) != 1:
             raise KeyError('spectral key in dimension_dictionary must be list of length 1')
             return
 
-        if spec_dim[0] != 2 or image_dims != [0,1]:
-            ## axes not in expected order, displaying a copy of data with right dimensional oreder:
-            self.cube =  np.transpose(dset, (image_dims[0],image_dims[1], spec_dim[0]))
-        else:
-            self.cube  = dset
-
-        extent = dset.make_extent([image_dims[0],image_dims[1]])
+        extent = dset.get_extent([image_dims[0],image_dims[1]])
 
         self.horizontal = horizontal
         self.x = 0
@@ -356,10 +359,12 @@ class plot_spectrum_image(object):
         self.bin_x = 1
         self.bin_y = 1
 
-        sizeX = self.cube.shape[0]
-        sizeY = self.cube.shape[1]
+        sizeX = dset.shape[image_dims[0]]
+        sizeY = dset.shape[image_dims[1]]
 
-        self.energy_scale = dset.dims[spec_dim[0]][0]
+
+        self.dset =dset
+        self.energy_scale = dset.energy_scale.values
 
         self.extent = [0,sizeX,sizeY,0]
         self.rectangle = [0,sizeX,0,sizeY]
@@ -368,20 +373,22 @@ class plot_spectrum_image(object):
         self.analysis = []
         self.plot_legend = False
 
+        self.image_dims = image_dims
+        self.spec_dim = spectral_dims[0]
 
         if horizontal:
             self.axes = self.fig.subplots(ncols=2)
         else:
             self.axes = self.fig.subplots(nrows=2, **fig_args)
 
-        self.fig.canvas.set_window_title(dset.file.filename.split('/')[-1])
-        self.image = np.sum(self.cube, axis=2)
+        self.fig.canvas.set_window_title(self.dset.title)
+        self.image = np.average(self.dset, axis=spectral_dims[0])
 
         self.axes[0].imshow(self.image.T, extent = self.extent, **kwargs)
         if horizontal:
-            self.axes[0].set_xlabel('distance [pixels]')
+            self.axes[0].set_xlabel(f'{self.dset.axes[image_dims[0]].quantity} [pixels]')
         else:
-            self.axes[0].set_ylabel('distance [pixels]')
+            self.axes[0].set_ylabel(f'{self.dset.axes[image_dims[1]].quantity} [pixels]')
         self.axes[0].set_aspect('equal')
 
         #self.rect = patches.Rectangle((0,0),1,1,linewidth=1,edgecolor='r',facecolor='red', alpha = 0.2)
@@ -393,9 +400,9 @@ class plot_spectrum_image(object):
 
         self.axes[1].plot(self.energy_scale,self.spectrum)
         self.axes[1].set_title(f' spectrum {self.x},{self.y} ')
-        self.xlabel = dset.get_dimension_labels()[spec_dim[0]]
+        self.xlabel = f"{self.dset.energy_scale.quantity}  [{self.dset.energy_scale.units}]"
         self.axes[1].set_xlabel(self.xlabel)# + x_suffix)
-        self.ylabel = dset.data_descriptor
+        self.ylabel = f"{self.dset.quantity}  [{self.dset.units}]"
         self.axes[1].set_ylabel(self.ylabel)
         self.axes[1].ticklabel_format(style='sci', scilimits=(-2, 3))
         self.fig.tight_layout()
@@ -416,26 +423,45 @@ class plot_spectrum_image(object):
             self.bin_x = int(bin)
             self.bin_y = int(bin)
 
+        if self.bin_x > self.dset.shape[self.image_dims[0]]:
+            self.bin_x = self.dset.shape[self.image_dims[0]]
+        if self.bin_y > self.dset.shape[self.image_dims[1]]:
+            self.bin_y = self.dset.shape[self.image_dims[1]]
+
         self.rect.set_width(self.rect.get_width()*self.bin_x/old_bin_x)
         self.rect.set_height((self.rect.get_height()*self.bin_y/old_bin_y))
-        if self.x+self.bin_x >  self.cube.shape[0]:
-            self.x = self.cube.shape[0]-self.bin_x
-        if self.y+self.bin_y >  self.cube.shape[1]:
-            self.y = self.cube.shape[1]-self.bin_y
+        if self.x+self.bin_x >  self.dset.shape[self.image_dims[0]]:
+            self.x = self.dset.shape[0]-self.bin_x
+        if self.y+self.bin_y >  self.dset.shape[self.image_dims[1]]:
+            self.y = self.dset.shape[1]-self.bin_y
 
         self.rect.set_xy([self.x*self.rect.get_width()/self.bin_x +  self.rectangle[0],
                             self.y*self.rect.get_height()/self.bin_y +  self.rectangle[2]])
         self._update()
 
     def get_spectrum(self):
-        if self.x > self.cube.shape[0]-self.bin_x:
-            self.x = self.cube.shape[0]-self.bin_x
-        if self.y > self.cube.shape[1]-self.bin_y:
-            self.y = self.cube.shape[1]-self.bin_y
 
-        self.spectrum = np.average(self.cube[self.x:self.x+self.bin_x,self.y:self.y+self.bin_y,:], axis=(0,1))
+        if self.x > self.dset.shape[self.image_dims[0]]-self.bin_x:
+            self.x = self.dset.shape[self.image_dims[0]]-self.bin_x
+        if self.y > self.dset.shape[self.image_dims[1]]-self.bin_y:
+            self.y = self.dset.shape[self.image_dims[1]]-self.bin_y
+        selection = []
+
+        for dim, axis in self.dset.axes.items():
+            if axis.dimension_type == 'spatial':
+                if dim == self.image_dims[0]:
+                    selection.append(slice(self.x, self.x + self.bin_x))
+                else:
+                    selection.append(slice(self.y, self.y + self.bin_y))
+
+            elif axis.dimension_type == 'spectral':
+                selection.append(None)
+            else:
+                selection.append(slice(0, 1))
+
+        self.spectrum = np.squeeze(np.average(self.dset[tuple(selection)], axis=(self.image_dims)) )
         #* self.intensity_scale[self.x,self.y]
-        return   self.spectrum
+        return   np.squeeze(self.spectrum)
 
     def _onclick(self,event):
         self.event = event
@@ -451,10 +477,10 @@ class plot_spectrum_image(object):
                     self.x = int(x/(self.rect.get_width()/self.bin_x))
                     self.y = int(y/(self.rect.get_height()/self.bin_y))
 
-                    if self.x+self.bin_x >  self.cube.shape[0]:
-                        self.x = self.cube.shape[0]-self.bin_x
-                    if self.y+self.bin_y >  self.cube.shape[1]:
-                        self.y = self.cube.shape[1]-self.bin_y
+                    if self.x+self.bin_x >  self.dset.shape[0]:
+                        self.x = self.dset.shape[0]-self.bin_x
+                    if self.y+self.bin_y >  self.dset.shape[1]:
+                        self.y = self.dset.shape[1]-self.bin_y
 
                     self.rect.set_xy([self.x*self.rect.get_width()/self.bin_x +  self.rectangle[0],
                                       self.y*self.rect.get_height()/self.bin_y +  self.rectangle[2]])
