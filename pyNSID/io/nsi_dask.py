@@ -115,7 +115,7 @@ class NSIDask(da.Array):
         new_data.source = self.source
         #new_data.data_descriptor = self.data_descriptor
 
-        new_data.axes = {}
+        #new_data.axes = {}
         for dim in range(new_data.ndim):
             # TODO: add parent to dimension to set attribute if name changes
             new_data.labels.append(string.ascii_lowercase[dim])
@@ -215,7 +215,7 @@ class NSIDask(da.Array):
 
         cls.axes ={}
 
-        for dim in range(dset.ndim):
+        for dim in range(np.array(dset).ndim):
             #print(dim, dset.dims[dim].label)
             #print(dset.dims[dim][0][0])
             dim_dict = dict(dset.parent[dset.dims[dim].label].attrs)
@@ -239,11 +239,16 @@ class NSIDask(da.Array):
             main_data_name = 'nDim_Data'
         else:
             main_data_name = self.title
+        print(h5_group)
+        print(h5_group.keys())
+
+        print(main_data_name)
 
         dset = write_main_dataset(h5_group, np.array(self), main_data_name,
                                  self.quantity, self.units, self.data_type, self.modality,
                                  self.source, self.axes, verbose=False)
-        print(dset)
+        print('d',dset)
+
         for key, item in self.attrs.items():
             #TODO: Check item to be simple
             dset.attrs[key] = item

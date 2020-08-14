@@ -109,7 +109,7 @@ def validate_main_dimensions(main_shape, dim_dict, h5_parent_group ):
                 if this_dim.file != h5_parent_group.file:
                     this_dim = copy_dataset(this_dim, h5_parent_group, verbose=verbose)
 
-        elif isinstance(this_dim, Dimension):
+        elif isinstance(this_dim, sid.sid.Dimension):
             #print('Dimension')
             #print(len(this_dim.values))
             # is the shape matching with the main dataset?

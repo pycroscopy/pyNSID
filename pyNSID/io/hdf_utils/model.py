@@ -178,8 +178,9 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
                  'mpi4py does not allow creation of compressed datasets. Compression kwarg has been removed')
 
     if main_data_name in h5_parent_group:
+        print(h5_parent_group.name)
         print('Oops, dataset exits')
-        #del h5_parent_group[main_data_name]
+        del h5_parent_group[main_data_name]
         return
     
     if isinstance(main_data, np.ndarray):
@@ -217,7 +218,7 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
             if 'nsid_version' not in this_dim_dset.attrs:
                 this_dim_dset.attrs['nsid_version'] = '0.0.1'
             #this_dim_dset[i] = this_dim
-        elif isinstance(this_dim, sid.Dimension):
+        elif isinstance(this_dim, sid.sid.Dimension):
             this_dim_dset = h5_parent_group.create_dataset(this_dim.name,data=this_dim.values)
             attrs_to_write={'name':  this_dim.name, 'units': this_dim.units, 'quantity':  this_dim.quantity, 'dimension_type': this_dim.dimension_type, 'nsid_version' : '0.0.1'}
             write_simple_attrs(this_dim_dset, attrs_to_write)
