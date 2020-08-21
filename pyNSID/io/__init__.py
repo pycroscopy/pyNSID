@@ -25,5 +25,5 @@ from .simple import get_attr
 from .nsi_data import NSIDataset
 from .write_utils import read_nsid
 from .write_utils import write_nsid
-from .write_utils import empty_dataset
-__all__ = ['empty_dataset', 'read_nsid', 'write_nsid', 'NSIDataset', 'write_main_dataset', 'write_simple_attrs']
+from .write_utils import create_empty_dataset
+__all__ = ['create_empty_dataset', 'read_nsid', 'write_nsid', 'NSIDataset', 'write_main_dataset', 'write_simple_attrs']

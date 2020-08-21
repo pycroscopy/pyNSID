@@ -22,7 +22,7 @@ import sidpy as sid
 from sidpy.base.num_utils import contains_integers
 
 
-def empty_dataset(shape, h5_group, name='nDIM_Data'):
+def create_empty_dataset(shape, h5_group, name='nDIM_Data'):
     """
     returns a NSID dataset filled with zeros according to required shape list.
 
