@@ -17,14 +17,11 @@ except:
     print('h5py not installed, cannot read Nion files')
     h5py_installed = False
 
-
-
 import json
 import struct
 
 import ipywidgets as widgets
 from IPython.display import display, clear_output
-import sys, os
 
 ## Open/Save File dialog 
 try:
@@ -54,7 +51,6 @@ sys.path.append('../../../sidpy/')
 
 import pyNSID as nsid
 import sidpy as sid
-
 
 __version__ = '06.20.2020' 
 ####
@@ -105,7 +101,7 @@ def rename_nion_files_to_readable(path):
         if os.path.isfile(full_name):
             basename, extension = os.path.splitext(name)
             if extension in ['.h5', '.ndata']:
-                tags = ft.open_file(full_name)
+                tags = open_file(full_name)
                 new_file_name = tags['original_name']+extension 
                 i = 0
                 while new_file_name in file_list:
@@ -228,7 +224,6 @@ def get_QT_app():
     app = _instance
 
     return app
-Dimension = nsid.Dimension
 
 def openfile_dialog(file_types = None, multiple_files = False, gui = 'None'):
     

@@ -25,8 +25,12 @@ import matplotlib.animation as animation
 import matplotlib.ticker as mtick
 from matplotlib.colors import LinearSegmentedColormap
 from mpl_toolkits.axes_grid1 import ImageGrid
-from ..io.dtype_utils import contains_integers, get_exponent, is_complex_dtype
 import dask.array as da
+
+sys.path.append('../../../sidpy/')
+import sidpy as sid
+from sidpy.base.num_utils import contains_integers, get_exponent
+from sidpy.hdf.dtype_utils import is_complex_dtype
 
 if sys.version_info.major == 3:
     unicode = str

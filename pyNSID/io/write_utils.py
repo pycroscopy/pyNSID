@@ -1,228 +1,132 @@
 # -*- coding: utf-8 -*-
 """
-Utilities that assist in writing USID related data to HDF5 files
+Utilities that assist in writing NSID related data to HDF5 files
 
-Created on Thu Sep  7 21:14:25 2017
+Created on Thu August 20 2020
 
-@author: Suhas Somnath, Chris Smith
+@author: Suhas Somnath, Gerd Duscher
 """
-
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import sys
-from warnings import warn
-from enum import Enum
-from itertools import groupby
+import h5py
 import numpy as np
-import h5py #new
-from .dtype_utils import contains_integers, validate_list_of_strings, validate_single_string_arg
-if sys.version_info.major == 3:
-    from collections.abc import Iterable
-else:
-    from collections import Iterable
 
-__all__ = ['clean_string_att', 'get_aux_dset_slicing', 'make_indices_matrix', 'INDICES_DTYPE', 'VALUES_DTYPE', 'get_slope',
-           'Dimension', 'build_ind_val_matrices', 'calc_chunks', 'create_spec_inds_from_vals', 'validate_dimensions', 'DimType',
-           'to_ranges']
+__all__ = ['validate_dimensions', 'validate_main_dimensions']
 
 if sys.version_info.major == 3:
     unicode = str
 
 sys.path.append('../../../sidpy/')
 import sidpy as sid
-#from sid Dimension
+from sidpy.base.num_utils import contains_integers
 
 
-
-def validate_dimensions(this_dim,dim_shape):
+def empty_dataset(shape, h5_group, name='nDIM_Data'):
     """
-    Checks if the provided object is an  h5 dataset. 
-    A valid dataset to be uses as dimension must be 1D not a comopound data type but 'simple'.
-    Such a dataset must have  ancillary attributes 'name', quantity', 'units', and 'dimension_type',
-    which have to be of  types str, str, str, and bool respectively and not empty
-    If it is not valid of dataset, Exceptions are raised.
+    returns a NSID dataset filled with zeros according to required shape list.
 
-    Parameters
-    ----------
-    dimensions : h5 dataset
-        with non empty attributes 'name', quantity', 'units', and 'dimension_type' 
-    dim_shape : required length of dataset 
+    :param shape: list of integer
+    :param h5_group: hdf5 group
+    :param name: -optional- name of NSID dataset
 
-    Returns
-    -------
-    error_message: string, empty if ok. 
+    :return:
+    NSID dataset
     """
+    if not contains_integers(shape):
+        raise ValueError('dimensions of shape need to be all integers')
+    if not isinstance(h5_group, h5py.Group):
+        raise TypeError('h5_group should be a h5py.Group object')
 
-    if not isinstance(this_dim, h5py.Dataset):
-        error_message = 'this Dimension must be a h5 Dataset'
-        return  error_message 
-    
-    error_message = ''
-    # Is it 1D?
-    if len(this_dim.shape)!=1:
-        error_message += ' High dimensional datasets are not allowed as dimensions;\n'
-    # Does this dataset have a "simple" dtype - no compound data type allowed!
-    # is the shape matching with the main dataset?
-    if len(this_dim) != dim_shape:
-        error_message += ' Dimension has wrong length;\n'
-    # Does it contain some ancillary attributes like 'name', quantity', 'units', and 'dimension_type' 
-    necessary_attributes =  ['name', 'quantity', 'units', 'dimension_type']
-    for key in necessary_attributes:
-        if key not in this_dim.attrs:
-            error_message += f'Missing {key} attribute in dimension;\n ' 
-        # and are these of types str, str, str, and bool respectively and not empty?
-        #elif key == 'dimension_type':
-        #    if this_dim.attrs['dimension_type'] not in [True, False]: ## isinstance is here not working 
-        #        error_message += f'{key} attribute in dimension should be boolean;\n ' 
-        elif not isinstance(this_dim.attrs[key], str):
-            error_message += f'{key} attribute in dimension should be string;\n ' 
-    
-    return error_message
+    return write_nsid(sid.Dataset.from_array(np.zeros(shape)), h5_group, name)
 
 
-def validate_main_dimensions(main_shape, dim_dict, h5_parent_group ):
-    # Each item could either be a Dimension object or a HDF5 dataset
-    # Collect the file within which these ancillary HDF5 objectsa are present if they are provided
-    which_h5_file = {}
-    # Also collect the names of the dimensions. We want them to be unique
-    dim_names = []
-    
-    dimensions_correct = []
-    for index, dim_exp_size in enumerate(main_shape):
-        this_dim = dim_dict[index]
-        if isinstance(this_dim, h5py.Dataset):
-            #print(f'{index} is a dataset')
-            error_message = validate_dimensions(this_dim, main_shape[index])
-                
-            # All these checks should live in a helper function for cleaniness
-            
-            if len(error_message)>0:
-                print(f'Dimension {index} has the following error_message:\n', error_message)
-            
-            else:
-                if this_dim.name not in dim_names: ## names must be unique
-                    dim_names.append(this_dim.name)
-                else:
-                    raise TypeError(f'All dimension names must be unique, found {this_dim.name} twice')
-                
-                # are all datasets in the same file?
-                if this_dim.file != h5_parent_group.file:
-                    this_dim = copy_dataset(this_dim, h5_parent_group, verbose=verbose)
+def read_nsid(dset, chunks=None, name=None, lock=False):
+    # create vanilla dask array
+    dataset = sid.Dataset.from_array(np.array(dset), chunks, name, lock)
 
-        elif isinstance(this_dim, sid.sid.Dimension):
-            #print('Dimension')
-            #print(len(this_dim.values))
-            # is the shape matching with the main dataset?
-            dimensions_correct.append(len(this_dim.values) == dim_exp_size)
-            # Is there a HDF5 dataset with the same name already in the provided group where this dataset will be created?
-            if  this_dim.name in h5_parent_group:
-                # check if this object with the same name is a dataset and if it satisfies the above tests
-                if isinstance(h5_parent_group[this_dim.name], h5py.Dataset):
-                    print('needs more checking')
-                    dimensions_correct[-1] = False
-                else:
-                    dimensions_correct[-1] = True
-            # Otherwise, just append the dimension name for the uniqueness test
-            elif this_dim.name not in dim_names:
-                dim_names.append(this_dim.name)
-            else:
-                dimensions_correct[-1] = False
+    if 'title' in dset.attrs:
+        dataset.title = dset.attrs['title']
+    else:
+        dataset.title = dset.name
+
+    if 'units' in dset.attrs:
+        dataset.units = dset.attrs['units']
+    else:
+        dataset.units = 'generic'
+
+    if 'quantity' in dset.attrs:
+        dataset.quantity = dset.attrs['quantity']
+    else:
+        dataset.quantity = 'generic'
+
+    if 'data_type' in dset.attrs:
+        dataset.data_type = dset.attrs['data_type']
+    else:
+        dataset.data_type = 'generic'
+
+    # TODO: modality and source not yet properties
+    if 'modality' in dset.attrs:
+        dataset.modality = dset.attrs['modality']
+    else:
+        dataset.modality = 'generic'
+
+    if 'source' in dset.attrs:
+        dataset.source = dset.attrs['source']
+    else:
+        dataset.source = 'generic'
+
+    dataset.axes = {}
+
+    for dim in range(np.array(dset).ndim):
+        # print(dim, dset.dims[dim].label)
+        # print(dset.dims[dim][0][0])
+        dim_dict = dict(dset.parent[dset.dims[dim].label].attrs)
+        # print(dset.dims[dim].label, np.array(dset.dims[dim][0]))
+        # print(dset.parent[dset.dims[0].label][()])
+        # print(dim_dict['quantity'], dim_dict['units'], dim_dict['dimension_type'])
+        dataset.set_dimension(dim,
+                              sid.sid.Dimension(dset.dims[dim].label, np.array(dset.parent[dset.dims[dim].label][()]),
+                                                dim_dict['quantity'], dim_dict['units'],
+                                                dim_dict['dimension_type']))
+    dataset.attrs = dict(dset.attrs)
+
+    dataset.original_metadata = {}
+    if 'original_metadata' in dset.parent:
+        dataset.original_metadata = dict(dset.parent['original_metadata'].attrs)
+
+    return dataset
+
+
+def write_nsid(dataset, h5_group, main_data_name=''):
+    if main_data_name == '':
+        if dataset.title.strip() == '':
+            main_data_name = 'nDim_Data'
         else:
-            raise TypeError(f'Values of dim_dict should either be h5py.Dataset objects or Dimension. '
-                            'Object at index: {index} was of type: {index}')
-        
-        for dim in which_h5_file:
-            if which_h5_file[dim] != h5_parent_group.file.filename:
-                print('need to copy dimension', dim)
-        for i, dim_name in enumerate(dim_names[:-1]):
-            if dim_name in  dim_names[i+1:]:
-                print(dim_name, ' is not unique')
-    
-    return dimensions_correct 
+            main_data_name = dataset.title
+    from .model import write_main_dataset
 
-def clean_string_att(att_val):
-    """
-    Replaces any unicode objects within lists with their string counterparts to ensure compatibility with python 3.
-    If the attribute is indeed a list of unicodes, the changes will be made in-place
+    dset = write_main_dataset(h5_group, np.array(dataset), main_data_name,
+                              dataset.quantity, dataset.units, dataset.data_type, dataset.modality,
+                              dataset.source, dataset.axes, verbose=False)
 
-    Parameters
-    ----------
-    att_val : object
-        Attribute object
+    for key, item in dataset.attrs.items():
+        # TODO: Check item to be simple
+        dset.attrs[key] = item
 
-    Returns
-    -------
-    att_val : object
-        Attribute object
-    """
-    try:
-        if isinstance(att_val, Iterable):
-            if type(att_val) in [unicode, str]:
-                return att_val
-            elif np.any([type(x) in [str, unicode, bytes, np.str_] for x in att_val]):
-                return np.array(att_val, dtype='S')
-        if type(att_val) == np.str_:
-            return str(att_val)
-        return att_val
-    except TypeError:
-        raise TypeError('Failed to clean: {}'.format(att_val))
+    original_group = h5_group.create_group('original_metadata')
+    for key, item in dataset.original_metadata.items():
+        original_group.attrs[key] = item
 
+    if hasattr(dataset, 'aberrations'):
+        aberrations_group = h5_group.create_group('aberrations')
+        for key, item in dataset.aberrations.items():
+            aberrations_group.attrs[key] = item
 
-def get_slope(values, tol=1E-3):
-    """
-    Attempts to get the slope of the provided values. This function will be handy
-    for checking if a dimension has been varied linearly or not.
-    If the values vary non-linearly, a ValueError will be raised
+    if hasattr(dataset, 'annotations'):
+        annotations_group = h5_group.create_group('annotations')
+        for key, item in dataset.annotations.items():
+            annotations_group.attrs[key] = item
 
-    Parameters
-    ----------
-    values : array-like
-        List of numbers
-    tol : float, optional. Default = 1E-3
-        Tolerance in the variation of the slopes.
-    Returns
-    -------
-    float
-        Slope of the line
-    """
-    if not isinstance(tol, float):
-        raise TypeError('tol should be a float << 1')
-    step_size = np.unique(np.diff(values))
-    if len(step_size) > 1:
-        # often we end up here. In most cases,
-        step_avg = step_size.max()
-        step_size -= step_avg
-        var = np.mean(np.abs(step_size))
-        if var / step_avg < tol:
-            step_size = [step_avg]
-        else:
-            # Non-linear dimension! - see notes above
-            raise ValueError('Provided values cannot be expressed as a linear trend')
-    return step_size[0]
+    return dset
 
-
-def to_ranges(iterable):
-    """
-    Converts a sequence of iterables to range tuples
-
-    From https://stackoverflow.com/questions/4628333/converting-a-list-of-integers-into-range-in-python
-
-    Credits: @juanchopanza and @luca
-
-    Parameters
-    ----------
-    iterable : collections.Iterable object
-        iterable object like a list
-
-    Returns
-    -------
-    iterable : generator object
-        Cast to list or similar to use
-    """
-    iterable = sorted(set(iterable))
-    for key, group in groupby(enumerate(iterable), lambda t: t[1] - t[0]):
-        group = list(group)
-        if sys.version_info.major == 3:
-            yield range(group[0][1], group[-1][1]+1)
-        else:
-            yield xrange(group[0][1], group[-1][1]+1)

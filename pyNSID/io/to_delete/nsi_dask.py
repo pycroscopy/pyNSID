@@ -7,8 +7,9 @@ import string
 import dask.array as da
 
 import os, sys
-sys.path.append('../../../sidpy/')
+sys.path.append('../../../../sidpy/')
 import sidpy as sid
+
 
 from warnings import warn
 import h5py
@@ -73,166 +74,66 @@ def view_subclass(darr, cls):
                dtype=darr.dtype, shape=darr.shape)
 
 
-class NSIDask(da.Array):
-    """Dask NSI data array.
 
-    To instantiate from an existing array-like object,
-    use :func:`NSIDask.from_array` - requires numpy array
-    or  :func:`NSIDask.from_hdf5`  - requires NSID Dataset
+def from_hdf5(cls, dset, chunks=None, name=None, lock=False):
 
-    This dask array is extended to have the following attributes:
-    -data_type: str ('image', 'image_stack',  spectrum_image', ...
-    -units: str
-    -title: name of the data set
-    -modality
-    -source
-    -axes: dictionary of NSID Dimensions one for each data dimension
-                    (the axes are dimension datsets with name, label, units, and 'dimension_type' attributes).
+    # create vanilla dask array
+    darr = da.from_array(np.array(dset), chunks=chunks, name=name, lock=lock)
 
-    -attrs: dictionary of additional metadata
-    -orginal_metadata: dictionary of original metadata of file,
+    # view as sub-class
+    cls = view_subclass(darr, cls)
 
-    -labels: returns labels of all dimensions.
+    if 'title' in dset.attrs:
+        cls.title = dset.attrs['title']
+    else:
+        cls.title = dset.name
 
-    functions:
-    set_dimension(axis, dimensions): set a NSID Dimension to a specific axis
-    """
+    if 'units' in dset.attrs:
+        cls.units = dset.attrs['units']
+    else:
+        cls.units = 'generic'
 
-    def __init__(self, *args, **kwargs):
-        super(NSIDask, self).__init__()
-
-    def like_data(self, data,  name=None, lock=False):
-
-        new_data = self.from_array(data, chunks=None, name=None, lock=False)
-
-
-        new_data.data_type = self.data_type
-        new_data.units = self.units
-        new_data.title = self.title+"_new"
-        new_data.quantity = self.quantity
-
-        new_data.modality = self.modality
-        new_data.source = self.source
-        #new_data.data_descriptor = self.data_descriptor
-
-        #new_data.axes = {}
-        for dim in range(new_data.ndim):
-            # TODO: add parent to dimension to set attribute if name changes
-            new_data.labels.append(string.ascii_lowercase[dim])
-            if len(self.axes[dim].values) ==  new_data.shape[dim]:
-                new_data.set_dimension(dim,self.axes[dim])
-            else:
-                print('use generic axis for dimension ', dim)
-
-        new_data.attrs = dict(self.attrs).copy()
-        new_data.group_attrs = {}#dict(self.group_attrs).copy()
-        new_data.original_metadata = {}
-        return new_data
-
-
-    @classmethod
-    def from_array(cls, x, chunks=None, name=None, lock=False):
-        # override this as a class method to allow sub-classes to return
-        # instances of themselves
-
-        # ensure array-like
-        x = ensure_array_like(x)
-        if hasattr(cls, 'check_input_data'):
-            cls.check_input_data(x)
-
-        # determine chunks, guessing something reasonable if user does not
-        # specify
-        chunks = get_chunks(np.array(x), chunks)
-
-        # create vanilla dask array
-        darr = da.from_array(np.array(x), chunks=chunks, name=name, lock=lock)
-
-        # view as sub-class
-        cls = view_subclass(darr, cls)
-        cls.data_type = 'generic'
-        cls.units = ''
-        cls.title = ''
+    if 'quantity' in dset.attrs:
+        cls.quantity = dset.attrs['quantity']
+    else:
         cls.quantity = 'generic'
 
-        cls.modality = ''
-        cls.source = ''
-        cls.data_descriptor = ''
+    if 'data_type' in dset.attrs:
+        cls.data_type = dset.attrs['data_type']
+    else:
+        cls.data_type = 'generic'
 
-        cls.axes = {}
-        for dim in range(cls.ndim):
-            # TODO: add parent to dimension to set attribute if name changes
-            cls.labels.append(string.ascii_lowercase[dim])
-            cls.set_dimension(dim, sid.sid.Dimension(string.ascii_lowercase[dim], np.arange(cls.shape[dim]), 'generic',
-                                                   'generic', 'generic'))
-        cls.attrs = {}
-        cls.group_attrs = {}
-        cls.original_metadata = {}
-        return cls
+    #TODO: mdoality and source not yet properties
+    if 'modality' in dset.attrs:
+        cls.modality = dset.attrs['modality']
+    else:
+        cls.modality = 'generic'
 
-    @classmethod
-    def from_hdf5(cls, dset, chunks=None, name=None, lock=False):
+    if 'source' in dset.attrs:
+        cls.source = dset.attrs['source']
+    else:
+        cls.source = 'generic'
 
-        # determine chunks, guessing something reasonable if user does not
-        # specify
-        chunks = get_chunks(np.array(dset), chunks)
+    cls.axes ={}
 
-        # create vanilla dask array
-        darr = da.from_array(np.array(dset), chunks=chunks, name=name, lock=lock)
+    for dim in range(np.array(dset).ndim):
+        #print(dim, dset.dims[dim].label)
+        #print(dset.dims[dim][0][0])
+        dim_dict = dict(dset.parent[dset.dims[dim].label].attrs)
+        #print(dset.dims[dim].label, np.array(dset.dims[dim][0]))
+        #print(dset.parent[dset.dims[0].label][()])
+        #print(dim_dict['quantity'], dim_dict['units'], dim_dict['dimension_type'])
+        cls.set_dimension(dim, sid.sid.Dimension(dset.dims[dim].label, np.array(dset.parent[dset.dims[dim].label][()]),
+                                                dim_dict['quantity'], dim_dict['units'],
+                                                dim_dict['dimension_type']))
+    cls.attrs = dict(dset.attrs)
 
-        # view as sub-class
-        cls = view_subclass(darr, cls)
-
-        if 'title' in dset.attrs:
-            cls.title = dset.attrs['title']
-        else:
-            cls.title = dset.name
-
-        if 'units' in dset.attrs:
-            cls.units = dset.attrs['units']
-        else:
-            cls.units = 'generic'
-
-        if 'quantity' in dset.attrs:
-            cls.quantity = dset.attrs['quantity']
-        else:
-            cls.quantity = 'generic'
-
-        if 'data_type' in dset.attrs:
-            cls.data_type = dset.attrs['data_type']
-        else:
-            cls.data_type = 'generic'
-
-        #TODO: mdoality and source not yet properties
-        if 'modality' in dset.attrs:
-            cls.modality = dset.attrs['modality']
-        else:
-            cls.modality = 'generic'
-
-        if 'source' in dset.attrs:
-            cls.source = dset.attrs['source']
-        else:
-            cls.source = 'generic'
-
-        cls.axes ={}
-
-        for dim in range(np.array(dset).ndim):
-            #print(dim, dset.dims[dim].label)
-            #print(dset.dims[dim][0][0])
-            dim_dict = dict(dset.parent[dset.dims[dim].label].attrs)
-            #print(dset.dims[dim].label, np.array(dset.dims[dim][0]))
-            #print(dset.parent[dset.dims[0].label][()])
-            #print(dim_dict['quantity'], dim_dict['units'], dim_dict['dimension_type'])
-            cls.set_dimension(dim, sid.sid.Dimension(dset.dims[dim].label, np.array(dset.parent[dset.dims[dim].label][()]),
-                                                    dim_dict['quantity'], dim_dict['units'],
-                                                    dim_dict['dimension_type']))
-        cls.attrs = dict(dset.attrs)
-
-        cls.original_metadata = {}
-        if 'original_metadata' in dset.parent:
-            cls.original_metadata = dict(dset.parent['original_metadata'].attrs)
+    cls.original_metadata = {}
+    if 'original_metadata' in dset.parent:
+        cls.original_metadata = dict(dset.parent['original_metadata'].attrs)
 
 
-        return cls
+    return cls
 
     def to_hdf5(self, h5_group):
         if  self.title.strip() == '':

@@ -1,30 +1,29 @@
 """
-Tools to read, write data in h5USID files
-
+Tools to read, write data in h5NSID files
+This module is based on sidpy
 Submodules
 ----------
 
 .. autosummary::
     :toctree: _autosummary
 
-    hdf_utils
-    dtype_utils
-    image
-    io_utils
+    base
+    model
     nsi_data
+    other
+    simple
+    nsi_data
+    translator
     write_utils
 
 """
 from . import nsi_data
-from . import nsi_dask
 
-from . import hdf_utils
-from . import io_utils
-from . import dtype_utils
-from . import write_utils
+from .model import write_main_dataset, write_simple_attrs
+from .simple import get_attr
 
 from .nsi_data import NSIDataset
-from .nsi_dask import NSIDask
-from sidpy.sid import Dimension #, DimType
-
-__all__ = ['NSIDask', 'NSIDataset', 'hdf_utils', 'io_utils', 'dtype_utils', 'Dimension', ] # 'DimType','ArrayTranslator
+from .write_utils import read_nsid
+from .write_utils import write_nsid
+from .write_utils import empty_dataset
+__all__ = ['empty_dataset', 'read_nsid', 'write_nsid', 'NSIDataset', 'write_main_dataset', 'write_simple_attrs']

@@ -15,7 +15,7 @@ import numpy as np
 from PIL import Image
 
 from .numpy_translator import ArrayTranslator
-from .write_utils import Dimension
+from pyNSID.io.write_utils import Dimension
 from .dtype_utils import contains_integers
 from .hdf_utils import write_simple_attrs
 

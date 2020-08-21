@@ -32,6 +32,115 @@ if sys.version_info.major == 3:
     unicode = str
 
 
+def create_empty_dataset(source_dset, dtype, dset_name, h5_group=None, new_attrs=None, skip_refs=False):
+    """
+    Creates an empty dataset in the h5 file based on the provided dataset in the same or specified group
+    Parameters
+    ----------
+    source_dset : h5py.Dataset object
+        Source object that provides information on the group and shape of the dataset
+    dtype : dtype
+        Data type of the fit / guess datasets
+    dset_name : String / Unicode
+        Name of the dataset
+    h5_group : :class:`h5py.Group`, optional. Default = None
+        Group within which this dataset will be created
+    new_attrs : dictionary (Optional)
+        Any new attributes that need to be written to the dataset
+    skip_refs : boolean, optional
+        Should ObjectReferences and RegionReferences be skipped when copying attributes from the
+        `source_dset`
+    Returns
+    -------
+    h5_new_dset : h5py.Dataset object
+        Newly created dataset
+    """
+    if not isinstance(source_dset, h5py.Dataset):
+        raise TypeError('source_deset should be a h5py.Dataset object')
+    _ = validate_dtype(dtype)
+    if new_attrs is not None:
+        if not isinstance(new_attrs, dict):
+            raise TypeError('new_attrs should be a dictionary')
+    else:
+        new_attrs = dict()
+
+    if h5_group is None:
+        h5_group = source_dset.parent
+    else:
+        if not isinstance(h5_group, (h5py.Group, h5py.File)):
+            raise TypeError('h5_group should be a h5py.Group or h5py.File object')
+
+        if source_dset.file != h5_group.file and not skip_refs:
+            # Cannot carry over references
+            warn('H5 object references will not be copied over since {} is in '
+                 'a different HDF5 file as {}'.format(h5_group, source_dset))
+            skip_refs = True
+
+    dset_name = validate_single_string_arg(dset_name, 'dset_name')
+    if '-' in dset_name:
+        warn('dset_name should not contain the "-" character. Reformatted name from:{} to '
+             '{}'.format(dset_name, dset_name.replace('-', '_')))
+    dset_name = dset_name.replace('-', '_')
+
+    kwargs = {'shape': source_dset.shape, 'dtype': dtype, 'compression': source_dset.compression,
+              'chunks': source_dset.chunks}
+
+    if source_dset.file.driver == 'mpio':
+        if kwargs.pop('compression', None) is not None:
+            warn('This HDF5 file has been opened with the "mpio" communicator. '
+                 'mpi4py does not allow creation of compressed datasets. Compression kwarg has been removed')
+
+    if dset_name in h5_group.keys():
+        if isinstance(h5_group[dset_name], h5py.Dataset):
+            warn('A dataset named: {} already exists in group: {}'.format(dset_name, h5_group.name))
+            h5_new_dset = h5_group[dset_name]
+            # Make sure it has the correct shape and dtype
+            if any((source_dset.shape != h5_new_dset.shape, dtype != h5_new_dset.dtype)):
+                warn('Either the shape (existing: {} desired: {}) or dtype (existing: {} desired: {}) of the dataset '
+                     'did not match with expectations. Deleting and creating a new one.'.format(h5_new_dset.shape,
+                                                                                                source_dset.shape,
+                                                                                                h5_new_dset.dtype,
+                                                                                                dtype))
+                del h5_new_dset, h5_group[dset_name]
+                h5_new_dset = h5_group.create_dataset(dset_name, **kwargs)
+        else:
+            raise KeyError('{} is already a {} in group: {}'.format(dset_name, type(h5_group[dset_name]),
+                                                                    h5_group.name))
+
+    else:
+        h5_new_dset = h5_group.create_dataset(dset_name, **kwargs)
+
+    # This should link the ancillary datasets correctly
+    h5_new_dset = copy_attributes(source_dset, h5_new_dset,
+                                  skip_refs=skip_refs)
+
+    ####################
+    # Attaching Dimensional Scales
+    ####################
+    dim_dict = {}
+    for i, dimension in enumerate(source_dset.dims):
+        # check for all required attributes
+        dim_dict[i] = h5_group[dimension.label]
+
+    h5_new_dset = link_as_main(h5_new_dset, dim_dict)
+
+    ###################
+    #  Go on with old function
+    ################
+    if source_dset.file != h5_group.file:
+        copy_linked_objects(source_dset, h5_new_dset)
+    h5_new_dset.attrs.update(new_attrs)
+
+    if check_if_main(h5_new_dset):
+        from .nsi_data import NSIDataset
+
+        h5_new_dset = NSIDataset(h5_new_dset)
+        # update book keeping attributes
+        write_book_keeping_attrs(h5_new_dset)
+
+    return h5_new_dset
+
+
 def lazy_load_array(dataset):
     """
     Loads the provided object as a dask array (h5py.Dataset or numpy.ndarray
