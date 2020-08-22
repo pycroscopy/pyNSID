@@ -53,7 +53,7 @@ setup(
     packages=find_packages(exclude='tests'),
     url='https://pycroscopy.github.io/pyUSID/about.html',
     license='MIT',
-    author='S. Somnath, C. R. Smith, and contributors',
+    author='G. Duscher, S. Somnath, and contributors',
     author_email='pycroscopy@gmail.com',
     install_requires=requirements,
     setup_requires=['pytest-runner'],
