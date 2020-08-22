@@ -2,9 +2,9 @@
 """
 Utilities for generating static image and line plots of near-publishable quality
 
-Created on Thu May 05 13:29:12 2016
+Created on Thu May 05 13:29:12 2020
 
-@author: Suhas Somnath, Chris R. Smith
+@author: Gerd Duscher
 """
 # TODO: All general plotting functions should support data with 1, 2, or 3 spatial dimensions.
 
