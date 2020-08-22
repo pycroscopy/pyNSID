@@ -10,27 +10,12 @@ Created on Thu May 05 13:29:12 2016
 
 from __future__ import division, print_function, absolute_import, unicode_literals
 
-import inspect
-import os
 import sys
-from numbers import Number
 import numpy as np
-import h5py
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
 import matplotlib.patches as patches
 import matplotlib.animation as animation
-
-import matplotlib.ticker as mtick
-from matplotlib.colors import LinearSegmentedColormap
-from mpl_toolkits.axes_grid1 import ImageGrid
-import dask.array as da
-
-sys.path.append('../../../sidpy/')
-import sidpy as sid
-from sidpy.base.num_utils import contains_integers, get_exponent
-from sidpy.hdf.dtype_utils import is_complex_dtype
 
 if sys.version_info.major == 3:
     unicode = str
@@ -86,8 +71,8 @@ class plot_curve(object):
             self.axis = self.fig.add_subplot(1,1,1, **fig_args)
             self.axis.plot(self.dim.values, self.dset, **kwargs)
             self.axis.set_title(self.dset.title, pad=15)
-            self.axis.set_xlabel(f'{self.dim.label}, [{self.dim.units}]')# + x_suffix)
-            self.axis.set_ylabel(f'{self.dset.quantity}, [{self.dset.units}]')
+            self.axis.set_xlabel('{}, [{}]'.format(self.dim.label, self.dim.units))# + x_suffix)
+            self.axis.set_ylabel('{}, [{}]'.format(self.dset.quantity, self.dset.units))
             self.axis.ticklabel_format(style='sci', scilimits=(-2, 3))
             self.fig.canvas.draw_idle()
 
@@ -118,13 +103,12 @@ class plot_image(object):
         if temp is not None:
             fig_args['figsize'] = temp
 
-        if figure == None:
+        if figure is None:
             self.fig = plt.figure(**fig_args)
         else:
             self.fig = figure
 
         self.dset = dset
-
 
         selection = []
         image_dims = []
@@ -136,8 +120,6 @@ class plot_image(object):
                 selection.append(slice(0, 1))
         if len(image_dims) != 2:
             raise ValueError('We need two dimensions with dimension_type spatial to plot an image')
-
-
 
         if False:#is_complex_dtype(self.dset):
             # Plot real and image
@@ -160,11 +142,11 @@ class plot_image(object):
             self.axis = self.fig.add_subplot(1,1,1)
             self.axis.set_title(dset.title)
             self.img = self.axis.imshow(self.dset[tuple(selection)].T, extent=dset.get_extent(image_dims))
-            self.axis.set_xlabel(f"{self.dset.axes[image_dims[0]].quantity} [{self.dset.axes[image_dims[0]].units}]")
-            self.axis.set_ylabel(f"{self.dset.axes[image_dims[1]].quantity} [{self.dset.axes[image_dims[1]].units}]")
+            self.axis.set_xlabel("{} [{}]".format(self.dset.axes[image_dims[0]].quantity, self.dset.axes[image_dims[0]].units))
+            self.axis.set_ylabel("{} [{}]".format(self.dset.axes[image_dims[1]].quantity, self.dset.axes[image_dims[1]].units))
 
             cbar = self.fig.colorbar(self.img)
-            cbar.set_label(f"{dset.quantity} [{dset.units}]")
+            cbar.set_label("{} [{}]".format(dset.quantity, dset.units))
 
             self.axis.ticklabel_format(style='sci', scilimits=(-2, 3))
             self.fig.tight_layout()
@@ -242,11 +224,10 @@ class  plot_stack(object):
 
         self.axis.set_title('image stack: '+dset.title+'\n use scroll wheel to navigate images')
         self.img.axes.figure.canvas.mpl_connect('scroll_event', self._onscroll)
-        self.axis.set_xlabel(f"{self.dset.axes[image_dims[0]].quantity} [{self.dset.axes[image_dims[0]].units}]");
-        self.axis.set_ylabel(f"{self.dset.axes[image_dims[1]].quantity} [{self.dset.axes[image_dims[1]].units}]")
+        self.axis.set_xlabel("{} [{}]".format(self.dset.axes[image_dims[0]].quantity, self.dset.axes[image_dims[0]].units))
+        self.axis.set_ylabel("{} [{}]".format(self.dset.axes[image_dims[1]].quantity, self.dset.axes[image_dims[1]].units))
         cbar = self.fig.colorbar(self.img)
-        cbar.set_label(f"{dset.quantity} [{dset.units}]")
-
+        cbar.set_label("{} [{}]".format(dset.quantity, dset.units))
 
         axidx = self.fig.add_axes([0.1, 0.05, 0.55, 0.03])
         self.slider = Slider(axidx, 'image', 0, self.cube.shape[0]-1, valinit=self.ind, valfmt='%d')
@@ -280,7 +261,7 @@ class  plot_stack(object):
 
     def _onSlider(self, val):
         self.ind = int(self.slider.val+0.5)
-        self.slider.valtext.set_text(f'{self.ind}')
+        self.slider.valtext.set_text('{}'.format(self.ind))
         self._update()
 
     def _onscroll(self, event):
@@ -390,9 +371,9 @@ class plot_spectrum_image(object):
 
         self.axes[0].imshow(self.image.T, extent = self.extent, **kwargs)
         if horizontal:
-            self.axes[0].set_xlabel(f'{self.dset.axes[image_dims[0]].quantity} [pixels]')
+            self.axes[0].set_xlabel('{} [pixels]'.format(self.dset.axes[image_dims[0]].quantity))
         else:
-            self.axes[0].set_ylabel(f'{self.dset.axes[image_dims[1]].quantity} [pixels]')
+            self.axes[0].set_ylabel('{} [pixels]'.format(self.dset.axes[image_dims[1]].quantity))
         self.axes[0].set_aspect('equal')
 
         #self.rect = patches.Rectangle((0,0),1,1,linewidth=1,edgecolor='r',facecolor='red', alpha = 0.2)
@@ -403,10 +384,10 @@ class plot_spectrum_image(object):
         self.spectrum = self.get_spectrum()
 
         self.axes[1].plot(self.energy_scale,self.spectrum)
-        self.axes[1].set_title(f' spectrum {self.x},{self.y} ')
-        self.xlabel = f"{self.dset.energy_scale.quantity}  [{self.dset.energy_scale.units}]"
+        self.axes[1].set_title('spectrum {}, {}'.format(self.x, self.y))
+        self.xlabel = "{}  [{}]".format(self.dset.energy_scale.quantity, self.dset.energy_scale.units)
         self.axes[1].set_xlabel(self.xlabel)# + x_suffix)
-        self.ylabel = f"{self.dset.quantity}  [{self.dset.units}]"
+        self.ylabel = "{}  [{}]".format(self.dset.quantity, self.dset.units)
         self.axes[1].set_ylabel(self.ylabel)
         self.axes[1].ticklabel_format(style='sci', scilimits=(-2, 3))
         self.fig.tight_layout()
@@ -464,7 +445,7 @@ class plot_spectrum_image(object):
                 selection.append(slice(0, 1))
 
         self.spectrum = np.squeeze(np.average(self.dset[tuple(selection)], axis=(self.image_dims)) )
-        #* self.intensity_scale[self.x,self.y]
+        # * self.intensity_scale[self.x,self.y]
         return   np.squeeze(self.spectrum)
 
     def _onclick(self,event):
@@ -488,7 +469,7 @@ class plot_spectrum_image(object):
 
                     self.rect.set_xy([self.x*self.rect.get_width()/self.bin_x +  self.rectangle[0],
                                       self.y*self.rect.get_height()/self.bin_y +  self.rectangle[2]])
-        #self.ax1.set_title(f'{self.x}')
+        # self.ax1.set_title(f'{self.x}')
         self._update()
 
     def _update(self, ev=None):
@@ -498,10 +479,9 @@ class plot_spectrum_image(object):
         self.axes[1].clear()
         self.get_spectrum()
 
-
         self.axes[1].plot(self.energy_scale,self.spectrum, label = 'experiment')
 
-        self.axes[1].set_title(f' spectrum {self.x},{self.y} ')
+        self.axes[1].set_title('spectrum {}, {}'.format(self.x, self.y))
 
 
         self.axes[1].set_xlim(xlim)
@@ -510,7 +490,6 @@ class plot_spectrum_image(object):
         self.axes[1].set_ylabel(self.ylabel)
 
         self.fig.canvas.draw_idle()
-
 
     def set_legend(self, setLegend):
         self.plot_legend = setLegend
