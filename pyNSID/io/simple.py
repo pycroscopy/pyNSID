@@ -19,6 +19,7 @@ from sidpy.base.string_utils import validate_single_string_arg, \
 from sidpy.hdf.hdf_utils import get_auxiliary_datasets, link_h5_obj_as_alias, \
     get_attr, write_book_keeping_attrs, write_simple_attrs, copy_dataset, \
     validate_h5_objs_in_same_h5_file
+from sidpy.hdf import hdf_utils as hut
 from sidpy import Dimension
 
 if sys.version_info.major == 3:
@@ -81,23 +82,14 @@ def find_dataset(h5_group, dset_name):
     """
     from .nsi_data import NSIDataset
 
-    if not isinstance(h5_group, (h5py.File, h5py.Group)):
-        raise TypeError('h5_group should be a h5py.File or h5py.Group object')
-    dset_name = validate_single_string_arg(dset_name, 'dset_name')
-    
     # print 'Finding all instances of', ds_name
     datasets = []
 
-    def __find_name(name, obj):
-        if dset_name in name.split('/')[-1] and isinstance(obj, h5py.Dataset):
-            try:
-                datasets.append(NSIDataset(obj))
-            except:  # TypeError: #TODO: fix this
-                pass
-                # datasets.append(obj)
-        return
-
-    h5_group.visititems(__find_name)
+    for obj in hut.find_dataset(h5_group, dset_name):
+        try:
+            datasets.append(NSIDataset(obj))
+        except TypeError:
+            datasets.append(obj)
 
     return datasets
 
