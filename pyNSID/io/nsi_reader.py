@@ -18,8 +18,6 @@ from sidpy.hdf.dtype_utils import validate_dtype
 from sidpy.base.string_utils import validate_single_string_arg, validate_string_args
 from sidpy.hdf.hdf_utils import write_simple_attrs, is_editable_h5
 from sidpy.sid import Dimension
-from .simple import link_as_main
-from .nsi_writer import validate_main_dimensions
 
 if sys.version_info.major == 3:
     unicode = str
