@@ -29,41 +29,6 @@ from .write_utils import validate_main_dimensions  # validate_dimensions ,
 if sys.version_info.major == 3:
     unicode = str
 
-
-def __check_anc_before_creation(aux_prefix, dim_type='pos'):
-    aux_prefix = validate_single_string_arg(aux_prefix, 'aux_' + dim_type + '_prefix')
-    if not aux_prefix.endswith('_'):
-        aux_prefix += '_'
-    if '-' in aux_prefix:
-        warn('aux_' + dim_type + ' should not contain the "-" character. Reformatted name from:{} to '
-                                 '{}'.format(aux_prefix, aux_prefix.replace('-', '_')))
-    aux_prefix = aux_prefix.replace('-', '_')
-    # for dset_name in [aux_prefix + 'Indices', aux_prefix + 'Values']:
-    #    pass
-    # if dset_name in h5_parent_group.keys():
-    #    # TODO: What if the contained data was correct?
-    #    raise KeyError('Dataset named: ' + dset_name + ' already exists in group: '
-    #           {}. Consider passing these datasets using kwargs (if they are correct) instead of providing
-    #           the pos_dims and spec_dims arguments'.format(h5_parent_group.name))
-    return aux_prefix
-
-
-""" New version much shorter and in validate_main_dimensions in file "simple.py"
-def __ensure_anc_in_correct_file(h5_inds, h5_parent_group, prefix):
-    h5_parent_group = h5_vals.parent
-    if h5_inds.file != h5_parent_group.file:
-        # Need to copy over the anc datasets to the new group
-        if verbose:
-            print('Need to copy over ancillary datasets: {} and {} to '
-                    'destination group: {} which is in a different HDF5 '
-                    'file'.format(h5_inds, h5_parent_group))
-        ret_vals = [copy_dataset(x, h5_parent_group, verbose=verbose) for x in [h5_inds, h5_vals]]
-    else:
-        ret_vals = [h5_inds, h5_vals]
-    return tuple(ret_vals)
-"""
-
-
 def write_main_dataset(h5_parent_group, main_data, main_data_name,
                        quantity, units, data_type, modality, source,
                        dim_dict, main_dset_attrs=None, verbose=False, **kwargs):
