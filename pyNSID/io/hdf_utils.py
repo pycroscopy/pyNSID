@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Lower-level and simpler NSID-specific HDF5 utilities that facilitate
-higher-level data operations in model.py
+higher-level data operations
 
 Created on Tue Aug  3 21:14:25 2020
 
@@ -461,8 +461,6 @@ def validate_main_dimensions(main_shape, dim_dict, h5_parent_group):
 
                 # are all datasets in the same file?
                 if this_dim.file != h5_parent_group.file:
-                    from .simple import copy_dataset
-
                     this_dim = copy_dataset(this_dim, h5_parent_group, verbose=True)
 
         elif isinstance(this_dim, Dimension):
