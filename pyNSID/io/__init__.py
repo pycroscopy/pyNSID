@@ -7,20 +7,14 @@ Submodules
 .. autosummary::
     :toctree: _autosummary
 
-    base
-    model
-    other
-    simple
+    hdf_utils
+    hdf_io
     nsi_data
-    translator
-    write_utils
-
+    nsi_reader
 """
-from . import nsi_data
-
-from .model import *
+from . import hdf_utils, hdf_io, nsi_data
 from .nsi_data import NSIDataset
-from .write_utils import read_nsid
-from .write_utils import write_nsid
-from .write_utils import create_empty_dataset
-__all__ = ['create_empty_dataset', 'read_nsid', 'write_nsid', 'NSIDataset', 'write_main_dataset', 'write_simple_attrs']
+from .nsi_reader import NSIDReader
+from .hdf_io import *
+
+__all__ = ['hdf_utils', 'hdf_io', 'NSIDataset', 'NSIDReader']
