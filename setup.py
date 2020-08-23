@@ -16,12 +16,7 @@ requirements = ['numpy>=1.10',
                 'cytoolz', # dask installation failing without this
                 'dask>=0.10',
                 'h5py>=2.6.0',
-                'pillow',
-                'matplotlib>=2.0.0',
-
-                'psutil',
                 'six',
-                'joblib>=0.11.0',
 
                 'sidpy>=0.0.2',
 
@@ -29,7 +24,7 @@ requirements = ['numpy>=1.10',
                 'ipython>=5.1.0,<6;python_version<"3.3"',  # IPython 6.0+ does not support Python 2.6, 2.7, 3.0, 3.1, or 3.2
                 'ipython>=6.0;python_version>="3.3"',  # Beginning with IPython 6.0, Python 3.3 and above is required.
                 ]
-                
+
 
 setup(
     name='pyNSID',
@@ -69,8 +64,7 @@ setup(
     #include_package_data=True,
     # https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-dependencies
     extras_require={
-        'MPI':  ["mpi4py"],
-        'File_Widgets': ['pyqt5'],
+        'MPI':  ["mpi4py"]
     },
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
