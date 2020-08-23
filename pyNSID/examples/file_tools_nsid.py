@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.widgets import Slider
 
+import pyNSID.io.write_utils
+
 try:
     import h5py
 except:
@@ -626,9 +628,9 @@ def h5_add_reference(current_channel,info_dictionary):
 
             new_channel['data_type'] = data_type
 
-            dset = nsid.io.hdf_utils.write_main_dataset(new_channel, main_data, main_data_name, 
-                                                            quantity, units, data_type, modality, source, 
-                                                            tags_dimension,verbose=False)
+            dset = pyNSID.io.write_utils.write_main_dataset(new_channel, main_data, main_data_name,
+                                                            quantity, units, data_type, modality, source,
+                                                            tags_dimension, verbose=False)
     
     return new_channel
 
@@ -669,9 +671,9 @@ def log_results(current_channel, info_dictionary):
             log_group['data_type'] = data_type
 
 
-            dset = nsid.io.hdf_utils.write_main_dataset(log_group, main_data, main_data_name, 
-                                                            quantity, units, data_type, modality, source, 
-                                                            tags_dimension,verbose=False)
+            dset = pyNSID.io.write_utils.write_main_dataset(log_group, main_data, main_data_name,
+                                                            quantity, units, data_type, modality, source,
+                                                            tags_dimension, verbose=False)
             
         else:
             print('depreciated')
@@ -1136,9 +1138,9 @@ def make_h5_dataset(current_channel, tags):
 
     current_channel['data_type'] = data_type
 
-    dset = nsid.io.hdf_utils.write_main_dataset(current_channel, main_data, main_data_name,
-                                                       quantity, units, data_type, modality, source, 
-                                                       tags_dimension,verbose=False)
+    dset = pyNSID.io.write_utils.write_main_dataset(current_channel, main_data, main_data_name,
+                                                    quantity, units, data_type, modality, source,
+                                                    tags_dimension, verbose=False)
 
 
 
