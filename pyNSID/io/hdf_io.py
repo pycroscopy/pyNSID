@@ -14,11 +14,12 @@ from warnings import warn
 import h5py
 import numpy as np
 
-__all__ = ['create_empty_dataset', 'read_nsid_dataset', 'write_nsid_dataset']
+__all__ = ['create_empty_dataset', 'read_nsid_dataset', 'write_nsid_dataset',
+           'write_main_dataset']
 
 from dask import array as da
 
-from sipdy import Dataset, Dimension
+from sidpy import Dataset, Dimension
 from sidpy.base.num_utils import contains_integers
 from sidpy.base.string_utils import validate_string_args
 from sidpy.hdf.hdf_utils import is_editable_h5, write_simple_attrs

@@ -25,7 +25,7 @@ if sys.version_info.major == 3:
 
 class NSIDReader(Reader):
 
-    def __init__(self, h5_path, dset_path=None):
+    def __init__(self, file_path, dset_path=None):
         """
         dset_path - str or list of str.
             Path to a specific Main dataset that needs to be read in.
