@@ -14,7 +14,7 @@ from warnings import warn
 import h5py
 import numpy as np
 
-__all__ = ['create_empty_dataset', 'read_nsid', 'write_nsid']
+__all__ = ['create_empty_dataset', 'read_nsid_dataset', 'write_nsid_dataset']
 
 from dask import array as da
 
@@ -46,10 +46,10 @@ def create_empty_dataset(shape, h5_group, name='nDIM_Data'):
     if not isinstance(h5_group, h5py.Group):
         raise TypeError('h5_group should be a h5py.Group object')
 
-    return write_nsid(Dataset.from_array(np.zeros(shape)), h5_group, name)
+    return write_nsid_dataset(Dataset.from_array(np.zeros(shape)), h5_group, name)
 
 
-def read_nsid(dset, chunks=None, name=None, lock=False):
+def read_nsid_dataset(dset, chunks=None, name=None, lock=False):
     # create vanilla dask array
     dataset = Dataset.from_array(np.array(dset), chunks, name, lock)
 
@@ -106,7 +106,7 @@ def read_nsid(dset, chunks=None, name=None, lock=False):
     return dataset
 
 
-def write_nsid(dataset, h5_group, main_data_name=''):
+def write_nsid_dataset(dataset, h5_group, main_data_name=''):
     if main_data_name == '':
         if dataset.title.strip() == '':
             main_data_name = 'nDim_Data'

@@ -25,7 +25,7 @@ else:
 for key in h5_group:
     print(key)
 print(h5_group['nDim_Data'].shape)
-data = nsid.read_nsid(h5_group['nDim_Data'])
+data = nsid.read_nsid_dataset(h5_group['nDim_Data'])
 if 'Measurement_000/Channel_001' in h5_file:
     del h5_file['Measurement_000/Channel_001']
 h5_group_1 = h5_file.create_group('Measurement_000/Channel_001')
