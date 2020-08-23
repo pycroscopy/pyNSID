@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Lower-level and simpler NSID-specific HDF5 utilities that facilitate higher-level data operations
-Created on Tue Nov  3 21:14:25 2015
-@author: Suhas Somnath, Chris Smith
+Lower-level and simpler NSID-specific HDF5 utilities that facilitate
+higher-level data operations in model.py
+
+Created on Tue Aug  3 21:14:25 2020
+
+@author: Gerd Duscher, and Suhas Somnath
 """
 from __future__ import division, print_function, absolute_import, unicode_literals
 import sys
@@ -10,17 +13,16 @@ import h5py
 import numpy as np
 import dask.array as da
 
-sys.path.append('../../../sidpy/')
-import sidpy as sid
 from sidpy.base.num_utils import contains_integers
+from sidpy.base.string_utils import validate_single_string_arg, \
+    clean_string_att
+from sidpy.hdf.hdf_utils import get_auxiliary_datasets, link_h5_obj_as_alias, \
+    get_attr, write_book_keeping_attrs, write_simple_attrs, copy_dataset, \
+    validate_h5_objs_in_same_h5_file
 # from sidpy.hdf.dtype_utils import validate_dtype
 # from sidpy.hdf.hdf_utils import lazy_load_array
 # from sidpy.hdf.dtype_utils import validate_dtype
 # from sidpy.hdf.hdf_utils import lazy_load_array
-
-from sidpy.base.string_utils import validate_single_string_arg, clean_string_att
-
-from .base import copy_dataset
 
 # from .write_utils import validate_dimensions
 
@@ -30,8 +32,6 @@ from .base import copy_dataset
 
 # build_ind_val_matrices, get_aux_dset_slicing, INDICES_DTYPE, \
 #    VALUES_DTYPE, Dimension, DimType
-from sidpy.hdf.hdf_utils import get_auxiliary_datasets, link_h5_obj_as_alias, get_attr, write_book_keeping_attrs, \
-    write_simple_attrs, validate_h5_objs_in_same_h5_file
 
 if sys.version_info.major == 3:
     unicode = str
