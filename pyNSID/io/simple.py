@@ -14,8 +14,6 @@ import numpy as np
 import dask.array as da
 
 from sidpy.base.num_utils import contains_integers
-from sidpy.base.string_utils import validate_single_string_arg, \
-    clean_string_att
 from sidpy.hdf.hdf_utils import get_auxiliary_datasets, link_h5_obj_as_alias, \
     get_attr, write_book_keeping_attrs, write_simple_attrs, copy_dataset, \
     validate_h5_objs_in_same_h5_file

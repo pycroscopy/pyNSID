@@ -14,18 +14,17 @@ import h5py
 import numpy as np
 from dask import array as da
 
-sys.path.append('../../../sidpy/')
-import sidpy as sid
 from sidpy.base.num_utils import contains_integers
 from sidpy.hdf.dtype_utils import validate_dtype
 from sidpy.base.string_utils import validate_single_string_arg, validate_string_args
 from sidpy.hdf.hdf_utils import write_simple_attrs, is_editable_h5
-
+from sidpy.sid import Dimension
 from .simple import link_as_main
 from .write_utils import validate_main_dimensions
 
 if sys.version_info.major == 3:
     unicode = str
+
 
 def write_main_dataset(h5_parent_group, main_data, main_data_name,
                        quantity, units, data_type, modality, source,
@@ -189,7 +188,7 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
             if 'nsid_version' not in this_dim_dset.attrs:
                 this_dim_dset.attrs['nsid_version'] = '0.0.1'
             # this_dim_dset[i] = this_dim
-        elif isinstance(this_dim, sid.sid.Dimension):
+        elif isinstance(this_dim, Dimension):
             this_dim_dset = h5_parent_group.create_dataset(this_dim.name, data=this_dim.values)
             attrs_to_write = {'name': this_dim.name, 'units': this_dim.units, 'quantity': this_dim.quantity,
                               'dimension_type': this_dim.dimension_type, 'nsid_version': '0.0.1'}
