@@ -14,18 +14,20 @@ from warnings import warn
 import h5py
 import numpy as np
 
-__all__ = ['validate_dimensions', 'validate_main_dimensions']
+__all__ = ['create_empty_dataset', 'read_nsid', 'write_nsid']
 
 from dask import array as da
 
-from pyNSID.io import link_as_main
+from sipdy import Dataset, Dimension
+from sidpy.base.num_utils import contains_integers
+from sidpy.base.string_utils import validate_string_args
+from sidpy.hdf.hdf_utils import is_editable_h5, write_simple_attrs
+from sidpy.hdf.dtype_utils import validate_dtype
+
+from .hdf_utils import link_as_main, validate_main_dimensions
 
 if sys.version_info.major == 3:
     unicode = str
-
-sys.path.append('../../../sidpy/')
-import sidpy as sid
-from sidpy.base.num_utils import contains_integers
 
 
 def create_empty_dataset(shape, h5_group, name='nDIM_Data'):
@@ -44,12 +46,12 @@ def create_empty_dataset(shape, h5_group, name='nDIM_Data'):
     if not isinstance(h5_group, h5py.Group):
         raise TypeError('h5_group should be a h5py.Group object')
 
-    return write_nsid(sid.Dataset.from_array(np.zeros(shape)), h5_group, name)
+    return write_nsid(Dataset.from_array(np.zeros(shape)), h5_group, name)
 
 
 def read_nsid(dset, chunks=None, name=None, lock=False):
     # create vanilla dask array
-    dataset = sid.Dataset.from_array(np.array(dset), chunks, name, lock)
+    dataset = Dataset.from_array(np.array(dset), chunks, name, lock)
 
     if 'title' in dset.attrs:
         dataset.title = dset.attrs['title']
@@ -92,7 +94,7 @@ def read_nsid(dset, chunks=None, name=None, lock=False):
         # print(dset.parent[dset.dims[0].label][()])
         # print(dim_dict['quantity'], dim_dict['units'], dim_dict['dimension_type'])
         dataset.set_dimension(dim,
-                              sid.sid.Dimension(dset.dims[dim].label, np.array(dset.parent[dset.dims[dim].label][()]),
+                              Dimension(dset.dims[dim].label, np.array(dset.parent[dset.dims[dim].label][()]),
                                                 dim_dict['quantity'], dim_dict['units'],
                                                 dim_dict['dimension_type']))
     dataset.attrs = dict(dset.attrs)
