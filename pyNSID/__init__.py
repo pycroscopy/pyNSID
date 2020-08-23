@@ -1,8 +1,6 @@
-from . import io
+from . import io, processing, viz
 from .io import *
-from . import processing
 from .processing import *
-from . import viz
 from .viz import *
 from .__version__ import version as __version__
 
