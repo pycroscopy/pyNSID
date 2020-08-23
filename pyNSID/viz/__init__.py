@@ -7,9 +7,9 @@ Submodules
 .. autosummary::
     :toctree: _autosummary
 
-    plot_nsid
+
 
 """
-from . import plot_nsid
 
-__all__ = ['plot_nsid']
+
+__all__ = []

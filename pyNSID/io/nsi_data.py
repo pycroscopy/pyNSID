@@ -1,28 +1,26 @@
+# -*- coding: utf-8 -*-
+"""
+Definition of NSID Dataset
+a N-dimensional dataset format living in HDF5 files
+
+Created on Thu August 20 2020
+
+@author: Gerd Duscher, Suhas Somnath
+"""
+# TODO: Move the visualization logic to sidpy.Dataset
+# TODO: Move the read from h5py.Dataset logic to NSIDReader
+# TODO: After completing two todos above, delete this class
+
 from __future__ import division, print_function, absolute_import, unicode_literals
 
-import os
 import sys
 from warnings import warn
 import h5py
 import numpy as np
-import dask.array as da
-import matplotlib.pyplot as plt
 
-
+from sidpy.viz.dataset_viz import ImageStackVisualizer, CurveVisualizer, \
+    ImageVisualizer, SpectralImageVisualizer
 from sidpy.hdf.hdf_utils import get_attr
-## taken out temporarily
-from sidpy.base.num_utils import contains_integers, get_exponent
-from sidpy.base.string_utils import validate_single_string_arg, validate_list_of_strings
-from sidpy.hdf.hdf_utils import lazy_load_array
-from sidpy.hdf.dtype_utils import is_complex_dtype
-from sidpy.sid import Dimension
-## taken out temporarily
-from sidpy.hdf.dtype_utils import flatten_to_real
-from sidpy.viz.jupyter_utils import simple_ndim_visualizer
-from sidpy.viz.plot_utils import plot_map, get_plot_grid_size
-
-from .hdf_utils import check_if_main, create_results_group, link_as_main, write_main_dataset, copy_attributes
-from ..viz.plot_nsid import plot_stack, plot_spectrum_image, plot_curve, plot_image
 
 if sys.version_info.major == 3:
     unicode = str
@@ -30,8 +28,10 @@ if sys.version_info.major == 3:
 
 class NSIDataset(h5py.Dataset):
     """
-     A class that simplifies slicing, visualization, reshaping, reduction etc. of USID datasets in HDF5 files.
-    This class extends the :class:`h5py.Dataset`.
+     A class that simplifies slicing, visualization, reshaping, reduction etc. of
+     NSID datasets in HDF5 files.
+
+     This class extends the :class:`h5py.Dataset`.
     """
 
     def __init__(self, h5_ref, ):
@@ -76,23 +76,28 @@ class NSIDataset(h5py.Dataset):
             A list of the sizes of first pixel of each  dimension.
 
     """
-
         super(NSIDataset, self).__init__(h5_ref.id)
 
-        self.data_type = get_attr(self,'data_type')
+        warn('NSIDataset will likely be removed in a future version of pyNSID.'
+             ' Please use a ScopeReader class to read a sidpy.Dataset object '
+             'from an NSID HDF5 Dataset instead',
+             DeprecationWarning)
+
+        self.data_type = get_attr(self, 'data_type')
         self.quantity = self.attrs['quantity']
         self.units = self.attrs['units']
+        self.view = None
 
-        #self.axes_names = [dim.label for dim in h5_ref.dims]
+        # self.axes_names = [dim.label for dim in h5_ref.dims]
         units = []
         quantities = []
         dimension_types = []
         pixel_sizes = []
 
         for dim in h5_ref.dims:
-            units.append(get_attr(dim[0],'units'))
-            quantities.append(get_attr(dim[0],'quantity'))
-            dimension_types.append(get_attr(dim[0],'dimension_type'))
+            units.append(get_attr(dim[0], 'units'))
+            quantities.append(get_attr(dim[0], 'quantity'))
+            dimension_types.append(get_attr(dim[0], 'dimension_type'))
             pixel_sizes.append(abs(dim[0][1]-dim[0][0]))
         self.axes_units = units
         self.axes_quantities = quantities
@@ -101,16 +106,13 @@ class NSIDataset(h5py.Dataset):
 
         self.data_descriptor = '{} ({})'.format(get_attr(self, 'quantity'), get_attr(self, 'units'))
 
-
     def get_dimension_labels(self):
         """
-        Takes the labels and units attributes from NSID datasetand returns a list of strings
+        Takes the labels and units attributes from NSID dataset and returns a list of strings
         formatted as 'quantity k [unit k]'
 
         Parameters
         ----------
-        h5_dset : h5py.Dataset object
-            dataset which has labels and units attributes
 
         Returns
         -------
@@ -120,12 +122,11 @@ class NSIDataset(h5py.Dataset):
 
         axes_labels = []
         for dim, quantity in enumerate(self.axes_quantities):
-            axes_labels.append("{} [{}]".format(quantity, self.axes_units[dim]))
+            axes_labels.append('{} [{}]'.format(quantity, self.axes_units[dim]))
         return axes_labels
 
     def get_dimens_types(self):
-        dim_type_dict  = {}
-        spectral_dimensions = []
+        dim_type_dict = {}
         for dim, dim_type in enumerate(self.dimension_types):
             if dim_type not in dim_type_dict:
                 dim_type_dict[dim_type] = []
@@ -137,22 +138,21 @@ class NSIDataset(h5py.Dataset):
 
         dim_type_dict = self.get_dimens_types()
         usid_str = ' \n'.join(['located at:',
-                                'Data contains:', '\t' + self.data_descriptor,
-                                'Data dimensions and original shape:',  '\t' +str(self.shape),
-                                'Data type:', '\t' + self.data_type])
+                               'Data contains:', '\t' + self.data_descriptor,
+                               'Data dimensions and original shape:', '\t' + str(self.shape),
+                               'Data type:', '\t' + self.data_type])
         if 'spatial' in dim_type_dict:
             usid_str = '\n'.join([usid_str,
-                                  'Position Dimensions: ',  '\t' +str(dim_type_dict['spatial'])])
+                                  'Position Dimensions: ',  '\t' + str(dim_type_dict['spatial'])])
         if 'spectral' in dim_type_dict:
             usid_str = '\n'.join([usid_str,
-                                  'Spectral Dimensions: ',  '\t' +str(dim_type_dict['spectral'])])
+                                  'Spectral Dimensions: ',  '\t' + str(dim_type_dict['spectral'])])
 
         if self.dtype.fields is not None:
             usid_str = '\n'.join([usid_str,
                                   'Data Fields:', '\t' + ', '.join([field for field in self.dtype.fields])])
         else:
-            usid_str = '\n'.join([usid_str,
-                                   'Numeric Type:', '\t' + self.dtype.name])
+            usid_str = '\n'.join([usid_str, 'Numeric Type:', '\t' + self.dtype.name])
 
         if sys.version_info.major == 2:
             usid_str = usid_str.encode('utf8')
@@ -166,20 +166,16 @@ class NSIDataset(h5py.Dataset):
         y_axis = self.dims[ref_dims[1]][0]
         min_y = (y_axis[0] - abs(y_axis[0]-y_axis[1])/2)
         max_y = (y_axis[-1] + abs(y_axis[-1]-y_axis[-2])/2)
-        extent = [min_x, max_x,max_y, min_y]
+        extent = [min_x, max_x, max_y, min_y]
         return extent
 
-
-    def visualize(self, slice_dict=None, verbose=False, **kwargs):
+    def visualize(self, **kwargs):
         """
         Interactive visualization of this dataset. **Only available on jupyter notebooks**
 
         Parameters
         ----------
-        slice_dict : dictionary, optional
-            Slicing instructions
-        verbose : bool, optional
-            Whether or not to print debugging statements. Default = Off
+        kwargs
 
         Returns
         -------
@@ -190,32 +186,30 @@ class NSIDataset(h5py.Dataset):
         """
 
         dim_type_dict = self.get_dimens_types()
-        output_reference = None
-        data_slice = self
+
         if 'spatial' in dim_type_dict:
 
-            if len(dim_type_dict['spatial'])== 1:
-                ### some kind of line
+            if len(dim_type_dict['spatial']) == 1:
+                # ## some kind of line
                 if len(dim_type_dict) == 1:
-                    ## simple profile
-                    self.view = plot_curve(self, pos_dims)
+                    # simple profile
+                    self.view = CurveVisualizer(self, 0, kwargs)  # TODO: correct dimension needed
                 else:
                     print('visualization not implemented, yet')
 
-
-            elif len(dim_type_dict['spatial'])== 2:
-                ## some kind of image data
+            elif len(dim_type_dict['spatial']) == 2:
+                # some kind of image data
                 if len(dim_type_dict) == 1:
-                    ## simple image
-                    self.view = plot_image(self, dim_type_dict)
+                    # simple image
+                    self.view = ImageVisualizer(self, dim_type_dict)
                 elif 'time' in dim_type_dict:
-                    ## image stack
-                    self.view = plot_stack(self, dim_type_dict)
+                    # image stack
+                    self.view = ImageStackVisualizer(self, dim_type_dict)
 
                 elif 'spectral' in dim_type_dict:
-                    ### spectrum image data in dataset
-                    if len(dim_type_dict['spectral'])== 1:
-                        self.view = plot_spectrum_image(self,dim_type_dict)
+                    # spectrum image data in dataset
+                    if len(dim_type_dict['spectral']) == 1:
+                        self.view = SpectralImageVisualizer(self, dim_type_dict)
                         return self.view.fig, self.view.axes
                 else:
                     print('visualization not implemented, yet')
@@ -223,21 +217,21 @@ class NSIDataset(h5py.Dataset):
                 print('visualization not implemented, yet')
 
         elif 'reciprocal' in dim_type_dict:
-            if len(dim_type_dict['reciprocal'])== 2:
-                ## some kind of image data
+            if len(dim_type_dict['reciprocal']) == 2:
+                # some kind of image data
                 if len(dim_type_dict) == 1:
-                    ## simple diffraction pattern
-                    self.view = plot_image(self, dim_type_dict)
+                    # simple diffraction pattern
+                    self.view = ImageVisualizer(self, dim_type_dict)
                 else:
                     raise NotImplementedError
             else:
                 raise NotImplementedError
         else:
             if 'spectral' in dim_type_dict:
-                ### Only spectral data in dataset
-                if len(dim_type_dict['spectral'])== 1:
+                # Only spectral data in dataset
+                if len(dim_type_dict['spectral']) == 1:
                     print('spectr')
-                    self.view = plot_curve(self, dim_type_dict['spectral'], figure = None)
+                    self.view = CurveVisualizer(self, dim_type_dict['spectral'], figure=None)
                 else:
                     raise NotImplementedError
             else:
@@ -267,9 +261,10 @@ class NSIDataset(h5py.Dataset):
                 raise TypeError('The slices must be array-likes or slice objects.')
         return True
 
-    def slice(self, slice_dict, verbose=False, lazy=False):
+    def __slice_n_dim_form(self, slice_dict, verbose=False, lazy=False):
         """
         Slices the N-dimensional form of the dataset based on the slice dictionary.
+        Assumes that an N-dimensional form exists and is what was requested
 
         Parameters
         ----------
@@ -288,8 +283,6 @@ class NSIDataset(h5py.Dataset):
         success : bool
             Always True
         """
-        self.__validate_slice_dict(slice_dict)
-
         nd_slice = []
 
         for dim_name in self.n_dim_labels:
@@ -305,103 +298,4 @@ class NSIDataset(h5py.Dataset):
         if not lazy:
             sliced_dset = sliced_dset.compute()
 
-        return sliced_dset
-
-    """@classmethod
-    def from_hdf5(cls, dset, chunks=None, name=None, lock=False):
-
-        # determine chunks, guessing something reasonable if user does not
-        # specify
-        chunks = get_chunks(np.array(dset), chunks)
-
-        # create vanilla dask array
-        darr = da.from_array(np.array(dset), chunks=chunks, name=name, lock=lock)
-
-        # view as sub-class
-        cls = view_subclass(darr, cls)
-
-        if 'title' in dset.attrs:
-            cls.title = dset.attrs['title']
-        else:
-            cls.title = dset.name
-
-        if 'units' in dset.attrs:
-            cls.units = dset.attrs['units']
-        else:
-            cls.units = 'generic'
-
-        if 'quantity' in dset.attrs:
-            cls.quantity = dset.attrs['quantity']
-        else:
-            cls.quantity = 'generic'
-
-        if 'data_type' in dset.attrs:
-            cls.data_type = dset.attrs['data_type']
-        else:
-            cls.data_type = 'generic'
-
-        #TODO: mdoality and source not yet properties
-        if 'modality' in dset.attrs:
-            cls.modality = dset.attrs['modality']
-        else:
-            cls.modality = 'generic'
-
-        if 'source' in dset.attrs:
-            cls.source = dset.attrs['source']
-        else:
-            cls.source = 'generic'
-
-        cls.axes ={}
-
-        for dim in range(np.array(dset).ndim):
-            #print(dim, dset.dims[dim].label)
-            #print(dset.dims[dim][0][0])
-            dim_dict = dict(dset.parent[dset.dims[dim].label].attrs)
-            #print(dset.dims[dim].label, np.array(dset.dims[dim][0]))
-            #print(dset.parent[dset.dims[0].label][()])
-            #print(dim_dict['quantity'], dim_dict['units'], dim_dict['dimension_type'])
-            cls.set_dimension(dim, Dimension(dset.dims[dim].label, np.array(dset.parent[dset.dims[dim].label][()]),
-                                                    dim_dict['quantity'], dim_dict['units'],
-                                                    dim_dict['dimension_type']))
-        cls.attrs = dict(dset.attrs)
-
-        cls.original_metadata = {}
-        if 'original_metadata' in dset.parent:
-            cls.original_metadata = dict(dset.parent['original_metadata'].attrs)
-
-
-        return cls
-
-    def to_hdf5(self, h5_group):
-        if  self.title.strip() == '':
-            main_data_name = 'nDim_Data'
-        else:
-            main_data_name = self.title
-        print(h5_group)
-        print(h5_group.keys())
-
-        print(main_data_name)
-
-        dset = write_main_dataset(h5_group, np.array(self), main_data_name,
-                                 self.quantity, self.units, self.data_type, self.modality,
-                                 self.source, self.axes, verbose=False)
-        print('d',dset)
-
-        for key, item in self.attrs.items():
-            #TODO: Check item to be simple
-            dset.attrs[key] = item
-
-        original_group = h5_group.create_group('original_metadata')
-        for key, item in self.original_metadata.items():
-            original_group.attrs[key] = item
-
-        if hasattr(self, 'aberrations'):
-            aberrations_group = h5_group.create_group('aberrations')
-            for key, item in self.aberrations.items():
-                aberrations_group.attrs[key] = item
-
-        if hasattr(self, 'annotations'):
-            annotations_group = h5_group.create_group('annotations')
-            for key, item in self.annotations.items():
-                annotations_group.attrs[key] = item
-    """
+        return sliced_dset, True

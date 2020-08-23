@@ -1,5 +1,5 @@
 """
-Tools to read, write data in h5USID files
+Tools to read, write data in h5NSID files
 
 Submodules
 ----------
@@ -8,13 +8,13 @@ Submodules
     :toctree: _autosummary
 
     hdf_utils
+    hdf_io
     nsi_data
-    dimension
-
+    nsi_reader
 """
-from sidpy.sid import Dimension, Translator
-from . import hdf_utils, dimension
+from . import hdf_utils, hdf_io, nsi_data
 from .nsi_data import NSIDataset
+from .nsi_reader import NSIDReader
+from .hdf_io import *
 
-__all__ = ['NSIDataset', 'hdf_utils', 'dimension',
-           'Dimension', 'Translator']
+__all__ = ['hdf_utils', 'hdf_io', 'NSIDataset', 'NSIDReader']
