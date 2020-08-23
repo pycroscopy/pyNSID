@@ -1,6 +1,6 @@
 """
 Tools to read, write data in h5NSID files
-This module is based on sidpy
+
 Submodules
 ----------
 

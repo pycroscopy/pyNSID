@@ -7,6 +7,9 @@ Created on Thu August 20 2020
 
 @author: Gerd Duscher, Suhas Somnath
 """
+# TODO: Move the visualization logic to sidpy.Dataset
+# TODO: Move the read from h5py.Dataset logic to NSIDReader
+# TODO: After completing two todos above, delete this class
 
 from __future__ import division, print_function, absolute_import, unicode_literals
 
@@ -17,11 +20,6 @@ import numpy as np
 
 from sidpy.viz.dataset_viz import ImageStackVisualizer, SpectralImageVisualizer, CurveVisualizer, ImageVisualizer
 from sidpy.hdf.hdf_utils import get_attr
-
-# check_if_main, create_results_group, link_as_main, copy_attributes
-
-# from ..viz.jupyter_utils import simple_ndim_visualizer
-# from ..viz.plot_utils import plot_map, get_plot_grid_size
 
 if sys.version_info.major == 3:
     unicode = str
