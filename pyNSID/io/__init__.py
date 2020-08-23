@@ -9,7 +9,6 @@ Submodules
 
     base
     model
-    nsi_data
     other
     simple
     nsi_data
@@ -19,9 +18,7 @@ Submodules
 """
 from . import nsi_data
 
-from .model import write_main_dataset, write_simple_attrs
-from .simple import get_attr
-
+from .model import *
 from .nsi_data import NSIDataset
 from .write_utils import read_nsid
 from .write_utils import write_nsid

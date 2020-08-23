@@ -11,15 +11,11 @@ Created on Thu August 20 2020
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 import sys
+from warnings import warn
 import h5py
 import numpy as np
 
-from .model import write_main_dataset
-from ..viz.plot_nsid import plot_stack, plot_spectrum_image, plot_curve, plot_image
-
-sys.path.append('../../../sidpy/')
-import sidpy as sid
-from sidpy.base.num_utils import contains_integers
+from sidpy.viz.dataset_viz import ImageStackVisualizer, SpectralImageVisualizer, CurveVisualizer, ImageVisualizer
 from sidpy.hdf.hdf_utils import get_attr
 
 # check_if_main, create_results_group, link_as_main, copy_attributes
@@ -81,8 +77,12 @@ class NSIDataset(h5py.Dataset):
             A list of the sizes of first pixel of each  dimension.
 
     """
-
         super(NSIDataset, self).__init__(h5_ref.id)
+
+        warn('NSIDataset will likely be removed in a future version of pyNSID.'
+             ' Please use a ScopeReader class to read a sidpy.Dataset object '
+             'from an NSID HDF5 Dataset instead',
+             DeprecationWarning)
 
         self.data_type = get_attr(self, 'data_type')
         self.quantity = self.attrs['quantity']
@@ -194,7 +194,7 @@ class NSIDataset(h5py.Dataset):
                 # ## some kind of line
                 if len(dim_type_dict) == 1:
                     # simple profile
-                    self.view = plot_curve(self, 0, kwargs)  # TODO: correct dimension needed
+                    self.view = CurveVisualizer(self, 0, kwargs)  # TODO: correct dimension needed
                 else:
                     print('visualization not implemented, yet')
 
@@ -202,15 +202,15 @@ class NSIDataset(h5py.Dataset):
                 # some kind of image data
                 if len(dim_type_dict) == 1:
                     # simple image
-                    self.view = plot_image(self, dim_type_dict)
+                    self.view = ImageVisualizer(self, dim_type_dict)
                 elif 'time' in dim_type_dict:
                     # image stack
-                    self.view = plot_stack(self, dim_type_dict)
+                    self.view = ImageStackVisualizer(self, dim_type_dict)
 
                 elif 'spectral' in dim_type_dict:
                     # spectrum image data in dataset
                     if len(dim_type_dict['spectral']) == 1:
-                        self.view = plot_spectrum_image(self, dim_type_dict)
+                        self.view = SpectralImageVisualizer(self, dim_type_dict)
                         return self.view.fig, self.view.axes
                 else:
                     print('visualization not implemented, yet')
@@ -222,7 +222,7 @@ class NSIDataset(h5py.Dataset):
                 # some kind of image data
                 if len(dim_type_dict) == 1:
                     # simple diffraction pattern
-                    self.view = plot_image(self, dim_type_dict)
+                    self.view = ImageVisualizer(self, dim_type_dict)
                 else:
                     raise NotImplementedError
             else:
@@ -232,7 +232,7 @@ class NSIDataset(h5py.Dataset):
                 # Only spectral data in dataset
                 if len(dim_type_dict['spectral']) == 1:
                     print('spectr')
-                    self.view = plot_curve(self, dim_type_dict['spectral'], figure=None)
+                    self.view = CurveVisualizer(self, dim_type_dict['spectral'], figure=None)
                 else:
                     raise NotImplementedError
             else:
