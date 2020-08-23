@@ -65,10 +65,10 @@ def set_directory():
         path = fp.read()
         fp.close()
     except:
-        path = '.'
+        path = '../pyNSID/examples'
     
     if len(path)<2:
-        path = '.'
+        path = '../pyNSID/examples'
     try:
         app = get_QT_app()
     except:
@@ -180,10 +180,10 @@ def savefile_dialog(initial_file = '*.hf5', file_types = None):
         path = fp.read()
         fp.close()
     except:
-        path = '.'
+        path = '../pyNSID/examples'
     
     if len(path)<2:
-        path = '.'
+        path = '../pyNSID/examples'
 
     fname, file_filter = QtWidgets.QFileDialog.getSaveFileName(None, "Select a pyUSID file...", path+"/"+initial_file, filter=file_types)
     if len(fname) > 1:
@@ -274,7 +274,7 @@ def openfile_dialog(file_types = None, multiple_files = False, gui = 'None'):
         path = fp.read()
         fp.close()
     except:
-        path = '.'
+        path = '../pyNSID/examples'
 
     import sidpy.io.interface_utils as iu
     filename = iu.openfile_dialog(file_types = file_types, file_path = path)
@@ -1416,7 +1416,7 @@ class nion_directory(object):
             self.get_directory(dir_name)
             self.dir_name = dir_name
         else:
-            self.dir_name = '.'
+            self.dir_name = '../pyNSID/examples'
             self.get_directory(self.dir_name)
 
         self.dir_list==['.']
