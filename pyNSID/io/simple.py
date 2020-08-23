@@ -19,25 +19,10 @@ from sidpy.base.string_utils import validate_single_string_arg, \
 from sidpy.hdf.hdf_utils import get_auxiliary_datasets, link_h5_obj_as_alias, \
     get_attr, write_book_keeping_attrs, write_simple_attrs, copy_dataset, \
     validate_h5_objs_in_same_h5_file
-# from sidpy.hdf.dtype_utils import validate_dtype
-# from sidpy.hdf.hdf_utils import lazy_load_array
-# from sidpy.hdf.dtype_utils import validate_dtype
-# from sidpy.hdf.hdf_utils import lazy_load_array
-
-# from .write_utils import validate_dimensions
-
-# Must be reimplemented
-# from ..reg_ref import write_region_references, simple_region_ref_copy, copy_reg_ref_reduced_dim, \
-#    create_region_reference, copy_all_region_refs
-
-# build_ind_val_matrices, get_aux_dset_slicing, INDICES_DTYPE, \
-#    VALUES_DTYPE, Dimension, DimType
+from sidpy import Dimension
 
 if sys.version_info.major == 3:
     unicode = str
-"""
-__all__ = ['get_all_main', 'check_and_link_ancillary', 'check_if_main', 'copy_main_attributes']
-"""
 
 
 def get_all_main(parent, verbose=False):
@@ -137,12 +122,15 @@ def validate_main_dset(h5_main, must_be_h5):
             raise TypeError('{} is not an HDF5 Dataset object.'.format(h5_main))
     else:
         if not isinstance(h5_main, (np.ndarray, da.core.Array)):
-            raise TypeError('raw_data should either be a np.ndarray or a da.core.Array')
+            raise TypeError('raw_data should either be a np.ndarray or a '
+                            'da.core.Array')
 
     # Check dimensionality
     if len(h5_main.shape) != len(h5_main.dims):
-        raise ValueError(f'Main data does not have full set of dimensional scales. Provided object has shape: '
-                         f'{h5_main.shape} but only {len(h5_main.dims)} dimensional scales')
+        raise ValueError('Main data does not have full set of dimensional '
+                         'scales. Provided object has shape: {} but only {} '
+                         'dimensional scales'
+                         ''.format(h5_main.shape, len(h5_main.dims)))
 
 
 def validate_anc_h5_dsets(h5_inds, h5_vals, main_shape, is_spectroscopic=True):
@@ -204,13 +192,13 @@ def validate_dims_against_main(main_shape, dims, is_spectroscopic=True):
         raise ValueError('"main_shape" should be of length 2')
     contains_integers(main_shape, min_val=1)
 
-    if isinstance(dims, sid.Dimension):
+    if isinstance(dims, Dimension):
         dims = [dims]
     elif not isinstance(dims, (list, tuple)):
         raise TypeError('"dims" must be a list or tuple of nsid.Dimension '
                         'objects. Provided object was of type: {}'
                         ''.format(type(dims)))
-    if not all([isinstance(obj, sid.Dimension) for obj in dims]):
+    if not all([isinstance(obj, Dimension) for obj in dims]):
         raise TypeError('One or more objects in "dims" was not nsid.Dimension')
 
     if is_spectroscopic:
@@ -352,13 +340,13 @@ def link_as_main(h5_main, dim_dict):
         if isinstance(this_dim, h5py.Dataset):
             error_message = validate_dimensions(this_dim, main_shape[index])
             if len(error_message) > 0:
-                raise TypeError(f'Dimension {index} has the following error_message:\n', error_message)
+                raise TypeError('Dimension {} has the following error_message:\n'.format(index), error_message)
             else:
                 # if this_dim.name not in dim_names:
                 if this_dim.name not in dim_names:  # names must be unique
                     dim_names.append(this_dim.name)
                 else:
-                    raise TypeError(f'All dimension names must be unique, found {this_dim.name} twice')
+                    raise TypeError('All dimension names must be unique, found {} twice'.format(this_dim.name))
                 if this_dim.file != h5_parent_group.file:
                     this_dim = copy_dataset(this_dim, h5_parent_group, verbose=False)
         else: 
@@ -526,9 +514,9 @@ def validate_dimensions(this_dim, dim_shape):
     necessary_attributes = ['name', 'quantity', 'units', 'dimension_type']
     for key in necessary_attributes:
         if key not in this_dim.attrs:
-            error_message += f'Missing {key} attribute in dimension;\n '
+            error_message += 'Missing {key} attribute in dimension;\n '.format(key)
         elif not isinstance(this_dim.attrs[key], str):
-            error_message += f'{key} attribute in dimension should be string;\n '
+            error_message += '{} attribute in dimension should be string;\n '.format(key)
 
     return error_message
 
@@ -549,21 +537,22 @@ def validate_main_dimensions(main_shape, dim_dict, h5_parent_group):
             # All these checks should live in a helper function for cleanliness
 
             if len(error_message) > 0:
-                print(f'Dimension {index} has the following error_message:\n', error_message)
+                print('Dimension {} has the following error_message:\n'.format(index), error_message)
 
             else:
                 if this_dim.name not in dim_names:  # names must be unique
                     dim_names.append(this_dim.name)
                 else:
-                    raise TypeError(f'All dimension names must be unique, found {this_dim.name} twice')
+                    raise TypeError('All dimension names must be unique, found'
+                                    ' {} twice'.format(this_dim.name))
 
                 # are all datasets in the same file?
                 if this_dim.file != h5_parent_group.file:
                     from .simple import copy_dataset
 
-                    this_dim = copy_dataset(this_dim, h5_parent_group, verbose=verbose)
+                    this_dim = copy_dataset(this_dim, h5_parent_group, verbose=True)
 
-        elif isinstance(this_dim, sid.sid.Dimension):
+        elif isinstance(this_dim, Dimension):
             # is the shape matching with the main dataset?
             dimensions_correct.append(len(this_dim.values) == dim_exp_size)
             # Is there a HDF5 dataset with the same name already in the provided group
@@ -581,8 +570,9 @@ def validate_main_dimensions(main_shape, dim_dict, h5_parent_group):
             else:
                 dimensions_correct[-1] = False
         else:
-            raise TypeError(f'Values of dim_dict should either be h5py.Dataset objects or Dimension. '
-                            'Object at index: {index} was of type: {index}')
+            raise TypeError('Values of dim_dict should either be h5py.Dataset '
+                            'objects or Dimension. Object at index: {} was of '
+                            'type: {}'.format(index, index))
 
         for dim in which_h5_file:
             if which_h5_file[dim] != h5_parent_group.file.filename:
