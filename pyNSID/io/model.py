@@ -6,8 +6,6 @@ Depends heavily on sidpy
 Created on Fri May 22 16:29:25 2020
 
 @author: Gerd Duscher, Suhas Somas
-TODO: update version
-
 """
 from __future__ import division, print_function, absolute_import, unicode_literals
 from warnings import warn
@@ -21,10 +19,10 @@ import sidpy as sid
 from sidpy.base.num_utils import contains_integers
 from sidpy.hdf.dtype_utils import validate_dtype
 from sidpy.base.string_utils import validate_single_string_arg, validate_string_args
-from sidpy.hdf.hdf_utils import write_simple_attrs, is_editable_h5  # , get_attr, write_book_keeping_attrs
+from sidpy.hdf.hdf_utils import write_simple_attrs, is_editable_h5
 
-from .simple import link_as_main  # , check_if_main, validate_dims_against_main, validate_anc_h5_dsets, copy_dataset
-from .write_utils import validate_main_dimensions  # validate_dimensions ,
+from .simple import link_as_main
+from .write_utils import validate_main_dimensions
 
 if sys.version_info.major == 3:
     unicode = str
@@ -34,9 +32,6 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
                        dim_dict, main_dset_attrs=None, verbose=False, **kwargs):
 
     """
-
-    #TODO: Suhas to think about this a lot more
-
     Writes the provided data as a 'Main' dataset with all appropriate linking.
     By default, the instructions for generating dimension should be provided as a dictionary containing
     pyNSID-Dimensions or 1-Dim datasets
@@ -80,7 +75,10 @@ def write_main_dataset(h5_parent_group, main_data, main_data_name,
         Reference to the main dataset
 
     """
-    
+    warn('Please use write_to_hdf5() instead of write_main_dataset(). This '
+         'method will be removed in a future version of pyNSID',
+         DeprecationWarning)
+
     if not isinstance(h5_parent_group, (h5py.Group, h5py.File)):
         raise TypeError('h5_parent_group should be a h5py.File or h5py.Group object')
     if not is_editable_h5(h5_parent_group):
