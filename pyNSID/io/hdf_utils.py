@@ -39,8 +39,6 @@ def get_all_main(parent, verbose=False):
     if not isinstance(parent, (h5py.Group, h5py.File)):
         raise TypeError('parent should be a h5py.File or h5py.Group object')
 
-    from .nsi_data import NSIDataset
-
     main_list = list()
 
     def __check(name, obj):
@@ -53,7 +51,7 @@ def get_all_main(parent, verbose=False):
             if ismain:
                 if verbose:
                     print(name, 'is a `Main` dataset.')
-                main_list.append(NSIDataset(obj))
+                main_list.append(obj)
 
     if verbose:
         print('Checking the group {} for `Main` datasets.'.format(parent.name))
@@ -76,16 +74,12 @@ def find_dataset(h5_group, dset_name):
     datasets : list
         List of [Name, object] pairs corresponding to datasets that match `ds_name`.
     """
-    from .nsi_data import NSIDataset
 
     # print 'Finding all instances of', ds_name
     datasets = []
 
     for obj in hut.find_dataset(h5_group, dset_name):
-        try:
-            datasets.append(NSIDataset(obj))
-        except TypeError:
-            datasets.append(obj)
+        datasets.append(obj)
 
     return datasets
 
@@ -299,7 +293,7 @@ def link_as_main(h5_main, dim_dict):
     ----------
     h5_main : h5py.Dataset
         N-dimensional Dataset which will have the references added as h5 Dimensional Scales
-    dim_dict: dictionary with dimensional oreder as key and items are datasets to be used as h5 Dimensional Scales 
+    dim_dict: dictionary with dimensional order as key and items are datasets to be used as h5 Dimensional Scales
 
     Returns
     -------
@@ -321,7 +315,6 @@ def link_as_main(h5_main, dim_dict):
     if set(range(len(main_shape))) != set(dim_dict.keys()):
         raise KeyError('')
     
-    # dimensions_correct = []
     dim_names = []
     for index, dim_exp_size in enumerate(main_shape):
         this_dim = dim_dict[index]
@@ -336,7 +329,7 @@ def link_as_main(h5_main, dim_dict):
                 else:
                     raise TypeError('All dimension names must be unique, found {} twice'.format(this_dim.name))
                 if this_dim.file != h5_parent_group.file:
-                    this_dim = copy_dataset(this_dim, h5_parent_group, verbose=False)
+                    copy_dataset(this_dim, h5_parent_group, verbose=False)
         else: 
             raise TypeError('Items in dictionary must all  be h5py.Datasets !')
 
@@ -348,13 +341,7 @@ def link_as_main(h5_main, dim_dict):
         h5_main.dims[int(i)].label = this_dim_dset.attrs['name']
         h5_main.dims[int(i)].attach_scale(this_dim_dset)
         
-    from .nsi_data import NSIDataset
-    try:
-        # If all other conditions are satisfied
-        return NSIDataset(h5_main)
-    except TypeError:
-        # If some other conditions are yet to be satisfied
-        return h5_main
+    return h5_main
 
 
 def get_source_dataset(h5_group):
@@ -385,9 +372,7 @@ def get_source_dataset(h5_group):
     if not isinstance(h5_source, h5py.Dataset):
         raise ValueError('Source object was not a dataset!')
 
-    from .nsi_data import NSIDataset
-
-    return NSIDataset(h5_source)
+    return h5_source
 
 
 def validate_dimensions(this_dim, dim_shape):
@@ -459,7 +444,7 @@ def validate_main_dimensions(main_shape, dim_dict, h5_parent_group):
 
                 # are all datasets in the same file?
                 if this_dim.file != h5_parent_group.file:
-                    this_dim = copy_dataset(this_dim, h5_parent_group, verbose=True)
+                    copy_dataset(this_dim, h5_parent_group, verbose=True)
 
         elif isinstance(this_dim, Dimension):
             # is the shape matching with the main dataset?
