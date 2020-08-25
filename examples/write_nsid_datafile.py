@@ -12,7 +12,7 @@
 ########################################################################################################################
 # Introduction
 # -------------
-# Saving a data and their metadata to file in a comprehensive way after aquisition, as intermediate or final results
+# Saving a data and their metadata to file in a comprehensive way after acquisition, as intermediate or final results
 # is at the core of any data analysis.
 # The NSID data format is an attempt to meet those requirement as painless and universal as possible.
 # In the following, we will create a sid.Dataset from a numpy array, which we will store as NSID format in its HDF5 file
@@ -40,7 +40,7 @@ print(data_set)
 ########################################################################################################################
 # Creating a HDF5 file and groups using h5py is described in the h5py_primer in this directory
 
-h5_file = h5py.File("zeros.hf5")
+h5_file = h5py.File("zeros.hf5", mode='a')
 if 'Measurement_000' in h5_file:
     del h5_file['Measurement_000/Channel_000']
 h5_group = h5_file.create_group('Measurement_000/Channel_000')
@@ -48,7 +48,7 @@ h5_group = h5_file.create_group('Measurement_000/Channel_000')
 
 ########################################################################################################################
 # Write this sid.Dataset to file with one simple command
-# We use the sid hdf_uilities to look at the created h5py file structure
+# We use the sid hdf_utilities to look at the created h5py file structure
 #
 # Please note that the NSID dataset has the dimensions (a,b,c) attached as attributes,
 # which are accessible through "h5_dataset.dims". Look at hf5py for more information.
@@ -60,8 +60,8 @@ h5_dataset = nsid.write_nsid_dataset(data_set, h5_group, main_data_name='zeros')
 
 sid.hdf.hdf_utils.print_tree(h5_file)
 
-print(h5_dataset.dims)
-print(h5_dataset.name)
+print('dimension of hdf5 dataset: ', h5_dataset.dims)
+print('name of hdf5 dataset: ', h5_dataset.name)
 ########################################################################################################################
 
 
@@ -69,5 +69,5 @@ print(h5_dataset.name)
 # Read NSID Dataset into sid.Dataset with a simple command
 
 sid_dataset = nsid.read_nsid_dataset(h5_group['zeros'])
-print(sid_dataset.a)
+print('read sidpy dataset axis a: ', sid_dataset.a)
 ########################################################################################################################
