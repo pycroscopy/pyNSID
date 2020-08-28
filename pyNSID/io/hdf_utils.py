@@ -410,7 +410,7 @@ def validate_dimensions(this_dim, dim_shape):
     necessary_attributes = ['name', 'quantity', 'units', 'dimension_type']
     for key in necessary_attributes:
         if key not in this_dim.attrs:
-            error_message += 'Missing {key} attribute in dimension;\n '.format(key)
+            error_message += 'Missing {} attribute in dimension;\n '.format(key)
         elif not isinstance(this_dim.attrs[key], str):
             error_message += '{} attribute in dimension should be string;\n '.format(key)
 
