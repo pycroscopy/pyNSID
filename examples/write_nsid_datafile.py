@@ -121,3 +121,4 @@ for i, dataset in enumerate(sid_datasets):
 # We cannot close it earlier in case the sidoy dataset is large and then will be only read on demand.
 
 h5_group.file.close()
+########################################################################################################################
