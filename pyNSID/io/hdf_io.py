@@ -167,9 +167,7 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
     return nsid_data_main  # NSIDataset(h5_main)
 
 
-def write_results(h5_group, dataset=None, attributes=None):
-    print(h5_group)
-    print(dataset)
+def write_results(h5_group, dataset=None, attributes=None, process_name=None):
 
     found_valid_dataset = False
     if dataset is not None:
@@ -183,9 +181,11 @@ def write_results(h5_group, dataset=None, attributes=None):
                 found_valid_attributes = True
     if not (found_valid_dataset or found_valid_attributes):
         raise ValueError('results should contain at least a sidpy Dataset or a dictionary in results')
+    log_name = 'Log_'
+    if process_name is not None:
+        log_name = log_name+process_name
+    log_group = create_indexed_group(h5_group, log_name)
 
-    log_group = create_indexed_group(h5_group, 'Log')
-    print(log_group.keys())
     if found_valid_dataset:
         write_nsid_dataset(dataset, log_group)
     if found_valid_attributes:

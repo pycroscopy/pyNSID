@@ -57,7 +57,7 @@ h5_group = h5_file.create_group('Measurement_000/Channel_000')
 # The HDF55 group "original_metadata" contains contain all the information of the original file as a dictionary type
 # in the attributes original_metadata.attrs (here empty)
 
-h5_dataset = nsid.write_nsid_dataset(data_set, h5_group, main_data_name='zeros')
+h5_dataset = nsid.hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='zeros')
 
 sid.hdf.hdf_utils.print_tree(h5_file)
 
@@ -99,7 +99,7 @@ result_dataset.title = 'ones'
 result_dataset.source = dataset.title
 print('source', result_dataset.source, dataset.title)
 
-results_group = nsid.write_results(h5_group, dataset=result_dataset, attributes=results)
+results_group = nsid.hdf_io.write_results(h5_group, dataset=result_dataset, attributes=results, process_name = 'add one')
 print(results_group)
 
 sid.hdf.hdf_utils.print_tree(h5_file)
