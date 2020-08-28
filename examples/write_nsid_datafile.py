@@ -39,6 +39,7 @@ print(data_set)
 
 ########################################################################################################################
 # Creating a HDF5 file and groups using h5py is described in the h5py_primer in this directory
+# For testing reasons, we first delete the Channel_000 group
 
 h5_file = h5py.File("zeros.hf5", mode='a')
 if 'Measurement_000' in h5_file:
@@ -62,12 +63,61 @@ sid.hdf.hdf_utils.print_tree(h5_file)
 
 print('dimension of hdf5 dataset: ', h5_dataset.dims)
 print('name of hdf5 dataset: ', h5_dataset.name)
+
 ########################################################################################################################
 
 
 ########################################################################################################################
-# Read NSID Dataset into sid.Dataset with a simple command
+# Read NSID Dataset into sid.Dataset with two simple command
+#
+reader = nsid.NSIDReader(h5_group)
+sid_datasets = reader.read()
 
-sid_dataset = nsid.read_nsid_dataset(h5_group['zeros'])
-print('read sidpy dataset axis a: ', sid_dataset.a)
+# Let's see what we got
+for i, dataset in enumerate(sid_datasets):
+    print(dataset.title)
+print('read sidpy dataset 1 - printing associated axis a: ', sid_datasets[0].a)
 ########################################################################################################################
+
+########################################################################################################################
+# we can also read any specific h5py dataset
+
+dataset = reader.read_h5py_dataset(h5_group['zeros'])
+
+print(dataset)
+
+########################################################################################################################
+
+########################################################################################################################
+# A result can entail just some values or properties which are most effectivly stored in a dictionary.
+# Alternatively, the results are another dataset, or both.
+# Here we just add 1 to our dataset and write it to disc.
+
+results = {'added': 1}
+result_dataset = dataset.like_data(dataset+1)
+result_dataset.title = 'ones'
+result_dataset.source = dataset.title
+print('source', result_dataset.source, dataset.title)
+
+results_group = nsid.write_results(h5_group, dataset=result_dataset, attributes=results)
+print(results_group)
+
+sid.hdf.hdf_utils.print_tree(h5_file)
+
+########################################################################################################################
+
+########################################################################################################################
+# If we read the file again, we get an additional main dataset:
+sid_datasets = reader.read()
+
+# Let's see what we got
+for i, dataset in enumerate(sid_datasets):
+    print(dataset.title)
+
+########################################################################################################################
+
+########################################################################################################################
+# At the end of our program, we need to close the h5py file.
+# We cannot close it earlier in case the sidoy dataset is large and then will be only read on demand.
+
+h5_group.file.close()
