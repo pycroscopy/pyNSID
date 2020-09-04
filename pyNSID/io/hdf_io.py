@@ -161,8 +161,11 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
     # ToDo: check if we need  write_book_keeping_attrs(h5_main)
     # This will attach the dimensions
     nsid_data_main = link_as_main(h5_main, dimensional_dict)
+
     if verbose:
         print('Successfully linked datasets - dataset should be main now')
+
+    dataset.h5_dataset = nsid_data_main
 
     return nsid_data_main  # NSIDataset(h5_main)
 

@@ -42,6 +42,7 @@ class NSIDReader(Reader):
         if isinstance(h5_object, h5py.Dataset):
             self.dset = h5_object
             self.h5_group = self.dset.parent
+
         elif isinstance(h5_object, h5py.Group):
             self.h5_group = h5_object
         else:
@@ -80,7 +81,6 @@ class NSIDReader(Reader):
         else:
             dataset.data_type = 'generic'
 
-        # TODO: modality and source not yet properties
         if 'modality' in dset.attrs:
             dataset.modality = dset.attrs['modality']
         else:
@@ -95,10 +95,13 @@ class NSIDReader(Reader):
 
         for dim in range(np.array(dset).ndim):
             try:
-                dim_dict = dict(dset.parent[dset.dims[dim].label].attrs)
+                label = dset.dims[dim].keys()[-1]
+                name = dset.dims[dim][label].name
+                dim_dict = {'quantity': 'generic', 'units': 'generic', 'dimension_type': 'generic'}
+                dim_dict.update(dict(dset.parent[name].attrs))
 
                 dataset.set_dimension(dim, Dimension(dset.dims[dim].label,
-                                                     np.array(dset.parent[dset.dims[dim].label][()]),
+                                                     np.array(dset.parent[name][()]),
                                                      dim_dict['quantity'], dim_dict['units'],
                                                      dim_dict['dimension_type']))
             except ValueError:
@@ -109,6 +112,11 @@ class NSIDReader(Reader):
         dataset.original_metadata = {}
         if 'original_metadata' in dset.parent:
             dataset.original_metadata = dict(dset.parent['original_metadata'].attrs)
+
+        # hdf5 information
+        dataset.h5_file = dset.file
+        dataset.h5_filename = dset.file.filename
+        dataset.h5_dataset = dset.name
 
         return dataset
 
