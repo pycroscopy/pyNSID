@@ -2,7 +2,7 @@ Installation
 ============
 
 Preparing for pyNSID
--------------------
+--------------------
 `pyNSID <https://github.com/pycroscopy/pyNSID>`_ requires many commonly used scientific and numeric python packages such as numpy, h5py etc.
 To simplify the installation process, we recommend the installation of
 `Anaconda <https://www.anaconda.com/distribution/>`_ which contains most of the prerequisite packages,
@@ -104,7 +104,7 @@ Install a specific branch of pyNSID (``dev`` in this case):
 
   
 Updating pyNSID
---------------
+---------------
 
 We recommend periodically updating your conda / anaconda distribution. Please see `these instructions to update anaconda <./external_guides.html#Updating-packages>`_.
 
