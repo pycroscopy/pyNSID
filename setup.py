@@ -32,7 +32,7 @@ setup(
     description='Framework for storing, visualizing, and processing N-Dimensional Spectroscopic and Imaging Data (NSID)',
     #long_description=long_description,
     classifiers=[
-        'Development Status :: 0 - Gamma',
+        'Development Status :: 2 - Pre-Alpha',
         'Environment :: Console',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
