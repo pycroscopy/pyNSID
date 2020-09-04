@@ -237,9 +237,26 @@ def check_if_main(h5_main, verbose=False):
     # success = True
 
     # Check for Datasets
-    
+
     attrs_names = ['dimension_type', 'name', 'nsid_version', 'quantity', 'units', ]
     attr_success = []
+    # Check for all required attributes in dataset
+    main_attrs_names = ['quantity', 'units', 'main_data_name', 'data_type', 'modality', 'source']
+    main_attr_success = np.all([att in h5_main.attrs for att in main_attrs_names])
+    if verbose:
+        print('All Attributes in dataset: ', main_attr_success)
+    if not main_attr_success:
+        if verbose:
+            print('{} does not have the mandatory attributes'.format(h5_main.name))
+        return False
+
+    for attr_name in main_attrs_names:
+        val = get_attr(h5_main, attr_name)
+        if not isinstance(val, (str, unicode)):
+            if verbose:
+                print('Attribute {} of {} found to be {}. Expected a string'.format(attr_name, h5_main.name, val))
+            return False
+
     length_success = []
     dset_success = []
     # Check for Validity of Dimensional Scales
@@ -265,23 +282,6 @@ def check_if_main(h5_main, verbose=False):
         print('attributes in dimension scale {attr_success.index(False)} are wrong')
         print('dimension scale {dset_success.index(False)} is not a dataset')
         return False
-
-    # Check for all required attributes in dataset
-    main_attrs_names = ['quantity', 'units', 'main_data_name', 'data_type', 'modality', 'source']
-    main_attr_success = np.all([att in h5_main.attrs for att in main_attrs_names])
-    if verbose:
-        print('All Attributes in dataset: ', main_attr_success)
-    if not main_attr_success:
-        if verbose:
-            print('{} does not have the mandatory attributes'.format(h5_main.name))
-        return False
-
-    for attr_name in main_attrs_names:
-        val = get_attr(h5_main, attr_name)
-        if not isinstance(val, (str, unicode)):
-            if verbose:
-                print('Attribute {} of {} found to be {}. Expected a string'.format(attr_name, h5_main.name, val))
-            return False
 
     return main_attr_success
 
