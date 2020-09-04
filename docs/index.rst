@@ -20,9 +20,7 @@ Documentation Index
 .. toctree::
     about
     install
-    external_guides
     nsid
-    contribution_guidelines
     contact
     credits
 
