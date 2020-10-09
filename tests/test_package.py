@@ -34,27 +34,27 @@ class TestWritingUtilities(unittest.TestCase):
     def test_create_nsid_dataset(self):
         from pyNSID.io.hdf_io import write_nsid_dataset
         import h5py
-        from sidpy as sid
+        import sidpy as sid
         import numpy as np
 
         h5_f = h5py.File('test.h5', 'r+')
         h5_group = h5_f.create_group('MyGroup')
         shape = (10,10,32)
         data = np.random.randn(10,10,32)
-        dataset = sid.Dataset.from_array(data[:,:,:], name='Image')
+        data_set = sid.Dataset.from_array(data[:,:,:], name='Image')
         data_set.set_dimension(0, sid.Dimension('x', np.linspace(0, 100E-6, shape[0]),
-                                                units=chan_units[channel], quantity='x',
+                                                units='a.u', quantity='x',
                                                 dimension_type='spatial'))
         data_set.set_dimension(1, sid.Dimension('y', np.linspace(0, 200, shape[1]),
-                                                units=chan_units[channel], quantity='y',
+                                                units='a.u', quantity='y',
                                                 dimension_type='spatial'))
 
         data_set.set_dimension(1, sid.Dimension('y', np.linspace(0, 200, shape[1]),
-                                                units=chan_units[channel], quantity='y',
+                                                units='a.u', quantity='y',
                                                 dimension_type='spatial'))
 
 
-        h5_dset = write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=True)
+        h5_dset = write_nsid_dataset(data_set, h5_group, main_data_name='test2', verbose=True)
 
         assert type(h5_dset) == h5py._hl.dataset.Dataset, "Output is not a h5py dataset"
         assert h5_dset.shape == shape, "Output shape is {} but should be {}".format(h5_dset.shape, shape)
