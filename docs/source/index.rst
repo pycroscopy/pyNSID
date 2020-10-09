@@ -27,8 +27,7 @@ Source code API
    :toctree: _autosummary
    :template: custom-module-template.rst
    :recursive:
-
-   pynsid
+   pyNSID
 
 * :ref:`modindex`
 
