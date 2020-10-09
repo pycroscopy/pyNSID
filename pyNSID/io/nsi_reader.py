@@ -100,8 +100,8 @@ class NSIDReader(Reader):
                 dim_dict = {'quantity': 'generic', 'units': 'generic', 'dimension_type': 'generic'}
                 dim_dict.update(dict(dset.parent[name].attrs))
 
-                dataset.set_dimension(dim, Dimension(dset.dims[dim].label,
-                                                     np.array(dset.parent[name][()]),
+                dataset.set_dimension(dim, Dimension(np.array(dset.parent[name][()]),
+                                                     dset.dims[dim].label,
                                                      dim_dict['quantity'], dim_dict['units'],
                                                      dim_dict['dimension_type']))
             except ValueError:
@@ -116,8 +116,10 @@ class NSIDReader(Reader):
         # hdf5 information
         dataset.h5_file = dset.file
         dataset.h5_filename = dset.file.filename
-        dataset.h5_dataset = dset.name
-
+        try:
+            dataset.h5_dataset = dset.name
+        except ValueError:
+            pass
         return dataset
 
     def can_read(self):

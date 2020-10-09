@@ -121,7 +121,7 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
     #################
     dimensional_dict = {}
 
-    for i, this_dim in dataset.axes.items():
+    for i, this_dim in dataset._axes.items():
         if not isinstance(this_dim, Dimension):
             raise ValueError('Dimensions {} is not a sidpy Dimension')
 
@@ -139,24 +139,24 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
     #                          dataset.quantity, dataset.units, dataset.data_type, dataset.modality,
     #                          dataset.source, dataset.axes, verbose=False)
 
-    for key, item in dataset.attrs.items():
+    for key, item in dataset.metadata.items():
         if key not in attrs_to_write:
             # TODO: Check item to be simple
-            h5_main.attrs[key] = item
+            h5_main.metadata[key] = item
 
     original_group = h5_group.create_group('original_metadata')
     for key, item in dataset.original_metadata.items():
-        original_group.attrs[key] = item
+        original_group.metadata[key] = item
 
     if hasattr(dataset, 'aberrations'):
         aberrations_group = h5_group.create_group('aberrations')
         for key, item in dataset.aberrations.items():
-            aberrations_group.attrs[key] = item
+            aberrations_group.metadata[key] = item
 
     if hasattr(dataset, 'annotations'):
         annotations_group = h5_group.create_group('annotations')
         for key, item in dataset.annotations.items():
-            annotations_group.attrs[key] = item
+            annotations_group.metadata[key] = item
 
     # ToDo: check if we need  write_book_keeping_attrs(h5_main)
     # This will attach the dimensions
