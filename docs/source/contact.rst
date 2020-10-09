@@ -1,5 +1,6 @@
 Contact us
-----------
+==========
+
 Here are a few options for you to get in touch with the developers and the user community
 to ask questions, report bugs, request features etc:
 
