@@ -18,7 +18,7 @@ class TestWritingUtilities(unittest.TestCase):
         import h5py
         from os import remove
 
-        h5_f = h5py.File('test.h5', 'r+')
+        h5_f = h5py.File('test.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
         shape = (10,10,100)
         dataset_name = 'test_dataset'
@@ -37,7 +37,7 @@ class TestWritingUtilities(unittest.TestCase):
         import sidpy as sid
         import numpy as np
 
-        h5_f = h5py.File('test.h5', 'r+')
+        h5_f = h5py.File('test.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
         shape = (10,10,32)
         data = np.random.randn(10,10,32)
