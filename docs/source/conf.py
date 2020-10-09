@@ -276,7 +276,7 @@ html_search_language = 'en'
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pynsiddoc'
+htmlhelp_basename = 'pyNSIDdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -303,8 +303,9 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'pynsid.tex', 'sidpy Documentation',
-     'Suhas Somnath, Gerd Duscher, and contributors', 'manual'),
+    (master_doc, 'pyNSID.tex', 'pyNSID Documentation',
+     'Suhas Somnath, Gerd Duscher, Rama K. Vasudevan, Raj Giridhar, and '
+     'contributors', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
