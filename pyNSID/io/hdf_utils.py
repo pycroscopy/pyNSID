@@ -115,44 +115,6 @@ def validate_main_dset(h5_main, must_be_h5):
                          ''.format(h5_main.shape, len(h5_main.dims)))
 
 
-def validate_anc_h5_dsets(h5_inds, h5_vals, main_shape, is_spectroscopic=True):
-    """
-    Checks ancillary HDF5 datasets against shape of a main dataset.
-    Errors in parameters will result in Exceptions
-    Parameters
-    ----------
-    h5_inds : h5py.Dataset
-        HDF5 dataset corresponding to the ancillary Indices dataset
-    h5_vals : h5py.Dataset
-        HDF5 dataset corresponding to the ancillary Values dataset
-    main_shape : array-like
-        Shape of the main dataset expressed as a tuple or similar
-    is_spectroscopic : bool, Optional. Default = True
-        set to True if ``dims`` correspond to Spectroscopic Dimensions.
-        False otherwise.
-    """
-    if not isinstance(h5_inds, h5py.Dataset):
-        raise TypeError('h5_inds must be a h5py.Dataset object')
-    if not isinstance(h5_vals, h5py.Dataset):
-        raise TypeError('h5_vals must be a h5py.Dataset object')
-    if h5_inds.shape != h5_vals.shape:
-        raise ValueError('h5_inds: {} and h5_vals: {} should be of the same '
-                         'shape'.format(h5_inds.shape, h5_vals.shape))
-    if isinstance(main_shape, (list, tuple)):
-        if not contains_integers(main_shape, min_val=1) or \
-                len(main_shape) != 2:
-            raise ValueError("'main_shape' must be a valid HDF5 dataset shape")
-    else:
-        raise TypeError('main_shape should be of the following types:'
-                        'h5py.Dataset, tuple, or list. {} provided'
-                        ''.format(type(main_shape)))
-
-    if h5_inds.shape[is_spectroscopic] != main_shape[is_spectroscopic]:
-        raise ValueError('index {} in shape of h5_inds: {} and main_data: {} '
-                         'should be equal'.format(int(is_spectroscopic),
-                                                  h5_inds.shape, main_shape))
-
-
 def validate_dims_against_main(main_shape, dims, is_spectroscopic=True):
     """
     Checks Dimension objects against a given shape for main datasets.
