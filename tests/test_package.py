@@ -12,14 +12,15 @@ class TestImport(unittest.TestCase):
 
 class TestWritingUtilities(unittest.TestCase):
 
-    def test_create_empty_dataset(self):
+    def base_test_create_empty_dataset(self, dims = 3):
         from pyNSID.io.hdf_io import create_empty_dataset
         import h5py
+        import numpy as np
         from os import remove
 
         h5_f = h5py.File('test.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
-        shape = (10,10,100)
+        shape = [np.random.randint(low=1, high = 30) for _ in range(dims)]
         dataset_name = 'test_dataset'
         empty_dset = create_empty_dataset(shape, h5_group, dataset_name)
 
@@ -30,7 +31,23 @@ class TestWritingUtilities(unittest.TestCase):
         h5_f.close()
         remove('test.h5')
 
+    def test_create_empty_dataset(self):
+        for ind in range(1,10):
+            self.base_test_create_empty_dataset(dims = ind)
+
+
     def test_create_nsid_dataset(self):
+        import numpy as np
+        for ind in range(1,10):
+            dim_types_base = ['spatial', 'spectral']
+            data_types_base = ['float32', 'float64', 'int', 'complex']
+            dim_types = [dim_types_base[np.random.randint(low=1, high=2)] for _ in range(ind)]
+            for data_type in data_types_base:
+                self.base_test_create_nsid_dataset(dims=ind, dim_types=dim_types, data_type=data_type)
+
+    def base_test_create_nsid_dataset(self, dims = 3,
+                                      dim_types = ['spatial', 'spatial', 'spectral'],
+                                      data_type = 'complex'):
         from pyNSID.io.hdf_io import write_nsid_dataset
         import h5py
         import sidpy as sid
@@ -38,22 +55,26 @@ class TestWritingUtilities(unittest.TestCase):
 
         h5_f = h5py.File('test.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
-        shape = (10,10,32)
-        data = np.random.randn(10,10,32)
-        data_set = sid.Dataset.from_array(data[:,:,:], name='Image')
+        shape = [np.random.randint(low=1, high = 500) for _ in range(dims)]
+        if data_type=='complex':
+            data = np.random.randn(tuple(shape)) + 1j* np.random.randn(tuple(shape), dtype = np.complex64)
+        elif data_type =='int':
+            data = np.random.randint(low=0, high = 1000, size=tuple(shape), dtype = np.int)
+        elif data_type =='float32':
+            data = np.random.randn(low=0, high = 1000, size=tuple(shape), dtype = np.float64)
+        elif data_type == 'float64':
+            data = np.random.randn(low=0, high=1000, size=tuple(shape), dtype=np.float32)
 
-        data_set.set_dimension(0, sid.Dimension(np.arange(data_set.shape[0]),
-                                                name='x', units='um', quantity='Length',
-                                                dimension_type='spatial'))
-        data_set.set_dimension(1, sid.Dimension(np.linspace(-2, 2, num=data_set.shape[1], endpoint=True),
-                                                'y', units='um', quantity='Length',
-                                                dimension_type='spatial'))
-        data_set.set_dimension(2, sid.Dimension(np.sin(np.linspace(0, 2 * np.pi, num=data_set.shape[2])),
-                                                'bias'))
+        data_set = sid.Dataset.from_array(data[:], name='Image')
 
+        for ind in range(dims):
+            data_set.set_dimension(ind, sid.Dimension(np.linspace(-2, 2, num=data_set.shape[1], endpoint=True),
+                                                    name='x', units='um', quantity='Length',
+                                                    dimension_type=dim_types[ind]))
         data_set.units = 'nm'
         data_set.source = 'CypherEast2'
         data_set.quantity = 'Excaliburs'
+
         h5_dset = write_nsid_dataset(data_set, h5_group, main_data_name='test2', verbose=True)
 
         assert type(h5_dset) == h5py._hl.dataset.Dataset, "Output is not a h5py dataset"
@@ -90,5 +111,6 @@ class TestWritingUtilities(unittest.TestCase):
         data_set = sid.Dataset.from_array(data[:, :, :], name='Image')
         write_results(h5_group, dataset=data_set, attributes=None, process_name='TestProcess')
 
+        #TODO: Add some more assertions
 
 
