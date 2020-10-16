@@ -27,14 +27,14 @@ class TestWritingUtilities(unittest.TestCase):
     def test_create_empty_dataset(self):
         for ind in range(1,10):
             self.base_test_create_empty_dataset(dims = ind)
-        #go ahead and test that we raise the correct errors when non-integers are provided:
+
 
     def test_create_empty_dataset_errors(self):
-
         #Test that the correct errors are raised
         from pyNSID.io.hdf_io import create_empty_dataset
         import h5py
         import numpy as np
+        from os import remove
 
         h5_f = h5py.File('test.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
@@ -47,6 +47,8 @@ class TestWritingUtilities(unittest.TestCase):
             shape = (10,5,1)
             h5_group = list(tuple(2,5), np.array([1,30,2]))
             empty_dset = create_empty_dataset(shape, h5_group, dataset_name)
+        h5_f.close()
+        remove('test.h5')
 
     def test_write_nsid_dataset(self):
         import numpy as np
@@ -55,7 +57,7 @@ class TestWritingUtilities(unittest.TestCase):
             data_types_base = ['float32', 'float64', 'int', 'complex']
             dim_types = [dim_types_base[np.random.randint(low=1, high=2)] for _ in range(ind)]
             for data_type in data_types_base:
-                self.base_test_create_nsid_dataset(dims=ind, dim_types=dim_types, data_type=data_type)
+                self.base_test_write_nsid_dataset(dims=ind, dim_types=dim_types, data_type=data_type)
 
     def base_test_write_nsid_dataset(self, dims = 3,
                                       dim_types = ['spatial', 'spatial', 'spectral'],
