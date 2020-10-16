@@ -11,7 +11,7 @@ class TestWritingUtilities(unittest.TestCase):
         import numpy as np
         from os import remove
 
-        h5_f = h5py.File('test.h5', 'w')
+        h5_f = h5py.File('test_empty_dset.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
         shape = tuple([np.random.randint(low=1, high = 10) for _ in range(dims)])
         dataset_name = 'test_dataset'
@@ -22,7 +22,7 @@ class TestWritingUtilities(unittest.TestCase):
 
         #close file, delete
         h5_f.close()
-        remove('test.h5')
+        remove('test_empty_dset.h5')
 
     def test_create_empty_dataset(self):
         for ind in range(1,10):
@@ -36,7 +36,7 @@ class TestWritingUtilities(unittest.TestCase):
         import numpy as np
         from os import remove
 
-        h5_f = h5py.File('test.h5', 'w')
+        h5_f = h5py.File('test_empty.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
         shape = (1.0, 5.6, 3.5)
         dataset_name = 'test_dataset'
@@ -48,7 +48,7 @@ class TestWritingUtilities(unittest.TestCase):
             h5_group = list(tuple(2,5), np.array([1,30,2]))
             empty_dset = create_empty_dataset(shape, h5_group, dataset_name)
         h5_f.close()
-        remove('test.h5')
+        remove('test_empty.h5')
 
     def test_write_nsid_dataset(self):
         import numpy as np
@@ -66,7 +66,7 @@ class TestWritingUtilities(unittest.TestCase):
         import h5py
         import sidpy as sid
         import numpy as np
-        from os import remove
+        from os import remove, path
 
         h5_f = h5py.File('test.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
@@ -122,8 +122,9 @@ class TestWritingUtilities(unittest.TestCase):
         import h5py
         import sidpy as sid
         import numpy as np
+        from os import remove
 
-        h5_f = h5py.File('test.h5', 'w')
+        h5_f = h5py.File('test_write_results.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
         shape = (5, 15, 16)
         data = np.random.randn(shape[0], shape[1], shape[2])
@@ -131,3 +132,5 @@ class TestWritingUtilities(unittest.TestCase):
         write_results(h5_group, dataset=data_set, attributes=None, process_name='TestProcess')
 
         #TODO: Add some more assertions
+        h5_f.close()
+        remove('test_write_results.h5')
