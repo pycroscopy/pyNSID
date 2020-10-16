@@ -97,21 +97,21 @@ class TestWritingUtilities(unittest.TestCase):
         assert h5_dset.shape == shape, "Output shape is {} but should be {}".format(h5_dset.shape, shape)
 
         for ind in range(len(sid.hdf_utils.get_attr(h5_dset, 'DIMENSION_LABELS'))):
-            assert sid.hdf_utils.get_attr(h5_dset, 'DIMENSION_LABELS')[ind] == [data_set.dim_0.name,
-                        data_set.dim_1.name, data_set.dim_2.name][ind], \
-                "Dimension name not correctly written, should be {} but is {} in file".format([data_set.dim_0.name,
-                        data_set.dim_1.name, data_set.dim_2.name][ind], sid.hdf_utils.get_attr(h5_dset, 'DIMENSION_LABELS')[ind])
-        assert sid.hdf_utils.get_attr(h5_dset, 'quantity') == data_set.quantity, \
-            "Quantity attribute not correctly written, should be {} but is {} in file".format(data_set.quantity, sid.hdf_utils.get_attr(h5_dset, 'quantity'))
 
-        assert sid.hdf_utils.get_attr(h5_dset, 'source') == data_set.source, \
-            "Source attribute not correctly written, should be {} but is {} in file".format(data_set.source,
-                                                                                              sid.hdf_utils.get_attr(
-                                                                                                  h5_dset, 'source'))
-        assert sid.hdf_utils.get_attr(h5_dset, 'units') == data_set.units, \
-            "Source attribute not correctly written, should be {} but is {} in file".format(data_set.units,
-                                                                                            sid.hdf_utils.get_attr(
-                                                                                                h5_dset, 'units'))
+            assert sid.hdf_utils.get_attr(h5_dset, 'DIMENSION_LABELS')[ind] == data_set._axes[ind].name, \
+                "Dimension name not correctly written, should be {} but is {} in file".format(data_set._axes[ind].name, sid.hdf_utils.get_attr(h5_dset, 'DIMENSION_LABELS')[ind])
+
+            assert sid.hdf_utils.get_attr(h5_dset, 'quantity') == data_set.quantity, \
+                "Quantity attribute not correctly written, should be {} but is {} in file".format(data_set.quantity, sid.hdf_utils.get_attr(h5_dset, 'quantity'))
+
+            assert sid.hdf_utils.get_attr(h5_dset, 'source') == data_set.source, \
+                "Source attribute not correctly written, should be {} but is {} in file".format(data_set.source,
+                                                                                                  sid.hdf_utils.get_attr(
+                                                                                                      h5_dset, 'source'))
+            assert sid.hdf_utils.get_attr(h5_dset, 'units') == data_set.units, \
+                "Source attribute not correctly written, should be {} but is {} in file".format(data_set.units,
+                                                                                                sid.hdf_utils.get_attr(
+                                                                                            h5_dset, 'units'))
         h5_f.close()
         remove('test.h5')
 
