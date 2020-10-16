@@ -72,14 +72,15 @@ class TestWritingUtilities(unittest.TestCase):
         h5_group = h5_f.create_group('MyGroup')
         shape = tuple([np.random.randint(low=1, high = 50) for _ in range(dims)])
         if data_type=='complex':
-            data = np.random.randn(tuple(shape)) + 1j* np.random.randn(tuple(shape), dtype = np.complex64)
+            data = np.random.normal(size=tuple(shape)) + 1j* np.random.normal(size=tuple(shape))
         elif data_type =='int':
-            data = np.random.randint(low=0, high = 1000, size=shape, dtype = np.int)
+            np.random.randint(low=0, high = 1000, size=shape, dtype = np.int)
         elif data_type =='float32':
-            data = np.random.randn(low=0, high = 1000, size=shape, dtype = np.float64)
+            data = np.random.normal(size=shape)
+            data = np.squeeze(np.array(data, dtype=np.float32))
         elif data_type == 'float64':
-            data = np.random.randn(low=0, high=1000, size=shape, dtype=np.float32)
-
+            data = np.random.normal(size=shape)
+            data = np.squeeze(np.array(data, dtype=np.float64))
         data_set = sid.Dataset.from_array(data[:], name='Image')
 
         for ind in range(dims):
