@@ -27,9 +27,28 @@ class TestWritingUtilities(unittest.TestCase):
     def test_create_empty_dataset(self):
         for ind in range(1,10):
             self.base_test_create_empty_dataset(dims = ind)
+        #go ahead and test that we raise the correct errors when non-integers are provided:
 
+    def test_create_empty_dataset_errors(self):
 
-    def test_create_nsid_dataset(self):
+        #Test that the correct errors are raised
+        from pyNSID.io.hdf_io import create_empty_dataset
+        import h5py
+        import numpy as np
+
+        h5_f = h5py.File('test.h5', 'w')
+        h5_group = h5_f.create_group('MyGroup')
+        shape = (1.0, 5.6, 3.5)
+        dataset_name = 'test_dataset'
+
+        with self.assertRaises(ValueError):
+            empty_dset = create_empty_dataset(shape, h5_group, dataset_name)
+        with self.assertRaises(TypeError):
+            shape = (10,5,1)
+            h5_group = list(tuple(2,5), np.array([1,30,2]))
+            empty_dset = create_empty_dataset(shape, h5_group, dataset_name)
+
+    def test_write_nsid_dataset(self):
         import numpy as np
         for ind in range(1,10):
             dim_types_base = ['spatial', 'spectral']
@@ -38,9 +57,9 @@ class TestWritingUtilities(unittest.TestCase):
             for data_type in data_types_base:
                 self.base_test_create_nsid_dataset(dims=ind, dim_types=dim_types, data_type=data_type)
 
-    def base_test_create_nsid_dataset(self, dims = 3,
+    def base_test_write_nsid_dataset(self, dims = 3,
                                       dim_types = ['spatial', 'spatial', 'spectral'],
-                                      data_type = 'complex'):
+                                      data_type = 'complex', verbose=True):
         from pyNSID.io.hdf_io import write_nsid_dataset
         import h5py
         import sidpy as sid
