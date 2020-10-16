@@ -74,11 +74,11 @@ def find_dataset(h5_group, dset_name):
     datasets : list
         List of [Name, object] pairs corresponding to datasets that match `ds_name`.
     """
-
-    # print 'Finding all instances of', ds_name
     datasets = []
 
     for obj in hut.find_dataset(h5_group, dset_name):
+        # TODO: Can we cast the HDF5 object as a sidpy.Dataset object?
+        # We would need the main portion of the NSIDReader as a function
         datasets.append(obj)
 
     return datasets
