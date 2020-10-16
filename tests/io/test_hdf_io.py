@@ -78,7 +78,7 @@ class TestWritingUtilities(unittest.TestCase):
         elif data_type =='float32':
             data = np.random.normal(size=shape)
             data = np.squeeze(np.array(data, dtype=np.float32))
-        elif data_type == 'float64':
+        else:
             data = np.random.normal(size=shape)
             data = np.squeeze(np.array(data, dtype=np.float64))
         data_set = sid.Dataset.from_array(data[:], name='Image')
@@ -91,7 +91,7 @@ class TestWritingUtilities(unittest.TestCase):
         data_set.source = 'CypherEast2'
         data_set.quantity = 'Excaliburs'
 
-        h5_dset = write_nsid_dataset(data_set, h5_group, main_data_name='test2', verbose=True)
+        h5_dset = write_nsid_dataset(data_set, h5_group, main_data_name='test2', verbose=verbose)
 
         assert type(h5_dset) == h5py._hl.dataset.Dataset, "Output is not a h5py dataset"
         assert h5_dset.shape == shape, "Output shape is {} but should be {}".format(h5_dset.shape, shape)
