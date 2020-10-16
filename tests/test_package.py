@@ -10,4 +10,3 @@ class TestImport(unittest.TestCase):
         print(nsid.__version__)
         self.assertTrue(True)
 
-
