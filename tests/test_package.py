@@ -20,7 +20,7 @@ class TestWritingUtilities(unittest.TestCase):
 
         h5_f = h5py.File('test.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
-        shape = [np.random.randint(low=1, high = 30) for _ in range(dims)]
+        shape = tuple([np.random.randint(low=1, high = 30) for _ in range(dims)])
         dataset_name = 'test_dataset'
         empty_dset = create_empty_dataset(shape, h5_group, dataset_name)
 
@@ -52,6 +52,7 @@ class TestWritingUtilities(unittest.TestCase):
         import h5py
         import sidpy as sid
         import numpy as np
+        from os import remove
 
         h5_f = h5py.File('test.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
@@ -96,7 +97,8 @@ class TestWritingUtilities(unittest.TestCase):
             "Source attribute not correctly written, should be {} but is {} in file".format(data_set.units,
                                                                                             sid.hdf_utils.get_attr(
                                                                                                 h5_dset, 'units'))
-
+        h5_f.close()
+        remove('test.h5')
 
     def test_write_results(self):
         from pyNSID.io.hdf_io import write_results
