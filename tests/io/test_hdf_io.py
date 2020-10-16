@@ -84,7 +84,7 @@ class TestWritingUtilities(unittest.TestCase):
         data_set = sid.Dataset.from_array(data[:], name='Image')
 
         for ind in range(dims):
-            data_set.set_dimension(ind, sid.Dimension(np.linspace(-2, 2, num=data_set.shape[1], endpoint=True),
+            data_set.set_dimension(ind, sid.Dimension(np.linspace(-2, 2, num=data_set.shape[ind], endpoint=True),
                                                     name='x', units='um', quantity='Length',
                                                     dimension_type=dim_types[ind]))
         data_set.units = 'nm'
