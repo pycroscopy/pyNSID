@@ -56,8 +56,8 @@ class TestWritingUtilities(unittest.TestCase):
             dim_types_base = ['spatial', 'spectral']
             data_types_base = ['float32', 'float64', 'int', 'complex']
             dim_types = [dim_types_base[np.random.randint(low=1, high=2)] for _ in range(ind)]
-            #for data_type in data_types_base:
-            self.base_test_write_nsid_dataset(dims=ind, dim_types=dim_types, data_type=data_types_base[1])
+            for data_type in data_types_base:
+                self.base_test_write_nsid_dataset(dims=ind, dim_types=dim_types, data_type=data_type)
 
     def base_test_write_nsid_dataset(self, dims = 3,
                                       dim_types = ['spatial', 'spatial', 'spectral'],
@@ -70,7 +70,7 @@ class TestWritingUtilities(unittest.TestCase):
 
         h5_f = h5py.File('test.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
-        shape = tuple([np.random.randint(low=1, high = 50) for _ in range(dims)])
+        shape = tuple([np.random.randint(low=2, high = 30) for _ in range(dims)])
         data = np.random.normal(size=shape)
         if data_type=='complex':
             data = np.random.normal(size=tuple(shape)) + 1j* np.random.normal(size=tuple(shape))
@@ -88,7 +88,7 @@ class TestWritingUtilities(unittest.TestCase):
         #TODO: The following doesn't work, need to check
         for ind in range(dims):
             data_set.set_dimension(ind, sid.Dimension(np.linspace(-2, 2, num=data_set.shape[ind], endpoint=True),
-                                                    name='x', units='um', quantity='Length',
+                                                    name='x'+str(ind), units='um', quantity='Length',
                                                     dimension_type=dim_types[ind]))
         data_set.units = 'nm'
         data_set.source = 'CypherEast2'
