@@ -288,7 +288,8 @@ def validate_h5_dimension(h5_dim, dim_length):
     which have to be of  types str, str, str, and bool respectively and not empty
     If it is not valid of dataset, Exceptions are raised.
     """
-
+    warn('validate_h5_dimension may be removed in a future version',
+         FutureWarning)
     # TODO: Raise exceptions instead of returning strings that need to be parsed
 
     if not isinstance(h5_dim, h5py.Dataset):
