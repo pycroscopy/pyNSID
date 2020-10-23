@@ -51,6 +51,7 @@ def get_all_main(parent, verbose=False):
             if ismain:
                 if verbose:
                     print(name, 'is a `Main` dataset.')
+                # TODO: Upconvert to sidpy.Dataset object with new function
                 main_list.append(obj)
 
     if verbose:
@@ -79,7 +80,11 @@ def find_dataset(h5_group, dset_name):
     datasets = []
 
     for obj in hut.find_dataset(h5_group, dset_name):
-        datasets.append(obj)
+        if check_if_main(obj):
+            # TODO: Upconvert to sidpy.Dataset object with new function
+            datasets.append(obj)
+        else:
+            datasets.append(obj)
 
     return datasets
 
