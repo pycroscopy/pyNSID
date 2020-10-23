@@ -286,11 +286,11 @@ def link_as_main(h5_main, dim_dict):
     for index, dim_exp_size in enumerate(main_shape):
         this_dim = dim_dict[index]
         if isinstance(this_dim, h5py.Dataset):
-            error_message = validate_dimensions(this_dim, main_shape[index])
+            error_message = validate_h5_dimension(this_dim, main_shape[index])
             if len(error_message) > 0:
                 raise TypeError('Dimension {} has the following error_message:\n'.format(index), error_message)
             else:
-                # if this_dim.name not in dim_names:
+                # if h5_dim.name not in dim_names:
                 if this_dim.name not in dim_names:  # names must be unique
                     dim_names.append(this_dim.name)
                 else:
@@ -311,43 +311,52 @@ def link_as_main(h5_main, dim_dict):
     return h5_main
 
 
-def validate_dimensions(this_dim, dim_shape):
+def validate_h5_dimension(h5_dim, dim_length):
     """
-    Checks if the provided object is an h5 dataset.
-    A valid dataset to be uses as dimension must be 1D not a compound data type but 'simple'.
-    Such a dataset must have  ancillary attributes 'name', quantity', 'units', and 'dimension_type',
-    which have to be of  types str, str, str, and bool respectively and not empty
-    If it is not valid of dataset, Exceptions are raised.
+    Validates a dimension already present in an HDF5 file.
 
     Parameters
     ----------
-    this_dim : h5 dataset
-        with non empty attributes 'name', quantity', 'units', and 'dimension_type'
-    dim_shape : required length of dataset
+    h5_dim : h5py.Dataset
+        HDF5 dataset which represents a scientific dimension.
+        The dimension should have non empty attributes 'name', quantity',
+        'units', and 'dimension_type'
+    dim_length : int
+        Expected length of dataset
 
     Returns
     -------
     error_message: string, empty if ok.
+
+    Notes
+    -----
+    A valid dataset to be used as dimension must be 1D not a compound data type but 'simple'.
+    Such a dataset must have  ancillary attributes 'name', quantity', 'units', and 'dimension_type',
+    which have to be of  types str, str, str, and bool respectively and not empty
+    If it is not valid of dataset, Exceptions are raised.
     """
 
-    if not isinstance(this_dim, h5py.Dataset):
+    # TODO: Raise exceptions instead of returning strings that need to be parsed
+
+    if not isinstance(h5_dim, h5py.Dataset):
         error_message = 'this Dimension must be a h5 Dataset'
         return error_message
 
     error_message = ''
     # Is it 1D?
-    if len(this_dim.shape) != 1:
+    if len(h5_dim.shape) != 1:
         error_message += ' High dimensional datasets are not allowed as dimensions;\n'
     # Does this dataset have a "simple" dtype - no compound data type allowed!
     # is the shape matching with the main dataset?
-    if len(this_dim) != dim_shape:
+    if len(h5_dim) != dim_length:
         error_message += ' Dimension has wrong length;\n'
+    # TODO: Relax requirements for these attributes. Check against sidpy.Dataset
     # Does it contain some ancillary attributes like 'name', quantity', 'units', and 'dimension_type'
     necessary_attributes = ['name', 'quantity', 'units', 'dimension_type']
     for key in necessary_attributes:
-        if key not in this_dim.attrs:
+        if key not in h5_dim.attrs:
             error_message += 'Missing {} attribute in dimension;\n '.format(key)
-        elif not isinstance(this_dim.attrs[key], str):
+        elif not isinstance(h5_dim.attrs[key], str):
             error_message += '{} attribute in dimension should be string;\n '.format(key)
 
     return error_message
@@ -364,7 +373,7 @@ def validate_main_dimensions(main_shape, dim_dict, h5_parent_group):
     for index, dim_exp_size in enumerate(main_shape):
         this_dim = dim_dict[index]
         if isinstance(this_dim, h5py.Dataset):
-            error_message = validate_dimensions(this_dim, main_shape[index])
+            error_message = validate_h5_dimension(this_dim, main_shape[index])
 
             # All these checks should live in a helper function for cleanliness
 
