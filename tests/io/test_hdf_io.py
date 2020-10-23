@@ -56,8 +56,8 @@ class TestWritingUtilities(unittest.TestCase):
             dim_types_base = ['spatial', 'spectral']
             data_types_base = ['float32', 'float64', 'int', 'complex']
             dim_types = [dim_types_base[np.random.randint(low=1, high=2)] for _ in range(ind)]
-            for data_type in data_types_base:
-                self.base_test_write_nsid_dataset(dims=ind, dim_types=dim_types, data_type=data_type)
+            #for data_type in data_types_base:
+            self.base_test_write_nsid_dataset(dims=ind, dim_types=dim_types, data_type=data_type[1])
 
     def base_test_write_nsid_dataset(self, dims = 3,
                                       dim_types = ['spatial', 'spatial', 'spectral'],
@@ -85,6 +85,7 @@ class TestWritingUtilities(unittest.TestCase):
 
         data_set = sid.Dataset.from_array(data[:], name='Image')
 
+        #TODO: The following doesn't work, need to check
         for ind in range(dims):
             data_set.set_dimension(ind, sid.Dimension(np.linspace(-2, 2, num=data_set.shape[ind], endpoint=True),
                                                     name='x', units='um', quantity='Length',
