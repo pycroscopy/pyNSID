@@ -13,7 +13,7 @@ class TestWritingUtilities(unittest.TestCase):
 
         h5_f = h5py.File('test_empty_dset.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
-        shape = tuple([np.random.randint(low=1, high = 10) for _ in range(dims)])
+        shape = tuple([np.random.randint(low=2, high = 6) for _ in range(dims)])
         dataset_name = 'test_dataset'
         empty_dset = create_empty_dataset(shape, h5_group, dataset_name)
 
@@ -25,11 +25,11 @@ class TestWritingUtilities(unittest.TestCase):
         remove('test_empty_dset.h5')
 
     def test_create_empty_dataset(self):
-        for ind in range(1,10):
+        for ind in range(1,6):
             self.base_test_create_empty_dataset(dims = ind)
 
 
-    def test_create_empty_dataset_errors(self):
+    def test_create_empty_dataset_val_error(self):
         #Test that the correct errors are raised
         from pyNSID.io.hdf_io import create_empty_dataset
         import h5py
@@ -42,11 +42,23 @@ class TestWritingUtilities(unittest.TestCase):
         dataset_name = 'test_dataset'
 
         with self.assertRaises(ValueError):
-            empty_dset = create_empty_dataset(shape, h5_group, dataset_name)
+            _ = create_empty_dataset(shape, h5_group, dataset_name)
+
+        h5_f.close()
+        remove('test_empty.h5')
+
+    def test_create_empty_dataset_val_error(self):
+        from pyNSID.io.hdf_io import create_empty_dataset
+        import h5py
+        from os import remove
+        import numpy as np
+
+        h5_f = h5py.File('test_empty.h5', 'w')
+        dataset_name = 'test_dataset'
+        shape = (10, 5, 1)
         with self.assertRaises(TypeError):
-            shape = (10,5,1)
             h5_group = list(tuple(2,5), np.array([1,30,2]))
-            empty_dset = create_empty_dataset(shape, h5_group, dataset_name)
+            _ = create_empty_dataset(shape, h5_group, dataset_name)
         h5_f.close()
         remove('test_empty.h5')
 
@@ -85,7 +97,6 @@ class TestWritingUtilities(unittest.TestCase):
 
         data_set = sid.Dataset.from_array(data[:], name='Image')
 
-        #TODO: The following doesn't work, need to check
         for ind in range(dims):
             data_set.set_dimension(ind, sid.Dimension(np.linspace(-2, 2, num=data_set.shape[ind], endpoint=True),
                                                     name='x'+str(ind), units='um', quantity='Length',
