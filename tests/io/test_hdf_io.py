@@ -57,7 +57,7 @@ class TestWritingUtilities(unittest.TestCase):
             data_types_base = ['float32', 'float64', 'int', 'complex']
             dim_types = [dim_types_base[np.random.randint(low=1, high=2)] for _ in range(ind)]
             #for data_type in data_types_base:
-            self.base_test_write_nsid_dataset(dims=ind, dim_types=dim_types, data_type=data_type[1])
+            self.base_test_write_nsid_dataset(dims=ind, dim_types=dim_types, data_type=data_types[1])
 
     def base_test_write_nsid_dataset(self, dims = 3,
                                       dim_types = ['spatial', 'spatial', 'spectral'],
