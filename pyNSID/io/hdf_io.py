@@ -133,13 +133,17 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
 
         this_dim_dset = h5_group.create_dataset(this_dim.name, data=this_dim.values)
         attrs_to_write = {'name': this_dim.name, 'units': this_dim.units, 'quantity': this_dim.quantity,
-                          'dimension_type': this_dim.dimension_type, 'nsid_version': version}
+                          'dimension_type': this_dim.dimension_type.name, 'nsid_version': version}
+
         write_simple_attrs(this_dim_dset, attrs_to_write)
         dimensional_dict[i] = this_dim_dset
 
     attrs_to_write = {'quantity': dataset.quantity, 'units': dataset.units, 'nsid_version': version,
-                      'main_data_name': dataset.title, 'data_type': dataset.data_type,
+                      'main_data_name': dataset.title, 'data_type': dataset.data_type.name,
                       'modality': dataset.modality, 'source': dataset.source}
+    #print(attrs_to_write)
+    #for key in list(attrs_to_write.keys()): print(type(attrs_to_write[key]))
+
     write_simple_attrs(h5_main, attrs_to_write)
     # dset = write_main_dataset(h5_group, np.array(dataset), main_data_name,
     #                          dataset.quantity, dataset.units, dataset.data_type, dataset.modality,
