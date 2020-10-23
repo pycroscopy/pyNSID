@@ -120,53 +120,6 @@ def validate_main_dset(h5_main, must_be_h5):
                          ''.format(h5_main.shape, len(h5_main.dims)))
 
 
-def validate_dims_against_main(main_shape, dims, is_spectroscopic=True):
-    """
-    Checks Dimension objects against a given shape for main datasets.
-    Errors in parameters will result in Exceptions
-    Parameters
-    ----------
-    main_shape : array-like
-        Tuple or list with the shape of the main data
-    dims : iterable
-        List of Dimension objects
-    is_spectroscopic : bool, Optional. Default = True
-        set to True if ``dims`` correspond to Spectroscopic Dimensions.
-        False otherwise.
-    """
-    if not isinstance(main_shape, (list, tuple)):
-        raise TypeError('main_shape should be a list or tuple. Provided object'
-                        ' was of type: {}'.format(type(main_shape)))
-    if len(main_shape) != 2:
-        raise ValueError('"main_shape" should be of length 2')
-    contains_integers(main_shape, min_val=1)
-
-    if isinstance(dims, Dimension):
-        dims = [dims]
-    elif not isinstance(dims, (list, tuple)):
-        raise TypeError('"dims" must be a list or tuple of nsid.Dimension '
-                        'objects. Provided object was of type: {}'
-                        ''.format(type(dims)))
-    if not all([isinstance(obj, Dimension) for obj in dims]):
-        raise TypeError('One or more objects in "dims" was not nsid.Dimension')
-
-    if is_spectroscopic:
-        main_dim = 1
-        dim_category = 'Spectroscopic'
-    else:
-        main_dim = 0
-        dim_category = 'Position'
-
-    # TODO: This is where the dimension type will need to be taken into account
-    lhs = main_shape[main_dim]
-    rhs = np.product([len(x.values) for x in dims])
-    if lhs != rhs:
-        raise ValueError(dim_category +
-                         ' dimensions in main data of size: {} do not match '
-                         'with product of values in provided Dimension objects'
-                         ': {}'.format(lhs, rhs))
-
-
 def check_if_main(h5_main, verbose=False):
     """
     Checks the input dataset to see if it has all the necessary
