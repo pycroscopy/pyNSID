@@ -10,17 +10,15 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from warnings import warn
 import sys
 import h5py
-import numpy as np
-from sidpy import Reader
-from sidpy.sid import Dimension, Dataset
+import sidpy
 
-from .hdf_utils import get_all_main
+from pyNSID.io.hdf_utils import get_all_main, read_h5py_dataset, check_if_main
 
 if sys.version_info.major == 3:
     unicode = str
 
 
-class NSIDReader(Reader):
+class NSIDReader(sidpy.Reader):
 
     def __init__(self, h5_object):
         """
@@ -53,91 +51,40 @@ class NSIDReader(Reader):
         # TODO: sidpy.Dataset may need the ability to close a HDF5 file
         # Perhaps this would be done by reading all contents into memory..
 
-    @staticmethod
-    def read_h5py_dataset(dset):
-
-        if not isinstance(dset, h5py.Dataset):
-            raise TypeError('can only read single Dataset, use read_all_in_group or read_all function instead')
-        # create vanilla dask array
-        dataset = Dataset.from_array(np.array(dset))
-
-        if 'title' in dset.attrs:
-            dataset.title = dset.attrs['title']
-        else:
-            dataset.title = dset.name
-
-        if 'units' in dset.attrs:
-            dataset.units = dset.attrs['units']
-        else:
-            dataset.units = 'generic'
-
-        if 'quantity' in dset.attrs:
-            dataset.quantity = dset.attrs['quantity']
-        else:
-            dataset.quantity = 'generic'
-
-        if 'data_type' in dset.attrs:
-            dataset.data_type = dset.attrs['data_type']
-        else:
-            dataset.data_type = 'generic'
-
-        if 'modality' in dset.attrs:
-            dataset.modality = dset.attrs['modality']
-        else:
-            dataset.modality = 'generic'
-
-        if 'source' in dset.attrs:
-            dataset.source = dset.attrs['source']
-        else:
-            dataset.source = 'generic'
-
-        dataset.axes = {}
-
-        for dim in range(np.array(dset).ndim):
-            try:
-                label = dset.dims[dim].keys()[-1]
-                name = dset.dims[dim][label].name
-                dim_dict = {'quantity': 'generic', 'units': 'generic', 'dimension_type': 'generic'}
-                dim_dict.update(dict(dset.parent[name].attrs))
-
-                dataset.set_dimension(dim, Dimension(np.array(dset.parent[name][()]),
-                                                     dset.dims[dim].label,
-                                                     dim_dict['quantity'], dim_dict['units'],
-                                                     dim_dict['dimension_type']))
-            except ValueError:
-                print('dimension {} not NSID type using generic'.format(dim))
-
-        dataset.attrs = dict(dset.attrs)
-
-        dataset.original_metadata = {}
-        if 'original_metadata' in dset.parent:
-            dataset.original_metadata = dict(dset.parent['original_metadata'].attrs)
-
-        # hdf5 information
-        dataset.h5_file = dset.file
-        dataset.h5_filename = dset.file.filename
-        try:
-            dataset.h5_dataset = dset.name
-        except ValueError:
-            pass
-        return dataset
-
     def can_read(self):
-        pass
+        list_of_main = get_all_main(self.h5_group, verbose=False)
+        return len(list_of_main) > 0
 
-    def read(self):
+    def read(self, dataset=None):
         if not isinstance(self.h5_group, h5py.Group):
             raise TypeError('This function needs to be initialised with a hdf5 group or dataset first')
-        list_of_main = get_all_main(self.h5_group, verbose=False)
 
-        """
-        Go through each of the identified
-        """
+        if dataset is None:
+            return self.read_all(recursive=True)
+        else:
+            if isinstance(dataset, h5py.Dataset):
+                return read_h5py_dataset(dataset)
+
+    def read_all(self, recursive=True, parent=None):
+
+        if parent is None:
+            h5_group = self.h5_group
+        else:
+            if isinstance(parent, h5py.object):
+                h5_group = parent
+            else:
+                raise TypeError('parent should be a h5py object')
+
+        if recursive:
+            list_of_main = get_all_main(h5_group, verbose=False)
+        else:
+            list_of_main = []
+            for key in self.h5_group:
+                if isinstance(h5_group[key], h5py.Dataset):
+                    if check_if_main(h5_group[key]):
+                        list_of_main.append(h5_group[key])
+        # Go through each of the identified
         list_of_datasets = []
         for dset in list_of_main:
-            list_of_datasets.append(self.read_h5py_dataset(dset))
-
+            list_of_datasets.append(read_h5py_dataset(dset))
         return list_of_datasets
-
-    def read_all_in_group(self, recursive=True):
-        pass

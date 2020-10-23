@@ -28,7 +28,7 @@ import sidpy as sid
 # Utilize the NSID package for writing
 import sys
 sys.path.append('../pyNSID/')
-import pyNSID as nsid
+import pyNSID
 
 ########################################################################################################################
 # Making a sid Dataset (which is based on dask) is described in the sid Documentation
@@ -57,7 +57,7 @@ h5_group = h5_file.create_group('Measurement_000/Channel_000')
 # The HDF55 group "original_metadata" contains contain all the information of the original file as a dictionary type
 # in the attributes original_metadata.attrs (here empty)
 
-h5_dataset = nsid.hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='zeros')
+h5_dataset = pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='zeros')
 
 sid.hdf.hdf_utils.print_tree(h5_file)
 
@@ -70,7 +70,7 @@ print('name of hdf5 dataset: ', h5_dataset.name)
 ########################################################################################################################
 # Read NSID Dataset into sid.Dataset with two simple command
 #
-reader = nsid.NSIDReader(h5_group)
+reader = pyNSID.NSIDReader(h5_group)
 sid_datasets = reader.read()
 
 # Let's see what we got
@@ -82,7 +82,7 @@ print('read sidpy dataset 1 - printing associated axis a: ', sid_datasets[0].a)
 ########################################################################################################################
 # we can also read any specific h5py dataset
 
-dataset = reader.read_h5py_dataset(h5_group['zeros'])
+dataset = reader.read(h5_group['zeros'])
 
 print(dataset)
 
@@ -99,7 +99,8 @@ result_dataset.title = 'ones'
 result_dataset.source = dataset.title
 print('source', result_dataset.source, dataset.title)
 
-results_group = nsid.hdf_io.write_results(h5_group, dataset=result_dataset, attributes=results, process_name = 'add one')
+results_group = pyNSID.hdf_io.write_results(h5_group, dataset=result_dataset, attributes=results,
+                                            process_name='add one')
 print(results_group)
 
 sid.hdf.hdf_utils.print_tree(h5_file)

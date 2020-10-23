@@ -9,10 +9,9 @@ Submodules
 
     hdf_utils
     hdf_io
-    nsi_data
     nsi_reader
 """
-from . import hdf_utils, hdf_io, nsi_data
+from . import hdf_utils, hdf_io
 from .nsi_reader import NSIDReader
 from .hdf_io import *
 

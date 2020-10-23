@@ -20,13 +20,11 @@ from dask import array as da
 
 from sidpy import Dataset, Dimension
 from sidpy.base.num_utils import contains_integers
-# from sidpy.base.string_utils import validate_string_args
 from sidpy.hdf.hdf_utils import is_editable_h5, write_simple_attrs
 from sidpy.hdf.prov_utils import create_indexed_group
 from sidpy.base.dict_utils import flatten_dict
-# from sidpy.hdf.dtype_utils import validate_dtype
 
-from .hdf_utils import link_as_main  # , validate_main_dimensions
+from .hdf_utils import link_as_main
 from ..__version__ import *
 if sys.version_info.major == 3:
     unicode = str
@@ -36,9 +34,14 @@ def create_empty_dataset(shape, h5_group, name='nDIM_Data'):
     """
     returns a NSID dataset filled with zeros according to required shape list.
 
-    :param shape: list of integer
-    :param h5_group: hdf5 group
-    :param name: -optional- name of NSID dataset
+    Parameters
+    ----------
+    shape: list
+        List of integers denoting the shape of the main dataset
+    h5_group: h5py.Group
+        HDF5 group into which the datasets will be written into
+    name: str, optional. Default: "nDIM_Data"
+        Name of the main HDF5 dataset
 
     :return:
     NSID dataset
@@ -53,32 +56,36 @@ def create_empty_dataset(shape, h5_group, name='nDIM_Data'):
 
 def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kwargs):
     """
-        Writes the provided sid dataset as a 'Main' dataset with all appropriate linking.
+    Writes the provided sid dataset as a 'Main' dataset with all appropriate linking.
 
-        Parameters
-        ----------
-        dataset: main_data : sidpy Dataset
-        h5_group : class:`h5py.Group`
-            Parent group under which the datasets will be created
-        main_data_name : String / Unicode
-            Name to give to the main dataset. This cannot contain the '-' character.
-        verbose: boolean
-        kwargs: additional h5py parameters
+    Parameters
+    ----------
+    dataset : sidpy.Dataset
+        Dataset to be written to HDF5 in NSID format
+    h5_group : class:`h5py.Group`
+        Parent group under which the datasets will be created
+    main_data_name : String / Unicode
+        Name to give to the main dataset. This cannot contain the '-' character.
+    verbose : bool, Optional. Default = False
+        Whether or not to write logs to standard out
+    kwargs: dict
+        additional keyword arguments passed on to h5py when writing data
 
-        Return
-        ------
-        h5py dataset
+    Return
+    ------
+    h5py dataset
     """
     if not isinstance(dataset, Dataset):
-        raise ValueError('data to write should be sidpy Dataset')
-
+        raise TypeError('data to write should be sidpy Dataset')
     if not isinstance(h5_group, (h5py.Group, h5py.File)):
-        raise TypeError('h5_parent_group should be a h5py.File or h5py.Group object')
+        raise TypeError('h5_parent_group should be a h5py.File or h5py.Group '
+                        'object')
     if not is_editable_h5(h5_group):
         raise ValueError('The provided file is not editable')
     if verbose:
         print('h5 group and file OK')
 
+    # TODO: sidpy.Dataset already has a name. Why ask for main_data_name ?
     if main_data_name == '':
         if dataset.title.strip() == '':
             main_data_name = 'nDim_Data'
@@ -99,7 +106,6 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
             warn('This HDF5 file has been opened wth the "mpio" communicator. '
                  'mpi4py does not allow creation of compressed datasets. Compression kwarg has been removed')
 
-    print(h5_group, main_data_name)
     if main_data_name in h5_group:
         raise ValueError('h5 dataset of that name already exists, choose different name or delete first')
 
@@ -127,13 +133,17 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
 
         this_dim_dset = h5_group.create_dataset(this_dim.name, data=this_dim.values)
         attrs_to_write = {'name': this_dim.name, 'units': this_dim.units, 'quantity': this_dim.quantity,
-                          'dimension_type': this_dim.dimension_type, 'nsid_version': version}
+                          'dimension_type': this_dim.dimension_type.name, 'nsid_version': version}
+
         write_simple_attrs(this_dim_dset, attrs_to_write)
         dimensional_dict[i] = this_dim_dset
 
     attrs_to_write = {'quantity': dataset.quantity, 'units': dataset.units, 'nsid_version': version,
-                      'main_data_name': dataset.title, 'data_type': dataset.data_type,
+                      'main_data_name': dataset.title, 'data_type': dataset.data_type.name,
                       'modality': dataset.modality, 'source': dataset.source}
+    #print(attrs_to_write)
+    #for key in list(attrs_to_write.keys()): print(type(attrs_to_write[key]))
+
     write_simple_attrs(h5_main, attrs_to_write)
     # dset = write_main_dataset(h5_group, np.array(dataset), main_data_name,
     #                          dataset.quantity, dataset.units, dataset.data_type, dataset.modality,
@@ -144,21 +154,14 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
             # TODO: Check item to be simple
             h5_main.metadata[key] = item
 
+    # TODO: What if original_metadata is empty - we should not be writing the group at all
     original_group = h5_group.create_group('original_metadata')
     for key, item in dataset.original_metadata.items():
         original_group.metadata[key] = item
 
-    if hasattr(dataset, 'aberrations'):
-        aberrations_group = h5_group.create_group('aberrations')
-        for key, item in dataset.aberrations.items():
-            aberrations_group.metadata[key] = item
+    # TODO: For all attributes of the Dataset object that are dictionaries, create a group and then write the contents as attributes of that group
 
-    if hasattr(dataset, 'annotations'):
-        annotations_group = h5_group.create_group('annotations')
-        for key, item in dataset.annotations.items():
-            annotations_group.metadata[key] = item
-
-    # ToDo: check if we need  write_book_keeping_attrs(h5_main)
+    # TODO: check if we need  write_book_keeping_attrs(h5_main)
     # This will attach the dimensions
     nsid_data_main = link_as_main(h5_main, dimensional_dict)
 
