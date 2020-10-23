@@ -9,11 +9,11 @@ Created on Tue Aug  3 21:14:25 2020
 """
 from __future__ import division, print_function, absolute_import, unicode_literals
 import sys
+from warnings import warn
 import h5py
 import numpy as np
 import dask.array as da
 
-from sidpy.base.num_utils import contains_integers
 from sidpy.hdf.hdf_utils import get_attr, copy_dataset
 from sidpy.hdf import hdf_utils as hut
 from sidpy import Dimension
@@ -315,7 +315,32 @@ def validate_h5_dimension(h5_dim, dim_length):
     return error_message
 
 
-def validate_main_dimensions(main_shape, dim_dict, h5_parent_group):
+def validate_main_and_dims(main_shape, dim_dict, h5_parent_group):
+    """
+    Validates the shape of the main dataset against the dictionary of
+    dimensions and the parent HDF5 group into which the data would be written.
+    This method was written as a low-level validation check before
+    sidpy.Dataset was conceived. It may still be relevant if one intends to
+    reuse the Dimension HDF5 datasets already in the file
+
+    Parameters
+    ----------
+    main_shape : list or tuple
+        Shape of the Main dataset
+    dim_dict : dict
+        Dictionary of dimensions that could either be sidpy.Dimension or
+        h5py.Dataset objects
+    h5_parent_group : h5py.Group
+        HDF5 group to write into
+
+    Returns
+    -------
+    bool
+        Whether or not the dimensions match the main data shape
+    """
+    warn('validate_main_and_dims may not exist in a future version',
+         FutureWarning)
+
     # Each item could either be a Dimension object or a HDF5 dataset
     # Collect the file within which these ancillary HDF5 objects are present if they are provided
     which_h5_file = {}
@@ -373,4 +398,4 @@ def validate_main_dimensions(main_shape, dim_dict, h5_parent_group):
             if dim_name in dim_names[i + 1:]:
                 print(dim_name, ' is not unique')
 
-    return dimensions_correct
+    return all(dimensions_correct)
