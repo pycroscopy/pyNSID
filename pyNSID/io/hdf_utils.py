@@ -89,37 +89,6 @@ def find_dataset(h5_group, dset_name):
     return datasets
 
 
-def validate_main_dset(h5_main, must_be_h5):
-    """
-    Checks to make sure that the provided object is a NSID main dataset
-    Errors in parameters will result in Exceptions
-    Parameters
-    ----------
-    h5_main : h5py.Dataset or numpy.ndarray or Dask.array.core.array
-        object that represents the NSID main data
-    must_be_h5 : bool
-        Set to True if the expecting an h5py.Dataset object.
-        Set to False if expecting a numpy.ndarray or Dask.array.core.array
-    Returns
-    -------
-    """
-    # Check that h5_main is a dataset
-    if must_be_h5:
-        if not isinstance(h5_main, h5py.Dataset):
-            raise TypeError('{} is not an HDF5 Dataset object.'.format(h5_main))
-    else:
-        if not isinstance(h5_main, (np.ndarray, da.core.Array)):
-            raise TypeError('raw_data should either be a np.ndarray or a '
-                            'da.core.Array')
-
-    # Check dimensionality
-    if len(h5_main.shape) != len(h5_main.dims):
-        raise ValueError('Main data does not have full set of dimensional '
-                         'scales. Provided object has shape: {} but only {} '
-                         'dimensional scales'
-                         ''.format(h5_main.shape, len(h5_main.dims)))
-
-
 def check_if_main(h5_main, verbose=False):
     """
     Checks the input dataset to see if it has all the necessary
@@ -262,6 +231,37 @@ def link_as_main(h5_main, dim_dict):
         h5_main.dims[int(i)].attach_scale(this_dim_dset)
         
     return h5_main
+
+
+def validate_main_dset(h5_main, must_be_h5):
+    """
+    Checks to make sure that the provided object is a NSID main dataset
+    Errors in parameters will result in Exceptions
+    Parameters
+    ----------
+    h5_main : h5py.Dataset or numpy.ndarray or Dask.array.core.array
+        object that represents the NSID main data
+    must_be_h5 : bool
+        Set to True if the expecting an h5py.Dataset object.
+        Set to False if expecting a numpy.ndarray or Dask.array.core.array
+    Returns
+    -------
+    """
+    # Check that h5_main is a dataset
+    if must_be_h5:
+        if not isinstance(h5_main, h5py.Dataset):
+            raise TypeError('{} is not an HDF5 Dataset object.'.format(h5_main))
+    else:
+        if not isinstance(h5_main, (np.ndarray, da.core.Array)):
+            raise TypeError('raw_data should either be a np.ndarray or a '
+                            'da.core.Array')
+
+    # Check dimensionality
+    if len(h5_main.shape) != len(h5_main.dims):
+        raise ValueError('Main data does not have full set of dimensional '
+                         'scales. Provided object has shape: {} but only {} '
+                         'dimensional scales'
+                         ''.format(h5_main.shape, len(h5_main.dims)))
 
 
 def validate_h5_dimension(h5_dim, dim_length):
