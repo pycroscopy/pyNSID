@@ -66,9 +66,41 @@ class TestCheckIfMain(unittest.TestCase):
 
 
 class TestLinkAsMain(unittest.TestCase):
+    # Perhaps this function could call the validate function
+    # So some of these tests could actually be in the validate function
 
     def test_all_dims_in_mem(self):
         # All dimensions are sidpy.Dimension objects
+        pass
+
+    def test_all_dims_already_h5_datasets(self):
+        pass
+
+    def test_dims_and_h5_main_in_diff_files(self):
+        pass
+
+    def test_some_dims_in_mem_others_h5_dsets(self):
+        pass
+
+    def test_dim_in_mem_same_name_as_dim_in_h5(self):
+        pass
+
+    def test_dim_size_mismatch_main_shape(self):
+        pass
+
+    def test_too_few_dims(self):
+        pass
+
+    def test_too_many_dims(self):
+        pass
+
+    def test_h5_main_invalid_object_type(self):
+        pass
+
+    def test_dim_dict_invalid_obj_type(self):
+        pass
+
+    def test_items_in_dim_dict_invalid_obj_type(self):
         pass
 
 
