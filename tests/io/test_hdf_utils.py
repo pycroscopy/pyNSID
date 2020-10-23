@@ -26,14 +26,18 @@ class TestGetAllMain(unittest.TestCase):
 
 class TestFindDataset(unittest.TestCase):
     # This function inherits a good portion of the code from sidpy.
+    # We don't yet have the functionality to upconvert to sidpy.Dataset yet
 
-    def test_ordinary_dataset(self):
+    def test_one_not_main_dataset(self):
+        # should return as h5py.Dataset
         pass
 
-    def test_multiple_datasets_found(self):
+    def test_one_is_main_dataset(self):
+        # should return the dataset as a sidpy.Dataset object
         pass
 
-    def test_one_result_is_main_other_is_not(self):
+    def test_one_is_main_other_is_not(self):
+        # Should return one as sidpy.Dataset and the other as h5py.Dataset
         pass
 
 
