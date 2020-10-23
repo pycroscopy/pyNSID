@@ -70,7 +70,7 @@ class TestWritingUtilities(unittest.TestCase):
 
         h5_f = h5py.File('test.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
-        shape = tuple([np.random.randint(low=2, high = 30) for _ in range(dims)])
+        shape = tuple([np.random.randint(low=2, high = 10) for _ in range(dims)])
         data = np.random.normal(size=shape)
         if data_type=='complex':
             data = np.random.normal(size=tuple(shape)) + 1j* np.random.normal(size=tuple(shape))
