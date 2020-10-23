@@ -16,7 +16,7 @@ import dask.array as da
 
 from sidpy.hdf.hdf_utils import get_attr, copy_dataset
 from sidpy.hdf import hdf_utils as hut
-from sidpy import Dimension
+from sidpy import Dimension, Dataset
 
 if sys.version_info.major == 3:
     unicode = str
@@ -59,6 +59,78 @@ def get_all_main(parent, verbose=False):
     parent.visititems(__check)
 
     return main_list
+
+
+def read_h5py_dataset(dset):
+    if not isinstance(dset, h5py.Dataset):
+        raise TypeError('can only read single Dataset, use read_all_in_group or read_all function instead')
+
+    if not check_if_main(dset):
+        raise TypeError('can only read NSID datasets, not general one, try to import with from_array')
+
+    # create vanilla dask array
+    dataset = Dataset.from_array(np.array(dset))
+
+    if 'title' in dset.attrs:
+        dataset.title = dset.attrs['title']
+    else:
+        dataset.title = dset.name
+
+    if 'units' in dset.attrs:
+        dataset.units = dset.attrs['units']
+    else:
+        dataset.units = 'generic'
+
+    if 'quantity' in dset.attrs:
+        dataset.quantity = dset.attrs['quantity']
+    else:
+        dataset.quantity = 'generic'
+
+    if 'data_type' in dset.attrs:
+        dataset.data_type = dset.attrs['data_type']
+    else:
+        dataset.data_type = 'generic'
+
+    if 'modality' in dset.attrs:
+        dataset.modality = dset.attrs['modality']
+    else:
+        dataset.modality = 'generic'
+
+    if 'source' in dset.attrs:
+        dataset.source = dset.attrs['source']
+    else:
+        dataset.source = 'generic'
+
+    dataset.axes = {}
+
+    for dim in range(np.array(dset).ndim):
+        try:
+            label = dset.dims[dim].keys()[-1]
+            name = dset.dims[dim][label].name
+            dim_dict = {'quantity': 'generic', 'units': 'generic', 'dimension_type': 'generic'}
+            dim_dict.update(dict(dset.parent[name].attrs))
+
+            dataset.set_dimension(dim, Dimension(np.array(dset.parent[name][()]),
+                                                 dset.dims[dim].label,
+                                                 dim_dict['quantity'], dim_dict['units'],
+                                                 dim_dict['dimension_type']))
+        except ValueError:
+            print('dimension {} not NSID type using generic'.format(dim))
+
+    dataset.attrs = dict(dset.attrs)
+
+    dataset.original_metadata = {}
+    if 'original_metadata' in dset.parent:
+        dataset.original_metadata = dict(dset.parent['original_metadata'].attrs)
+
+    # hdf5 information
+    dataset.h5_file = dset.file
+    dataset.h5_filename = dset.file.filename
+    try:
+        dataset.h5_dataset = dset.name
+    except ValueError:
+        pass
+    return dataset
 
 
 def find_dataset(h5_group, dset_name):
@@ -181,6 +253,7 @@ def check_if_main(h5_main, verbose=False):
 def link_as_main(h5_main, dim_dict):
     """
     Attaches datasets as h5 Dimensional Scales to  `h5_main`
+
     Parameters
     ----------
     h5_main : h5py.Dataset
