@@ -41,18 +41,6 @@ class TestFindDataset(unittest.TestCase):
         pass
 
 
-class TestValidateMainDset(unittest.TestCase):
-
-    def base_test(self):
-        pass
-
-    def test_imporper_h5_main_type(self):
-        pass
-
-    def test_must_be_h5_but_is_not(self):
-        pass
-
-
 class TestCheckIfMain(unittest.TestCase):
 
     def test_not_h5_dataset(self):
@@ -79,7 +67,20 @@ class TestCheckIfMain(unittest.TestCase):
 
 class TestLinkAsMain(unittest.TestCase):
 
-    def blah(self):
+    def test_all_dims_in_mem(self):
+        # All dimensions are sidpy.Dimension objects
+        pass
+
+
+class TestValidateMainDset(unittest.TestCase):
+
+    def base_test(self):
+        pass
+
+    def test_imporper_h5_main_type(self):
+        pass
+
+    def test_must_be_h5_but_is_not(self):
         pass
 
 
