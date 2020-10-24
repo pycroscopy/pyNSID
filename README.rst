@@ -10,7 +10,7 @@ pyNSID
     :alt: PyPI
 
 .. image:: https://coveralls.io/repos/github/pycroscopy/pyNSID/badge.svg
-    :target: https://coveralls.io/github/pycroscopy/pyNSID
+    :target: https://coveralls.io/github/pycroscopy/pyNSID?branch=master
     :alt: Coveralls
 
 .. image:: https://img.shields.io/pypi/l/pynsid.svg
