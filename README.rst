@@ -9,7 +9,7 @@ pyNSID
     :target: https://pypi.org/project/pynsid/
     :alt: PyPI
 
-.. image:: https://coveralls.io/repos/github/pycroscopy/pyNSID/badge.svg
+.. image:: https://coveralls.io/repos/github/pycroscopy/pyNSID/badge.svg?branch=master
     :target: https://coveralls.io/github/pycroscopy/pyNSID?branch=master
     :alt: Coveralls
 
