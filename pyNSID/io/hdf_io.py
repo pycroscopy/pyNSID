@@ -155,7 +155,7 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
             h5_main.metadata[key] = item
 
     # TODO: What if original_metadata is empty - we should not be writing the group at all
-    original_group = h5_group.create_group('original_metadata')
+    #original_group = h5_group.create_group('original_metadata')
     for key, item in dataset.original_metadata.items():
         original_group.metadata[key] = item
 
