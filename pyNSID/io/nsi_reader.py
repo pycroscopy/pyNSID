@@ -70,7 +70,7 @@ class NSIDReader(sidpy.Reader):
         if parent is None:
             h5_group = self.h5_group
         else:
-            if isinstance(parent, h5py.object):
+            if isinstance(parent, h5py.Group):
                 h5_group = parent
             else:
                 raise TypeError('parent should be a h5py object')
@@ -79,7 +79,7 @@ class NSIDReader(sidpy.Reader):
             list_of_main = get_all_main(h5_group, verbose=False)
         else:
             list_of_main = []
-            for key in self.h5_group:
+            for key in h5_group:
                 if isinstance(h5_group[key], h5py.Dataset):
                     if check_if_main(h5_group[key]):
                         list_of_main.append(h5_group[key])
