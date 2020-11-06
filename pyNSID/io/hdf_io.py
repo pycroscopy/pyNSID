@@ -178,7 +178,25 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
 
 
 def write_results(h5_group, dataset=None, attributes=None, process_name=None):
+    """
+    Writes results of a processing step back to HDF5 in NSID format
 
+    Parameters
+    ----------
+    h5_group : h5py.Group
+        HDF5 Group into which results will be written
+    dataset : sidpy.Dataset, optional. Default = None
+        Dataset ??
+    attributes : dict, optional. Default = None
+        Metadata regarding processing step
+    process_name : str, optional. Default = "Log_"
+        Name of the prefix for group containing process results
+
+    Returns
+    -------
+    log_group : h5py.Group
+        HDF5 group containing results
+    """
     found_valid_dataset = False
     if dataset is not None:
         if isinstance(dataset, Dataset):
