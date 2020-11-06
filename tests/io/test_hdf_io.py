@@ -3,9 +3,10 @@ import unittest
 import sys
 sys.path.append("../pyNSID/")
 
-class TestWritingUtilities(unittest.TestCase):
 
-    def base_test_create_empty_dataset(self, dims = 3):
+class TestCreateEmptyDataset(unittest.TestCase):
+
+    def base_test(self, dims = 3):
         from pyNSID.io.hdf_io import create_empty_dataset
         import h5py
         import numpy as np
@@ -20,17 +21,16 @@ class TestWritingUtilities(unittest.TestCase):
         assert type(empty_dset)==h5py._hl.dataset.Dataset, "Output is not a h5py dataset"
         assert empty_dset.shape == shape, "Output shape is {} but should be {}".format(empty_dset.shape, shape)
 
-        #close file, delete
+        # close file, delete
         h5_f.close()
         remove('test_empty_dset.h5')
 
-    def test_create_empty_dataset(self):
+    def test_just_main_data(self):
         for ind in range(1,6):
-            self.base_test_create_empty_dataset(dims = ind)
+            self.base_test(dims=ind)
 
-
-    def test_create_empty_dataset_val_error(self):
-        #Test that the correct errors are raised
+    def test_invalid_shape(self):
+        # Test that the correct errors are raised
         from pyNSID.io.hdf_io import create_empty_dataset
         import h5py
         import numpy as np
@@ -47,7 +47,7 @@ class TestWritingUtilities(unittest.TestCase):
         h5_f.close()
         remove('test_empty.h5')
 
-    def test_create_empty_dataset_val_error(self):
+    def test_invaid_group_object(self):
         from pyNSID.io.hdf_io import create_empty_dataset
         import h5py
         from os import remove
@@ -62,7 +62,10 @@ class TestWritingUtilities(unittest.TestCase):
         h5_f.close()
         remove('test_empty.h5')
 
-    def test_write_nsid_dataset(self):
+
+class TestWriteNSIDataset(unittest.TestCase):
+
+    def test_simple(self):
         import numpy as np
         for ind in range(1,10):
             dim_types_base = ['spatial', 'spectral']
@@ -71,9 +74,8 @@ class TestWritingUtilities(unittest.TestCase):
             for data_type in data_types_base:
                 self.base_test_write_nsid_dataset(dims=ind, dim_types=dim_types, data_type=data_type)
 
-    def base_test_write_nsid_dataset(self, dims = 3,
-                                      dim_types = ['spatial', 'spatial', 'spectral'],
-                                      data_type = 'complex', verbose=True):
+    def base_test(self, dims=3, dim_types = ['spatial', 'spatial', 'spectral'],
+                  data_type = 'complex', verbose=True):
         from pyNSID.io.hdf_io import write_nsid_dataset
         import h5py
         import sidpy as sid
@@ -129,7 +131,10 @@ class TestWritingUtilities(unittest.TestCase):
         h5_f.close()
         remove('test.h5')
 
-    def test_write_results(self):
+
+class TestWriteResults(unittest.TestCase):
+
+    def test_simple(self):
         from pyNSID.io.hdf_io import write_results
         import h5py
         import sidpy as sid
