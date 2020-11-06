@@ -197,6 +197,7 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
     log_group : h5py.Group
         HDF5 group containing results
     """
+    # TODO: What if multiple sidpy.Datasets form the results?
     found_valid_dataset = False
     if dataset is not None:
         if isinstance(dataset, Dataset):
@@ -208,7 +209,8 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
             if len(attributes) > 0:
                 found_valid_attributes = True
     if not (found_valid_dataset or found_valid_attributes):
-        raise ValueError('results should contain at least a sidpy Dataset or a dictionary in results')
+        raise ValueError('results should contain at least a sidpy Dataset or '
+                         'a dictionary in results')
     log_name = 'Log_'
     if process_name is not None:
         log_name = log_name+process_name

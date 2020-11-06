@@ -192,6 +192,42 @@ class TestWriteNSIDataset(unittest.TestCase):
 
 class TestWriteResults(unittest.TestCase):
 
+    def test_not_h5py_group_obj(self):
+        pass
+
+    def test_group_already_contains_objects_name_clashes(self):
+        pass
+
+    def test_no_sidpy_dataset_provided(self):
+        pass
+
+    def test_not_a_sidpy_Dataset(self):
+        pass
+
+    def test_no_attributes_provided(self):
+        pass
+
+    def test_attributes_not_dict(self):
+        pass
+
+    def test_attributes_nested_dict(self):
+        pass
+
+    def test_attributes_flat_dict(self):
+        pass
+
+    def test_process_name_not_str(self):
+        pass
+
+    def test_process_name_no_name_clashes(self):
+        pass
+
+    def test_process_name_has_name_clashes(self):
+        pass
+
+    def test_multiple_sidpy_datasets_as_results(self):
+        pass
+
     def test_simple(self):
         h5_f = h5py.File('test_write_results.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
@@ -200,6 +236,6 @@ class TestWriteResults(unittest.TestCase):
         data_set = sidpy.Dataset.from_array(data[:, :, :], name='Image')
         hdf_io.write_results(h5_group, dataset=data_set, attributes=None, process_name='TestProcess')
 
-        #TODO: Add some more assertions
+        # TODO: Add some more assertions
         h5_f.close()
         remove('test_write_results.h5')
