@@ -98,6 +98,8 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
              '{}'.format(main_data_name, main_data_name.replace('-', '_')))
     main_data_name = main_data_name.replace('-', '_')
 
+    h5_group = h5_group.create_group(main_data_name)
+
     #####################
     # Write Main Dataset
     ####################
