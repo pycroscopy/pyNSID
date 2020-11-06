@@ -1,7 +1,49 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import unittest
 import sys
-sys.path.append("../pyNSID/")
+import h5py
+import numpy as np
+import dask.array as da
+import tempfile
+
+
+sys.path.append("../../")
+import pyNSID
+
+
+
+
+def make_simple_h5_dataset():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file_path = tmp_dir + 'hdf5_simple.h5'
+    h5_file = h5py.File(file_path, 'a')
+    h5_group = h5_file.create_group('MyGroup')
+    data = np.random.normal(size=(2, 3))
+    h5_dataset = h5_group.create_dataset('data', data=data)
+
+    dims = {0: h5_group.create_dataset('a', np.arange(data.shape[0])),
+            1: h5_group.create_dataset('b', np.arange(data.shape[1]))}
+    return h5_file
+
+h5_simple_file = make_simple_h5_dataset()
+
+def make_simple_nsid_dataset():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file_path = tmp_dir + 'nsid_simple.h5'
+    h5_file = h5py.File(file_path, 'a')
+    h5_group = h5_file.create_group('MyGroup')
+    data = np.random.normal(size = (2,3))
+    h5_dataset = h5_group.create_dataset('data', data=data)
+
+    dims = {0: h5_group.create_dataset('a', np.arange(data.shape[0])),
+            1: h5_group.create_dataset('b', np.arange(data.shape[1]))}
+    for dim, this_dim_dset in dims.items():
+        name = this_dim_dset.name.split('/')[-1]
+        this_dim_dset.make_scale(name)
+        h5_dataset.dims[dim].label = name
+        h5_dataset.dims[dim].attach_scale(this_dim_dset)
+    return h5_file
+h5_simple_nsid_file = make_simple_nsid_dataset()
 
 
 class TestGetAllMain(unittest.TestCase):
@@ -44,10 +86,19 @@ class TestFindDataset(unittest.TestCase):
 class TestCheckIfMain(unittest.TestCase):
 
     def test_not_h5_dataset(self):
-        pass
+
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(np.arange(3)))
+
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(da.from_array(np.arange(3))))
+
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(h5_simple_file['MyGroup']))
+
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(h5_simple_file))
+
 
     def test_dims_missing(self):
-        pass
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(h5_simple_file['MyGroup']['data']))
+
 
     def test_dim_exist_but_scales_not_attached_to_main(self):
         pass
