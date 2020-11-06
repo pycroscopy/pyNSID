@@ -30,7 +30,10 @@ class TestCreateEmptyDataset(unittest.TestCase):
         for ind in range(1, 6):
             self.base_test(dims=ind)
 
-    def test_invalid_shape(self):
+    def test_shape_not_array_like(self):
+        pass
+
+    def test_non_int_shape(self):
         # Test that the correct errors are raised
         h5_f = h5py.File('test_empty.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
@@ -52,6 +55,12 @@ class TestCreateEmptyDataset(unittest.TestCase):
             _ = hdf_io.create_empty_dataset(shape, h5_group, dataset_name)
         h5_f.close()
         remove('test_empty.h5')
+
+    def test_obj_with_same_name_already_exists_in_file(self):
+        pass
+
+    def test_name_kwarg_used_correctly(self):
+        pass
 
 
 class TestWriteNSIDataset(unittest.TestCase):
