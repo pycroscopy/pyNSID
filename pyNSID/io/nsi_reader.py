@@ -61,9 +61,12 @@ class NSIDReader(sidpy.Reader):
 
         if dataset is None:
             return self.read_all(recursive=True)
-        else:
-            if isinstance(dataset, h5py.Dataset):
-                return read_h5py_dataset(dataset)
+        if isinstance(dataset, h5py.Dataset):
+            return read_h5py_dataset(dataset)
+        if isinstance(dataset, h5py.Group):
+            name = dataset.name.split('/')[-1]
+            if isinstance(dataset[name], h5py.Dataset):
+                return read_h5py_dataset(dataset[name])
 
     def read_all(self, recursive=True, parent=None):
 
