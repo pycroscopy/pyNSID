@@ -149,6 +149,8 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
     #                          dataset.quantity, dataset.units, dataset.data_type, dataset.modality,
     #                          dataset.source, dataset.axes, verbose=False)
 
+    # TODO: shouldn't these be written to a sepearate group as well?
+    # TODO: Allow nested dictionaries
     for key, item in dataset.metadata.items():
         if key not in attrs_to_write:
             # TODO: Check item to be simple

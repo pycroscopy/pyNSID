@@ -56,6 +56,80 @@ class TestCreateEmptyDataset(unittest.TestCase):
 
 class TestWriteNSIDataset(unittest.TestCase):
 
+    def test_not_sidpy_dataset(self):
+        pass
+
+    def test_not_h5_group(self):
+        pass
+
+    def test_main_data_name_not_str(self):
+        pass
+
+    def test_main_data_name_given(self):
+        pass
+
+    def test_h5_file_in_read_only_mode(self):
+        pass
+
+    def test_h5_file_closed(self):
+        pass
+
+    def test_group_already_has_obj_same_name_as_main_dset(self):
+        pass
+
+    def test_group_already_has_dim_h5_dset_diff_lengths(self):
+        pass
+
+    def test_group_already_has_dim_h5_dset_attrs_incorrect(self):
+        pass
+
+    def test_group_already_has_dim_h5_dset_correct(self):
+        pass
+
+    def test_complex_valued_main_dset(self):
+        pass
+
+    def test_complex_valued_dimension(self):
+        pass
+
+    def test_book_keeping_attrs_written_to_group(self):
+        pass
+
+    def test_no_metadata(self):
+        pass
+
+    def test_metadata_is_empty(self):
+        pass
+
+    def test_has_metadata_dict(self):
+        pass
+
+    def test_metadata_not_dict(self):
+        pass
+
+    def test_no_original_metadata(self):
+        pass
+
+    def test_original_metadata_is_empty(self):
+        pass
+
+    def test_has_original_metadata_dict(self):
+        pass
+
+    def test_original_metadata_not_dict(self):
+        pass
+
+    def test_metadata_is_nested(self):
+        pass
+
+    def test_original_metadata_is_nested(self):
+        pass
+
+    # TODO check if datasets are indeed linked correctly to main
+
+    def test_h5_dataset_property_of_sidpy_dataset_populated(self):
+        pass
+
     def test_dim_varied(self):
         for ind in range(1, 10):
             dim_types_base = ['spatial', 'spectral']
