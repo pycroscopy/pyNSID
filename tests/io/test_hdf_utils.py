@@ -1,8 +1,130 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import unittest
 import sys
-sys.path.append("../pyNSID/")
+import h5py
+import numpy as np
+import dask.array as da
+import tempfile
+from sidpy.hdf.hdf_utils import write_simple_attrs
 
+sys.path.append("../../")
+import pyNSID
+
+
+def make_simple_h5_dataset():
+    """
+    simple h5 dataset with dimesnsion arrays but not attached
+    """
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file_path = tmp_dir + 'hdf5_simple.h5'
+    h5_file = h5py.File(file_path, 'a')
+    h5_group = h5_file.create_group('MyGroup')
+    data = np.random.normal(size=(2, 3))
+    h5_dataset = h5_group.create_dataset('data', data=data)
+
+    dims = {0: h5_group.create_dataset('a', np.arange(data.shape[0])),
+            1: h5_group.create_dataset('b', np.arange(data.shape[1]))}
+    return h5_file
+
+
+h5_simple_file = make_simple_h5_dataset()
+
+
+def make_nsid_dataset_no_dim_attached():
+    """
+    except for the dimensions attached the h5 dataset which is fully pyNSID compatible
+    """
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file_path = tmp_dir + 'nsid_simple.h5'
+    h5_file = h5py.File(file_path, 'a')
+    h5_group = h5_file.create_group('MyGroup')
+    data = np.random.normal(size=(2, 3))
+    h5_dataset = h5_group.create_dataset('data', data=data)
+    attrs_to_write = {'quantity': 'quantity', 'units': 'units', 'nsid_version': 'version',
+                      'main_data_name': 'title', 'data_type': 'data_type.name',
+                      'modality': 'modality', 'source': 'test'}
+
+    write_simple_attrs(h5_dataset, attrs_to_write)
+
+    dims = {0: h5_group.create_dataset('a', data=np.arange(data.shape[0])),
+            1: h5_group.create_dataset('b', data=np.arange(data.shape[1]))}
+    for dim, this_dim_dset in dims.items():
+        name = this_dim_dset.name.split('/')[-1]
+        attrs_to_write = {'name': name, 'units': 'units', 'quantity': 'quantity',
+                          'dimension_type': 'dimension_type.name', 'nsid_version': 'test'}
+
+        write_simple_attrs(this_dim_dset, attrs_to_write)
+
+        this_dim_dset.make_scale(name)
+        h5_dataset.dims[dim].label = name
+        # h5_dataset.dims[dim].attach_scale(this_dim_dset)
+    return h5_file
+
+
+def make_simple_nsid_dataset():
+    """
+    h5 dataset which is fully pyNSID compatible
+    """
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file_path = tmp_dir + 'nsid_simple.h5'
+    h5_file = h5py.File(file_path, 'a')
+    h5_group = h5_file.create_group('MyGroup')
+    data = np.random.normal(size=(2, 3))
+    h5_dataset = h5_group.create_dataset('data', data=data)
+    attrs_to_write = {'quantity': 'quantity', 'units': 'units', 'nsid_version': 'version',
+                      'main_data_name': 'title', 'data_type': 'data_type.name',
+                      'modality': 'modality', 'source': 'test'}
+
+    write_simple_attrs(h5_dataset, attrs_to_write)
+
+    dims = {0: h5_group.create_dataset('a', data=np.arange(data.shape[0])),
+            1: h5_group.create_dataset('b', data=np.arange(data.shape[1]))}
+    for dim, this_dim_dset in dims.items():
+        name = this_dim_dset.name.split('/')[-1]
+        attrs_to_write = {'name': name, 'units': 'units', 'quantity': 'quantity',
+                          'dimension_type': 'dimension_type.name', 'nsid_version': 'test'}
+
+        write_simple_attrs(this_dim_dset, attrs_to_write)
+
+        this_dim_dset.make_scale(name)
+        h5_dataset.dims[dim].label = name
+        h5_dataset.dims[dim].attach_scale(this_dim_dset)
+    return h5_file
+
+def make_nsid_length_dim_wrong():
+    """
+    h5 dataset which is fully pyNSID compatible
+    """
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file_path = tmp_dir + 'nsid_simple.h5'
+    h5_file = h5py.File(file_path, 'a')
+    h5_group = h5_file.create_group('MyGroup')
+    data = np.random.normal(size=(2, 3))
+    h5_dataset = h5_group.create_dataset('data', data=data)
+    attrs_to_write = {'quantity': 'quantity', 'units': 'units', 'nsid_version': 'version',
+                      'main_data_name': 'title', 'data_type': 'data_type.name',
+                      'modality': 'modality', 'source': 'test'}
+
+    write_simple_attrs(h5_dataset, attrs_to_write)
+
+    dims = {0: h5_group.create_dataset('a', data=np.arange(data.shape[0]*3)),
+            1: h5_group.create_dataset('b', data=np.arange(data.shape[1]))}
+    for dim, this_dim_dset in dims.items():
+        name = this_dim_dset.name.split('/')[-1]
+        attrs_to_write = {'name': name, 'units': 'units', 'quantity': 'quantity',
+                          'dimension_type': 'dimension_type.name', 'nsid_version': 'test'}
+
+        write_simple_attrs(this_dim_dset, attrs_to_write)
+
+        this_dim_dset.make_scale(name)
+        h5_dataset.dims[dim].label = name
+        h5_dataset.dims[dim].attach_scale(this_dim_dset)
+    return h5_file
+
+
+h5_nsid_no_dim_attached = make_nsid_dataset_no_dim_attached()
+h5_nsid_simple = make_simple_nsid_dataset()
+h5_nsid_wrong_dim_length = make_nsid_length_dim_wrong()
 
 class TestGetAllMain(unittest.TestCase):
 
@@ -44,25 +166,43 @@ class TestFindDataset(unittest.TestCase):
 class TestCheckIfMain(unittest.TestCase):
 
     def test_not_h5_dataset(self):
-        pass
+
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(np.arange(3)))
+
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(da.from_array(np.arange(3))))
+
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(h5_simple_file['MyGroup']))
+
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(h5_simple_file))
 
     def test_dims_missing(self):
-        pass
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(h5_simple_file['MyGroup']['data']))
 
     def test_dim_exist_but_scales_not_attached_to_main(self):
-        pass
+        # test first same file without dimension attached
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(h5_nsid_no_dim_attached['MyGroup']['data']))
 
     def test_dim_sizes_not_matching_main(self):
-        pass
+        self.assertFalse(pyNSID.hdf_utils.check_if_main(h5_nsid_wrong_dim_length['MyGroup']['data']))
+
 
     def test_mandatory_attrs_not_present(self):
-        pass
+        for key in  ['quantity', 'units', 'main_data_name', 'data_type', 'modality', 'source']:
+            attribute = h5_nsid_simple['MyGroup']['data'].attrs[key]
+
+            del h5_nsid_simple['MyGroup']['data'].attrs[key]
+            self.assertFalse(pyNSID.hdf_utils.check_if_main(h5_nsid_simple['MyGroup']['data']))
+            h5_nsid_simple['MyGroup']['data'].attrs[key] = attribute
 
     def test_invalid_types_for_str_attrs(self):
-        pass
+        for key in ['quantity', 'units', 'main_data_name', 'data_type', 'modality', 'source']:
+            attribute = h5_nsid_simple['MyGroup']['data'].attrs[key]
+            h5_nsid_simple['MyGroup']['data'].attrs[key] = 1
+            self.assertFalse(pyNSID.hdf_utils.check_if_main(h5_nsid_simple['MyGroup']['data']))
+            h5_nsid_simple['MyGroup']['data'].attrs[key] = attribute
 
     def test_dset_is_main(self):
-        pass
+        self.assertTrue(pyNSID.hdf_utils.check_if_main(h5_nsid_simple['MyGroup']['data']))
 
 
 class TestLinkAsMain(unittest.TestCase):
