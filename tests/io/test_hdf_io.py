@@ -64,89 +64,6 @@ class TestCreateEmptyDataset(unittest.TestCase):
 
 
 class TestWriteNSIDataset(unittest.TestCase):
-
-    def test_not_sidpy_dataset(self):
-        pass
-
-    def test_not_h5_group(self):
-        pass
-
-    def test_main_data_name_not_str(self):
-        pass
-
-    def test_main_data_name_given(self):
-        pass
-
-    def test_h5_file_in_read_only_mode(self):
-        pass
-
-    def test_h5_file_closed(self):
-        pass
-
-    def test_group_already_has_obj_same_name_as_main_dset(self):
-        pass
-
-    def test_group_already_has_dim_h5_dset_diff_lengths(self):
-        pass
-
-    def test_group_already_has_dim_h5_dset_attrs_incorrect(self):
-        pass
-
-    def test_group_already_has_dim_h5_dset_correct(self):
-        pass
-
-    def test_complex_valued_main_dset(self):
-        pass
-
-    def test_complex_valued_dimension(self):
-        pass
-
-    def test_book_keeping_attrs_written_to_group(self):
-        pass
-
-    def test_no_metadata(self):
-        pass
-
-    def test_metadata_is_empty(self):
-        pass
-
-    def test_has_metadata_dict(self):
-        pass
-
-    def test_metadata_not_dict(self):
-        pass
-
-    def test_no_original_metadata(self):
-        pass
-
-    def test_original_metadata_is_empty(self):
-        pass
-
-    def test_has_original_metadata_dict(self):
-        pass
-
-    def test_original_metadata_not_dict(self):
-        pass
-
-    def test_metadata_is_nested(self):
-        pass
-
-    def test_original_metadata_is_nested(self):
-        pass
-
-    # TODO check if datasets are indeed linked correctly to main
-
-    def test_h5_dataset_property_of_sidpy_dataset_populated(self):
-        pass
-
-    def test_dim_varied(self):
-        for ind in range(1, 10):
-            dim_types_base = ['spatial', 'spectral']
-            data_types_base = ['float32', 'float64', 'int', 'complex']
-            dim_types = [dim_types_base[np.random.randint(low=1, high=2)] for _ in range(ind)]
-            for data_type in data_types_base:
-                self.base_test(dims=ind, dim_types=dim_types, data_type=data_type)
-
     def base_test(self, dims=3, dim_types = ['spatial', 'spatial', 'spectral'],
                   data_type = 'complex', verbose=True):
         h5_f = h5py.File('test.h5', 'w')
@@ -198,6 +115,184 @@ class TestWriteNSIDataset(unittest.TestCase):
         h5_f.close()
         remove('test.h5')
 
+
+    def test_not_sidpy_dataset(self):
+        shape = (10,10,15)
+        data_set = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        with self.assertRaises(TypeError):
+            hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='test')
+        h5_file.close()
+        remove('test2.h5')
+
+    def test_not_h5_group(self):
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = {'My_dict':0}
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        with self.assertRaises(TypeError):
+            hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='test')
+        h5_file.close()
+        remove('test2.h5')
+
+    def test_main_data_name_not_str(self):
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        with self.assertRaises(TypeError):
+            hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name=[12345])
+        h5_file.close()
+        remove('test2.h5')
+
+    def test_main_data_name_given(self):
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        maindataname = 'Main_Data'
+        hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name=maindataname)
+        remove('test2.h5')
+
+    def test_h5_file_in_read_only_mode(self):
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        h5_file.close()
+        h5_file = h5py.File('test2.h5', 'r')
+        h5_group = h5_file['MyGroup']
+        with self.assertRaises(ValueError):
+            hdf_io.write_nsid_dataset(data_set, h5_group)
+        remove('test2.h5')
+
+    def test_h5_file_closed(self):
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        h5_file.close()
+        with self.assertRaises(ValueError):
+            hdf_io.write_nsid_dataset(data_set, h5_group)
+        remove('test2.h5')
+
+    def test_group_already_has_obj_same_name_as_main_dset(self):
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name  ='data_1')
+        with self.assertRaises(ValueError):
+            hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='data_1')
+        h5_file.close()
+        remove('test2.h5')
+
+    def test_group_already_has_dim_h5_dset_diff_lengths(self):
+        pass
+
+    def test_group_already_has_dim_h5_dset_attrs_incorrect(self):
+        pass
+
+    def test_group_already_has_dim_h5_dset_correct(self):
+        pass
+
+    def test_complex_valued_main_dset(self):
+        pass
+
+    def test_complex_valued_dimension(self):
+        dims = 3
+        dim_types = ['spatial', 'spatial', 'spectral']
+        h5_f = h5py.File('test.h5', 'w')
+        h5_group = h5_f.create_group('MyGroup')
+        shape = tuple([np.random.randint(low=2, high=10) for _ in range(dims)])
+        data = np.random.normal(size=tuple(shape)) + 1j * np.random.normal(size=tuple(shape))
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+
+        for ind in range(dims):
+            data_set.set_dimension(ind, sidpy.Dimension(np.linspace(-2, 2, num=data_set.shape[ind],
+                                                                    endpoint=True) +
+                                1j*np.linspace(-2, 2, num=data_set.shape[ind], endpoint=True) ,
+                                name='x' + str(ind), units='um', quantity='Length',
+                                                    dimension_type=dim_types[ind]))
+        data_set.units = 'nm'
+        data_set.source = 'CypherEast2'
+        data_set.quantity = 'Excaliburs'
+
+        h5_dset = hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='test2', verbose=False)
+        h5_f.close()
+        remove('test.h5')
+
+    def test_book_keeping_attrs_written_to_group(self):
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        sidpy.hdf_utils.write_book_keeping_attrs(h5_group)
+        hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='data_1')
+        for attr in ['machine_id', 'platform', 'sidpy_version', 'timestamp']:
+            assert (attr in list(h5_group.attrs)) == True, \
+                'book keeping attributes not correctly written, missing {}'.format(attr)
+        h5_file.close()
+        remove('test2.h5')
+
+    def test_no_metadata(self):
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:])
+        sidpy.hdf_utils.write_book_keeping_attrs(h5_group)
+        hdf_io.write_nsid_dataset(data_set, h5_group)
+        h5_file.close()
+        remove('test2.h5')
+
+    def test_metadata_is_empty(self):
+        pass
+
+    def test_has_metadata_dict(self):
+        pass
+
+    def test_metadata_not_dict(self):
+        pass
+
+    def test_no_original_metadata(self):
+        pass
+
+    def test_original_metadata_is_empty(self):
+        pass
+
+    def test_has_original_metadata_dict(self):
+        pass
+
+    def test_original_metadata_not_dict(self):
+        pass
+
+    def test_metadata_is_nested(self):
+        pass
+
+    def test_original_metadata_is_nested(self):
+        pass
+
+    # TODO check if datasets are indeed linked correctly to main
+
+    def test_h5_dataset_property_of_sidpy_dataset_populated(self):
+        pass
+
+    def test_dim_varied(self):
+        for ind in range(1, 10):
+            dim_types_base = ['spatial', 'spectral']
+            data_types_base = ['float32', 'float64', 'int', 'complex']
+            dim_types = [dim_types_base[np.random.randint(low=1, high=2)] for _ in range(ind)]
+            for data_type in data_types_base:
+                self.base_test(dims=ind, dim_types=dim_types, data_type=data_type)
 
 class TestWriteResults(unittest.TestCase):
 
