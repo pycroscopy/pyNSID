@@ -66,25 +66,79 @@ class TestCreateEmptyDataset(unittest.TestCase):
 class TestWriteNSIDataset(unittest.TestCase):
 
     def test_not_sidpy_dataset(self):
-        pass
+        shape = (10,10,15)
+        data_set = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        with self.assertRaises(TypeError):
+            hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='test')
+        remove('test2.h5')
 
     def test_not_h5_group(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = {'My_dict':0}
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        with self.assertRaises(TypeError):
+            hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='test')
+        remove('test2.h5')
 
     def test_main_data_name_not_str(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        with self.assertRaises(TypeError):
+            hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name=[12345])
+        remove('test2.h5')
 
     def test_main_data_name_given(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        maindataname = 'Main_Data'
+        hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name=maindataname)
+        remove('test2.h5')
 
     def test_h5_file_in_read_only_mode(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        h5_file.close()
+        h5_file = h5py.File('test2.h5', 'r')
+        h5_group = h5_file['MyGroup']
+        with self.assertRaises(ValueError):
+            hdf_io.write_nsid_dataset(data_set, h5_group)
+        remove('test2.h5')
 
     def test_h5_file_closed(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        h5_file.close()
+        with self.assertRaises(ValueError):
+            hdf_io.write_nsid_dataset(data_set, h5_group)
+        remove('test2.h5')
 
     def test_group_already_has_obj_same_name_as_main_dset(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name  ='data_1')
+        with self.assertRaises(ValueError):
+            hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='data_1')
+
+        remove('test2.h5')
 
     def test_group_already_has_dim_h5_dset_diff_lengths(self):
         pass
