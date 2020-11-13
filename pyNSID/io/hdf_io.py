@@ -80,6 +80,9 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
     if not isinstance(h5_group, (h5py.Group, h5py.File)):
         raise TypeError('h5_parent_group should be a h5py.File or h5py.Group '
                         'object')
+    if not isinstance(main_data_name, str):
+        raise TypeError('main_data_name should be a string, but it instead  it is {}'.format(type(main_data_name)))
+
     if not is_editable_h5(h5_group):
         raise ValueError('The provided file is not editable')
     if verbose:
