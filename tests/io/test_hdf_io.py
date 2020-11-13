@@ -191,7 +191,7 @@ class TestWriteNSIDataset(unittest.TestCase):
         hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name  ='data_1')
         with self.assertRaises(ValueError):
             hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='data_1')
-
+        h5_file.close()
         remove('test2.h5')
 
     def test_group_already_has_dim_h5_dset_diff_lengths(self):
@@ -230,10 +230,29 @@ class TestWriteNSIDataset(unittest.TestCase):
         remove('test.h5')
 
     def test_book_keeping_attrs_written_to_group(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:], name='Image')
+        sidpy.hdf_utils.write_book_keeping_attrs(h5_group)
+        hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name='data_1')
+        for attr in ['machine_id', 'platform', 'sidpy_version', 'timestamp']:
+            assert (attr in list(h5_group.attrs)) == True, \
+                'book keeping attributes not correctly written, missing {}'.format(attr)
+        h5_file.close()
+        remove('test2.h5')
 
     def test_no_metadata(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:])
+        sidpy.hdf_utils.write_book_keeping_attrs(h5_group)
+        hdf_io.write_nsid_dataset(data_set, h5_group)
+        h5_file.close()
+        remove('test2.h5')
 
     def test_metadata_is_empty(self):
         pass
