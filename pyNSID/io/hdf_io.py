@@ -89,6 +89,9 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
         print('h5 group and file OK')
 
     # TODO: sidpy.Dataset already has a name. Why ask for main_data_name ?
+    if not isinstance(main_data_name, str):
+        raise TypeError('main_data_name must be a string')
+
     if main_data_name == '':
         if dataset.title.strip() == '':
             main_data_name = 'nDim_Data'
