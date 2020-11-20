@@ -447,6 +447,7 @@ class TestWriteResults(unittest.TestCase):
         hdf_io.write_results(h5_group, dataset=data_set, attributes=None, process_name='This should work')
 
         sidpy.hdf_utils.print_tree(h5_file)
+        assert False
         h5_file.close()
 
         remove('test2.h5')
