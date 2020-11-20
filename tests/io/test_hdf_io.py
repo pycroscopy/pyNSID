@@ -445,7 +445,10 @@ class TestWriteResults(unittest.TestCase):
         #Trying to rewrite with same process name should give us an error, not sure which type though!
         #with self.assertRaises(TypeError):
         hdf_io.write_results(h5_group, dataset=data_set, attributes=None, process_name='This should work')
+
+        sidpy.hdf_utils.print_tree(h5_file)
         h5_file.close()
+
         remove('test2.h5')
 
     def test_multiple_sidpy_datasets_as_results(self):
