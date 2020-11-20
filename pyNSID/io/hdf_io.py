@@ -212,7 +212,7 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
             dataset = [dataset]
 
         if isinstance(dataset, list):
-            if not all([isinstance((itm, Dataset)) for itm in dataset]):
+            if not all([isinstance(itm, Dataset) for itm in dataset]):
                 raise TypeError('List contains non-Sidpy dataset entries! Should only contain sidpy datasets')
 
             found_valid_dataset = True

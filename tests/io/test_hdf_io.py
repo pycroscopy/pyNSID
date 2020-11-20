@@ -291,7 +291,6 @@ class TestWriteNSIDataset(unittest.TestCase):
                 # self.base_test(dims=ind, dim_types=dim_types, data_type=data_type)
                 pass
 
-#RKV
 class TestWriteResults(unittest.TestCase):
 
     def test_not_h5py_group_obj(self):
