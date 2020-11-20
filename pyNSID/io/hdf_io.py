@@ -203,17 +203,29 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
     log_group : h5py.Group
         HDF5 group containing results
     """
-    # TODO: What if multiple sidpy.Datasets form the results?
+
     found_valid_dataset = False
+
     if dataset is not None:
+
         if isinstance(dataset, Dataset):
+            dataset = [dataset]
+
+        if isinstance(dataset, list):
+            if not all([isinstance(itm, Dataset) for itm in dataset]):
+                raise TypeError('List contains non-Sidpy dataset entries! Should only contain sidpy datasets')
+
             found_valid_dataset = True
+
     found_valid_attributes = False
 
     if attributes is not None:
         if isinstance(attributes, dict):
             if len(attributes) > 0:
                 found_valid_attributes = True
+        else:
+            raise TypeError("Provided attributes is type {} but should be type dict".format(type(attributes)))
+
     if not (found_valid_dataset or found_valid_attributes):
         raise ValueError('results should contain at least a sidpy Dataset or '
                          'a dictionary in results')
@@ -223,8 +235,10 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
     log_group = create_indexed_group(h5_group, log_name)
 
     if found_valid_dataset:
-        write_nsid_dataset(dataset, log_group)
-    if found_valid_attributes:
-        write_simple_attrs(log_group, flatten_dict(attributes))
+        for dset in dataset:
+            write_nsid_dataset(dset, log_group)
+
+        if found_valid_attributes:
+            write_simple_attrs(log_group, flatten_dict(attributes))
 
     return log_group
