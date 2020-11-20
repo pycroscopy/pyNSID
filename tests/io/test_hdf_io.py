@@ -10,7 +10,7 @@ sys.path.append("../pyNSID/")
 from pyNSID.io import hdf_io
 import pyNSID
 
-
+#Suhas
 class TestCreateEmptyDataset(unittest.TestCase):
 
     def base_test(self, dims=3):
@@ -63,7 +63,7 @@ class TestCreateEmptyDataset(unittest.TestCase):
     def test_name_kwarg_used_correctly(self):
         pass
 
-
+#Gerd
 class TestWriteNSIDataset(unittest.TestCase):
     def base_test(self, dims=3, dim_types = ['spatial', 'spatial', 'spectral'],
                   data_type = 'complex', verbose=True):
@@ -291,40 +291,153 @@ class TestWriteNSIDataset(unittest.TestCase):
                 # self.base_test(dims=ind, dim_types=dim_types, data_type=data_type)
                 pass
 
+#RKV
 class TestWriteResults(unittest.TestCase):
 
     def test_not_h5py_group_obj(self):
-        pass
+        #Set h5_group to be a list instead of an actual hdf5 group object
+        h5_group = [10,115]
+        shape = (5, 15, 16)
+        data = np.random.randn(shape[0], shape[1], shape[2])
+        data_set = sidpy.Dataset.from_array(data[:, :, :], name='Image')
+        with self.assertRaises(TypeError):
+            hdf_io.write_results(h5_group, dataset=data_set, attributes=None, process_name='TestProcess')
 
     def test_group_already_contains_objects_name_clashes(self):
         pass
 
     def test_no_sidpy_dataset_provided(self):
-        pass
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        #going to pass a numpy array instead of a sidpy dataset
+        with self.assertRaises(TypeError):
+            hdf_io.write_results(h5_group, dataset=None, attributes=None, process_name='TestProcess')
+        h5_file.close()
+        remove('test2.h5')
 
     def test_not_a_sidpy_Dataset(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        #should fail if standard numpy array is passed
+        with self.assertRaises(TypeError):
+            hdf_io.write_results(h5_group, dataset=data, attributes=None, process_name='TestProcess')
+        h5_file.close()
+        remove('test2.h5')
 
     def test_no_attributes_provided(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:, :, :], name='Image')
+
+        # pass data without attributes
+        hdf_io.write_results(h5_group, dataset=data_set, attributes=None, process_name='TestProcess')
+        h5_file.close()
+        remove('test2.h5')
 
     def test_attributes_not_dict(self):
-        pass
+        from collections import namedtuple
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:, :, :], name='Image')
+        attributes = namedtuple('Dimensions', ['x', 'y'])
+
+        # pass data with attributes being something other than dictionary
+        with self.assertRaises(TypeError):
+            hdf_io.write_results(h5_group, dataset=data_set, attributes=attributes, process_name='TestProcess')
+        h5_file.close()
+        remove('test2.h5')
 
     def test_attributes_nested_dict(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:, :, :], name='Image')
+
+        attributes = {'Key1':10, 'Key2': np.linspace(0,1,10), 'NestedDict': {'KeyLevel2_0':10,
+                                                               'KeyLevel2_1': np.linspace(0,1,10)}}
+
+        # pass data with nested dictionary, make sure it doesn't complain
+        hdf_io.write_results(h5_group, dataset=data_set, attributes=attributes, process_name='TestProcess')
+
+        h5_file.close()
+        remove('test2.h5')
 
     def test_attributes_flat_dict(self):
-        pass
+
+        from collections import MutableMapping
+        # code to convert ini_dict to flattened dictionary
+        # default seperater '_'
+
+        def convert_flatten(d, parent_key='', sep='_'):
+            items = []
+            for k, v in d.items():
+                new_key = parent_key + sep + k if parent_key else k
+
+                if isinstance(v, MutableMapping):
+                    items.extend(convert_flatten(v, new_key, sep=sep).items())
+                else:
+                    items.append((new_key, v))
+            return dict(items)
+
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:, :, :], name='Image')
+
+        attributes = {'Key1': 10, 'Key2': np.linspace(0, 1, 10), 'NestedDict': {'KeyLevel2_0': 10,
+                                                                                'KeyLevel2_1': np.linspace(0, 1, 10)}}
+        flattened_attributes = convert_flatten(attributes)
+        # pass data with flattened dictionary, make sure it doesn't complain
+        hdf_io.write_results(h5_group, dataset=data_set, attributes=flattened_attributes, process_name='TestProcess')
+
+        h5_file.close()
+        remove('test2.h5')
 
     def test_process_name_not_str(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:, :, :], name='Image')
+        # pass data with process_name being something other than a string
+        with self.assertRaises(TypeError):
+            hdf_io.write_results(h5_group, dataset=data_set, attributes=None, process_name=['This shouldnt work'])
+        h5_file.close()
+        remove('test2.h5')
 
     def test_process_name_no_name_clashes(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:, :, :], name='Image')
+        # pass data with process_name being something other than a string
+        hdf_io.write_results(h5_group, dataset=data_set, attributes=None, process_name='This should work')
+        h5_file.close()
+        remove('test2.h5')
 
     def test_process_name_has_name_clashes(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set = sidpy.Dataset.from_array(data[:, :, :], name='Image')
+        # pass data with process_name being something other than a string
+        hdf_io.write_results(h5_group, dataset=data_set, attributes=None, process_name='This should work')
+
+        #Trying to rewrite with same process name should give us an error, not sure which type though!
+        with self.assertRaises(TypeError):
+            hdf_io.write_results(h5_group, dataset=data_set, attributes=None, process_name='This should work')
+        h5_file.close()
+        remove('test2.h5')
 
     def test_multiple_sidpy_datasets_as_results(self):
         pass
