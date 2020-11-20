@@ -80,8 +80,7 @@ class test_read_h5py_dataset(unittest.TestCase):
         dset = get_dset(hf_name, "g", "d")
         dset.attrs["title"] = "dset_name"
         dataset = read_h5py_dataset(dset)
-        self.assertTrue(dataset.h5_filename 
-                        hf_name)
+        self.assertTrue(dataset.h5_filename, hf_name)
 
     def test_attrs_title(self) -> None:
         self.tearDown()
