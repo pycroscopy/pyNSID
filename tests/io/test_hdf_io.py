@@ -381,7 +381,7 @@ class TestWriteResults(unittest.TestCase):
 
     def test_attributes_flat_dict(self):
 
-        from collections import MutableMapping
+        from collections.abc import MutableMapping
         # code to convert ini_dict to flattened dictionary
         # default seperater '_'
 
