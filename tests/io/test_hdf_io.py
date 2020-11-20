@@ -459,7 +459,7 @@ class TestWriteResults(unittest.TestCase):
         data_set = sidpy.Dataset.from_array(data[:, :, :], name='Image')
         data_set2 = sidpy.Dataset.from_array(data2[:, :, :], name='Image2')
 
-        results = {'Data1': data_set, 'Data2': data_set2}
+        results = [data_set, data_set2]
 
         hdf_io.write_results(h5_group, dataset=results, attributes=None, process_name='This should work')
         h5_file.close()
