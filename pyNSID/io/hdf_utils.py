@@ -267,6 +267,9 @@ def link_as_main(h5_main, dim_dict):
     """
     if not isinstance(h5_main, h5py.Dataset):
         raise TypeError('h5_main should be a h5py.Dataset object')
+    if not isinstance(dim_dict, dict):
+        raise TypeError("""dim_dict must be a dictionary"""
+                        """ (keys: dimensional order, values: h5py.Datasets)""")
 
     h5_parent_group = h5_main.parent
     main_shape = h5_main.shape
