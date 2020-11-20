@@ -310,7 +310,7 @@ class TestWriteResults(unittest.TestCase):
         h5_file = h5py.File('test2.h5', 'w')
         h5_group = h5_file.create_group('MyGroup')
         #going to pass a numpy array instead of a sidpy dataset
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             hdf_io.write_results(h5_group, dataset=None, attributes=None, process_name='TestProcess')
         h5_file.close()
         remove('test2.h5')
@@ -440,7 +440,20 @@ class TestWriteResults(unittest.TestCase):
         remove('test2.h5')
 
     def test_multiple_sidpy_datasets_as_results(self):
-        pass
+        shape = (10, 10, 15)
+        data = np.random.normal(size=shape)
+        data2 = np.random.normal(size=shape)
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+
+        data_set = sidpy.Dataset.from_array(data[:, :, :], name='Image')
+        data_set2 = sidpy.Dataset.from_array(data2[:, :, :], name='Image2')
+
+        results = {'Data1': data_set, 'Data2': data_set2}
+
+        hdf_io.write_results(h5_group, dataset=results, attributes=None, process_name='This should work')
+        h5_file.close()
+        remove('test2.h5')
 
     def test_simple(self):
         h5_f = h5py.File('test_write_results.h5', 'w')
