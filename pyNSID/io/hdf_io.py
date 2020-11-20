@@ -7,7 +7,8 @@ Created on Thu August 20 2020
 @author: Suhas Somnath, Gerd Duscher
 """
 
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import (division, print_function, unicode_literals,
+                        absolute_import)
 import sys
 from warnings import warn
 
@@ -121,18 +122,25 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False,
     if h5_group.file.driver == 'mpio':
         if kwargs.pop('compression', None) is not None:
             warn('This HDF5 file has been opened wth the "mpio" communicator. '
-                 'mpi4py does not allow creation of compressed datasets. Compression kwarg has been removed')
+                 'mpi4py does not allow creation of compressed datasets. '
+                 'Compression kwarg has been removed')
 
     if main_data_name in h5_group:
-        raise ValueError('h5 dataset of that name already exists, choose different name or delete first')
+        raise ValueError('h5 dataset of that name already exists, choose '
+                         'different name or delete first')
 
     _ = kwargs.pop('dtype', None)
+
     # step 1 - create the empty dataset:
-    h5_main = h5_group.create_dataset(main_data_name, shape=dataset.shape, dtype=dataset.dtype, **kwargs)
+    h5_main = h5_group.create_dataset(main_data_name,
+                                      shape=dataset.shape,
+                                      dtype=dataset.dtype,
+                                      **kwargs)
     if verbose:
-        print('Created empty dataset: {} for writing Dask dataset: {}'.format(h5_main, dataset))
-        print('Dask array will be written to HDF5 dataset: "{}" in file: "{}"'.format(h5_main.name,
-                                                                                      h5_main.file.filename))
+        print('Created empty dataset: {} for writing Dask dataset: {}'
+              ''.format(h5_main, dataset))
+        print('Dask array will be written to HDF5 dataset: "{}" in file: "{}"'
+              ''.format(h5_main.name, h5_main.file.filename))
     # Step 2 - now ask Dask to dump data to disk
     da.to_hdf5(h5_main.file.filename, {h5_main.name: dataset})
 
@@ -148,16 +156,24 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False,
         if not isinstance(this_dim, Dimension):
             raise ValueError('Dimensions {} is not a sidpy Dimension')
 
-        this_dim_dset = h5_group.create_dataset(this_dim.name, data=this_dim.values)
-        attrs_to_write = {'name': this_dim.name, 'units': this_dim.units, 'quantity': this_dim.quantity,
-                          'dimension_type': this_dim.dimension_type.name, 'nsid_version': version}
+        this_dim_dset = h5_group.create_dataset(this_dim.name,
+                                                data=this_dim.values)
+        attrs_to_write = {'name': this_dim.name,
+                          'units': this_dim.units,
+                          'quantity': this_dim.quantity,
+                          'dimension_type': this_dim.dimension_type.name,
+                          'nsid_version': version}
 
         write_simple_attrs(this_dim_dset, attrs_to_write)
         dimensional_dict[i] = this_dim_dset
 
-    attrs_to_write = {'quantity': dataset.quantity, 'units': dataset.units, 'nsid_version': version,
-                      'main_data_name': dataset.title, 'data_type': dataset.data_type.name,
-                      'modality': dataset.modality, 'source': dataset.source}
+    attrs_to_write = {'quantity': dataset.quantity,
+                      'units': dataset.units,
+                      'nsid_version': version,
+                      'main_data_name': dataset.title,
+                      'data_type': dataset.data_type.name,
+                      'modality': dataset.modality,
+                      'source': dataset.source}
 
     write_simple_attrs(h5_main, attrs_to_write)
 
@@ -210,7 +226,8 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
 
         if isinstance(dataset, list):
             if not all([isinstance(itm, Dataset) for itm in dataset]):
-                raise TypeError('List contains non-Sidpy dataset entries! Should only contain sidpy datasets')
+                raise TypeError('List contains non-Sidpy dataset entries! '
+                                'Should only contain sidpy datasets')
 
             found_valid_dataset = True
 
@@ -221,7 +238,8 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
             if len(attributes) > 0:
                 found_valid_attributes = True
         else:
-            raise TypeError("Provided attributes is type {} but should be type dict".format(type(attributes)))
+            raise TypeError("Provided attributes is type {} but should be type"
+                            " dict".format(type(attributes)))
 
     if not (found_valid_dataset or found_valid_attributes):
         raise ValueError('results should contain at least a sidpy Dataset or '
