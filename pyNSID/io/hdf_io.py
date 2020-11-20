@@ -214,6 +214,9 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
         if isinstance(attributes, dict):
             if len(attributes) > 0:
                 found_valid_attributes = True
+        else:
+            raise TypeError("Provided attributes is type {} but should be type dict".format(type(attributes)))
+
     if not (found_valid_dataset or found_valid_attributes):
         raise ValueError('results should contain at least a sidpy Dataset or '
                          'a dictionary in results')
