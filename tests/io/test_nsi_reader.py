@@ -30,9 +30,9 @@ def write_dummy_dset(hf_group: Type[h5py.Group], dims: Tuple[int],
     dnames = kwargs.get("dnames", np.arange(len(dims)))
     dset = Dataset.from_array(
             np.random.random([*dims]), name="new")
-    for i in range(len(dims)):
-        dset.set_dimension(
-            i, Dimension(np.arange(dset.shape[i]), "{}".format(str(dnames[i]))))
+    dnames = kwargs.get("dnames", np.arange(len(dims)))
+    for i, d in enumerate(dims):
+        dset.set_dimension(i, Dimension(np.arange(d), str(dnames[i])))
     write_nsid_dataset(
         dset, hf_group, main_data_name=main_name)
 
