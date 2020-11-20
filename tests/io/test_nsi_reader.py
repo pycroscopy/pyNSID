@@ -101,14 +101,12 @@ class test_nsid_reader(unittest.TestCase):
         write_dummy_dset(h5group_2, (7, 7, 10), "dset")
         # initialize and test reader
         reader = NSIDReader(h5group_1)
-        for bool_ in [True, False]:
-            d_all = reader.read_all(recursive=bool_)
-            self.assertEqual(len(d_all), 5)
-            self.assertEqual(sum([1 for d in d_all if isinstance(d, Dataset)]), 5)
-        for bool_ in [True, False]:
-            d = reader.read_all(recursive=bool_, parent=h5group_2)
-            self.assertEqual(len(d), 1)
-            self.assertTrue(isinstance(d[0], Dataset))
+        d_all = reader.read_all(recursive=True)
+        self.assertEqual(len(d_all), 5)
+        self.assertEqual(sum([1 for d in d_all if isinstance(d, Dataset)]), 5)
+        d = reader.read_all(recursive=True, parent=h5group_2)
+        self.assertEqual(len(d), 1)
+        self.assertTrue(isinstance(d[0], Dataset))
 
     def tearDown(self, fname: str = 'test.hdf5') -> None:
         if os.path.exists(fname):
