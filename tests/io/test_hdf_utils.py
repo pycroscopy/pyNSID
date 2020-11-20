@@ -65,7 +65,7 @@ def get_dim_dict(hf_name: str, h5g_name: str,
     return dim_dict
 
 
-class test_read_h5py_dataset(unittest.TestCase):
+class TestReadH5pyDataset(unittest.TestCase):
 
     def test_wrong_input_type(self) -> None:
         self.tearDown()
