@@ -6,7 +6,7 @@ import numpy as np
 from os import remove
 import sidpy
 
-sys.path.append("../pyNSID/")
+sys.path.insert(0, "../pyNSID/")
 from pyNSID.io import hdf_io
 import pyNSID
 
@@ -65,17 +65,17 @@ class TestCreateEmptyDataset(unittest.TestCase):
 
 
 class TestWriteNSIDataset(unittest.TestCase):
-    def base_test(self, dims=3, dim_types = ['spatial', 'spatial', 'spectral'],
-                  data_type = 'complex', verbose=True):
+    def base_test(self, dims=3, dim_types=['spatial', 'spatial', 'spectral'],
+                  data_type='complex', verbose=True):
         h5_f = h5py.File('test.h5', 'w')
         h5_group = h5_f.create_group('MyGroup')
-        shape = tuple([np.random.randint(low=2, high = 10) for _ in range(dims)])
+        shape = tuple([np.random.randint(low=2, high=10) for _ in range(dims)])
         data = np.random.normal(size=shape)
-        if data_type=='complex':
-            data = np.random.normal(size=tuple(shape)) + 1j* np.random.normal(size=tuple(shape))
-        elif data_type =='int':
-            np.random.randint(low=0, high = 1000, size=shape, dtype = np.int)
-        elif data_type =='float32':
+        if data_type == 'complex':
+            data = np.random.normal(size=tuple(shape)) + 1j * np.random.normal(size=tuple(shape))
+        elif data_type == 'int':
+            np.random.randint(low=0, high=1000, size=shape, dtype=np.int)
+        elif data_type == 'float32':
             data = np.random.normal(size=shape)
             data = np.squeeze(np.array(data, dtype=np.float32))
         else:
@@ -86,8 +86,8 @@ class TestWriteNSIDataset(unittest.TestCase):
 
         for ind in range(dims):
             data_set.set_dimension(ind, sidpy.Dimension(np.linspace(-2, 2, num=data_set.shape[ind], endpoint=True),
-                                                    name='x'+str(ind), units='um', quantity='Length',
-                                                    dimension_type=dim_types[ind]))
+                                                        name='x'+str(ind), units='um', quantity='Length',
+                                                        dimension_type=dim_types[ind]))
         data_set.units = 'nm'
         data_set.source = 'CypherEast2'
         data_set.quantity = 'Excaliburs'
@@ -100,22 +100,22 @@ class TestWriteNSIDataset(unittest.TestCase):
         for ind in range(len(sidpy.hdf_utils.get_attr(h5_dset, 'DIMENSION_LABELS'))):
 
             assert sidpy.hdf_utils.get_attr(h5_dset, 'DIMENSION_LABELS')[ind] == data_set._axes[ind].name, \
-                "Dimension name not correctly written, should be {} but is {} in file".format(data_set._axes[ind].name, sidpy.hdf_utils.get_attr(h5_dset, 'DIMENSION_LABELS')[ind])
+                "Dimension name not correctly written, should be {} but is {} in file"\
+                    .format(data_set._axes[ind].name, sidpy.hdf_utils.get_attr(h5_dset, 'DIMENSION_LABELS')[ind])
 
             assert sidpy.hdf_utils.get_attr(h5_dset, 'quantity') == data_set.quantity, \
-                "Quantity attribute not correctly written, should be {} but is {} in file".format(data_set.quantity, sidpy.hdf_utils.get_attr(h5_dset, 'quantity'))
+                "Quantity attribute not correctly written, should be {} but is {} in file"\
+                    .format(data_set.quantity, sidpy.hdf_utils.get_attr(h5_dset, 'quantity'))
 
             assert sidpy.hdf_utils.get_attr(h5_dset, 'source') == data_set.source, \
-                "Source attribute not correctly written, should be {} but is {} in file".format(data_set.source,
-                                                                                                  sidpy.hdf_utils.get_attr(
-                                                                                                      h5_dset, 'source'))
+                "Source attribute not correctly written, should be {} but is {} in file"\
+                    .format(data_set.source, sidpy.hdf_utils.get_attr(h5_dset, 'source'))
+
             assert sidpy.hdf_utils.get_attr(h5_dset, 'units') == data_set.units, \
-                "Source attribute not correctly written, should be {} but is {} in file".format(data_set.units,
-                                                                                                sidpy.hdf_utils.get_attr(
-                                                                                            h5_dset, 'units'))
+                "Source attribute not correctly written, should be {} but is {} in file"\
+                    .format(data_set.units, sidpy.hdf_utils.get_attr(h5_dset, 'units'))
         h5_f.close()
         remove('test.h5')
-
 
     def test_not_sidpy_dataset(self):
         h5_file = h5py.File('test.h5', 'w')
@@ -154,7 +154,7 @@ class TestWriteNSIDataset(unittest.TestCase):
         h5_group = h5_file.create_group('MyGroup')
 
         with self.assertRaises(TypeError):
-            pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group , main_data_name=2)
+            pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group, main_data_name=2)
 
     def test_main_data_name_given(self):
         data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), name='Image')
@@ -199,7 +199,6 @@ class TestWriteNSIDataset(unittest.TestCase):
         with self.assertRaises(ValueError):
             pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
 
-
     def test_group_already_has_dim_h5_dset_attrs_incorrect(self):
         pass
 
@@ -221,7 +220,7 @@ class TestWriteNSIDataset(unittest.TestCase):
         h5_group = h5_file.create_group('MyGroup')
         data_set.set_dimension(0, sidpy.Dimension(np.arange(5, dtype=complex)))
 
-        #with self.assertWarns('ComplexWarning'):
+        # with self.assertWarns('ComplexWarning'):
         pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
 
     def test_book_keeping_attrs_written_to_group(self):
@@ -253,41 +252,81 @@ class TestWriteNSIDataset(unittest.TestCase):
         data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), name='Image')
         h5_file = h5py.File('test.h5', 'w')
         h5_group = h5_file.create_group('MyGroup')
-        data_set.meta_data = {}
+        data_set.metadata = {}
 
         pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
 
-
-
+        self.assertFalse('metadata' in h5_group['Image'])
 
     def test_has_metadata_dict(self):
-        pass
+        data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), name='Image')
+        h5_file = h5py.File('test.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set.metadata = {'some': 'thing'}
 
-    def test_metadata_not_dict(self):
-        pass
+        pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
 
-    def test_no_original_metadata(self):
-        pass
+        self.assertTrue('metadata' in h5_group['Image'])
 
-    def test_original_metadata_is_empty(self):
-        pass
-
-    def test_has_original_metadata_dict(self):
-        pass
-
-    def test_original_metadata_not_dict(self):
-        pass
+    # def test_metadata_not_dict(self):  # is actually tested in sidpy
 
     def test_metadata_is_nested(self):
-        pass
+        data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), name='Image')
+        h5_file = h5py.File('test.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set.metadata = {'some': {'some': 'thing'}}
+
+        pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
+
+        self.assertTrue('metadata' in h5_group['Image'])
+        self.assertTrue(h5_group['Image']['metadata'][()] == {'some-some': 'thing'})
+
+    # def test_no_original_metadata(self): # cannot delete attribute delattr(data_set, 'original_metadata')
+
+    def test_original_metadata_is_empty(self):
+        data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), name='Image')
+        h5_file = h5py.File('test.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set.original_metadata = {}
+
+        pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
+
+        self.assertFalse('original_metadata' in h5_group['Image'])
+
+    def test_has_original_metadata_dict(self):
+        data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), name='Image')
+        h5_file = h5py.File('test.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set.original_metadata = {'some': 'thing'}
+
+        pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
+
+        self.assertTrue('original_metadata' in h5_group['Image'])
+
+    # def test_original_metadata_not_dict(self): # tested in sidpy
 
     def test_original_metadata_is_nested(self):
-        pass
+        data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), name='Image')
+        h5_file = h5py.File('test.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set.original_metadata = {'some': {'some': 'thing'}}
+
+        pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
+
+        self.assertTrue('original_metadata' in h5_group['Image'])
+        self.assertTrue(h5_group['Image']['original_metadata'][()] == {'some-some': 'thing'})
 
     # TODO check if datasets are indeed linked correctly to main
 
     def test_h5_dataset_property_of_sidpy_dataset_populated(self):
-        pass
+        data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), name='Image')
+        h5_file = h5py.File('test.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set.property = {'some': {'some': 'thing'}}
+
+        pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
+
+        self.assertTrue('property' in h5_group['Image'])
 
     def test_dim_varied(self):
         for ind in range(1, 10):
@@ -298,6 +337,7 @@ class TestWriteNSIDataset(unittest.TestCase):
                 # TODO: Check what is wrong here
                 # self.base_test(dims=ind, dim_types=dim_types, data_type=data_type)
                 pass
+
 
 class TestWriteResults(unittest.TestCase):
 
