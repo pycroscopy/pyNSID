@@ -250,7 +250,15 @@ class TestWriteNSIDataset(unittest.TestCase):
         remove('test2.h5')
 
     def test_metadata_is_empty(self):
-        pass
+        data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), name='Image')
+        h5_file = h5py.File('test.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        data_set.meta_data = {}
+
+        pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
+
+
+
 
     def test_has_metadata_dict(self):
         pass
