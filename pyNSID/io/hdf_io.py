@@ -80,12 +80,18 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
     if not isinstance(h5_group, (h5py.Group, h5py.File)):
         raise TypeError('h5_parent_group should be a h5py.File or h5py.Group '
                         'object')
+    if not isinstance(main_data_name, str):
+        raise TypeError('main_data_name should be a string, but it instead  it is {}'.format(type(main_data_name)))
+
     if not is_editable_h5(h5_group):
         raise ValueError('The provided file is not editable')
     if verbose:
         print('h5 group and file OK')
 
     # TODO: sidpy.Dataset already has a name. Why ask for main_data_name ?
+    if not isinstance(main_data_name, str):
+        raise TypeError('main_data_name must be a string')
+
     if main_data_name == '':
         if dataset.title.strip() == '':
             main_data_name = 'nDim_Data'
@@ -97,6 +103,8 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
         warn('main_data_name should not contain the "-" character. Reformatted name from:{} to '
              '{}'.format(main_data_name, main_data_name.replace('-', '_')))
     main_data_name = main_data_name.replace('-', '_')
+
+    h5_group = h5_group.create_group(main_data_name)
 
     #####################
     # Write Main Dataset
@@ -149,6 +157,8 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
     #                          dataset.quantity, dataset.units, dataset.data_type, dataset.modality,
     #                          dataset.source, dataset.axes, verbose=False)
 
+    # TODO: shouldn't these be written to a sepearate group as well?
+    # TODO: Allow nested dictionaries
     for key, item in dataset.metadata.items():
         if key not in attrs_to_write:
             # TODO: Check item to be simple
@@ -174,7 +184,26 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False, **kw
 
 
 def write_results(h5_group, dataset=None, attributes=None, process_name=None):
+    """
+    Writes results of a processing step back to HDF5 in NSID format
 
+    Parameters
+    ----------
+    h5_group : h5py.Group
+        HDF5 Group into which results will be written
+    dataset : sidpy.Dataset, optional. Default = None
+        Dataset ??
+    attributes : dict, optional. Default = None
+        Metadata regarding processing step
+    process_name : str, optional. Default = "Log_"
+        Name of the prefix for group containing process results
+
+    Returns
+    -------
+    log_group : h5py.Group
+        HDF5 group containing results
+    """
+    # TODO: What if multiple sidpy.Datasets form the results?
     found_valid_dataset = False
     if dataset is not None:
         if isinstance(dataset, Dataset):
@@ -186,7 +215,8 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
             if len(attributes) > 0:
                 found_valid_attributes = True
     if not (found_valid_dataset or found_valid_attributes):
-        raise ValueError('results should contain at least a sidpy Dataset or a dictionary in results')
+        raise ValueError('results should contain at least a sidpy Dataset or '
+                         'a dictionary in results')
     log_name = 'Log_'
     if process_name is not None:
         log_name = log_name+process_name

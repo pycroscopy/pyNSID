@@ -188,12 +188,17 @@ def check_if_main(h5_main, verbose=False):
             print('{} is not an HDF5 Dataset object.'.format(h5_main))
         return False
 
-    if len(h5_main.shape) != len(h5_main.dims):
+    number_of_dims = 0
+    for dim in h5_main.dims:
+        if np.array(dim.values()).size > 0:
+            number_of_dims += 1
+
+    if len(h5_main.shape) != number_of_dims:
         if verbose:
-            print('Main data does not have full set of dimensio scales. '
+            print('Main data does not have full set of dimension scales. '
                   'Provided object has shape: {} but only {} dimensional '
                   'scales'.format(h5_main.shape, len(h5_main.dims)))
-            return False
+        return False
 
     # h5_name = h5_main.name.split('/')[-1]
     h5_group = h5_main.parent
@@ -223,6 +228,7 @@ def check_if_main(h5_main, verbose=False):
 
     length_success = []
     dset_success = []
+    attr_success = []
     # Check for Validity of Dimensional Scales
     for i, dimension in enumerate(h5_main.dims):
         # check for all required attributes
@@ -242,9 +248,12 @@ def check_if_main(h5_main, verbose=False):
             print('Dimensions: All Correct Length: ', np.all(length_success))
             print('Dimensions: All h5 Datasets: ', np.all(dset_success))
     else:
-        print('length of dimension scale {length_success.index(False)} is wrong')
-        print('attributes in dimension scale {attr_success.index(False)} are wrong')
-        print('dimension scale {dset_success.index(False)} is not a dataset')
+        if False in length_success:
+            print('length of dimension scale {} is wrong'.format(length_success.index(False)))
+        if False in attr_success:
+            print('attributes in dimension scale {} are wrong'.format(attr_success.index(False)))
+        if False in dset_success:
+            print('dimension scale {} is not a dataset'.format(dset_success.index(False)))
         return False
 
     return main_attr_success
