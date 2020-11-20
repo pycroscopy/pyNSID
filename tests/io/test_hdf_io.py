@@ -304,7 +304,18 @@ class TestWriteResults(unittest.TestCase):
             hdf_io.write_results(h5_group, dataset=data_set, attributes=None, process_name='TestProcess')
 
     def test_group_already_contains_objects_name_clashes(self):
-        pass
+        # Set h5_group to be a list instead of an actual hdf5 group object
+        h5_file = h5py.File('test2.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        shape = (5, 15, 16)
+        data = np.random.randn(shape[0], shape[1], shape[2])
+        data_set1 = sidpy.Dataset.from_array(data[:, :, :], name='Image')
+        data_set2 = sidpy.Dataset.from_array(data[:, :, :], name='Image')
+        hdf_io.write_results(h5_group, dataset=data_set1, attributes=None, process_name='TestProcess')
+
+        #If we try to write data_set2 which has the same name, it probably should fail??
+        with self.assertRaises(ValueError):
+            hdf_io.write_results(h5_group, dataset=data_set2, attributes=None, process_name='TestProcess')
 
     def test_no_sidpy_dataset_provided(self):
         h5_file = h5py.File('test2.h5', 'w')
