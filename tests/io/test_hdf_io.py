@@ -331,7 +331,7 @@ class TestWriteResults(unittest.TestCase):
         h5_file = h5py.File('test2.h5', 'w')
         h5_group = h5_file.create_group('MyGroup')
         #should fail if standard numpy array is passed
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             hdf_io.write_results(h5_group, dataset=data, attributes=None, process_name='TestProcess')
         h5_file.close()
         remove('test2.h5')
