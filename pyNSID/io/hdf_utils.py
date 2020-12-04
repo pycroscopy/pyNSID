@@ -462,7 +462,7 @@ def validate_main_and_dims(main_shape, dim_dict, h5_parent_group):
 
 def write_dict_to_h5_group(h5_group, metadata, group_name):
     """
-    If the provided metadata parameter is a non-empty dictonary, this function
+    If the provided metadata parameter is a non-empty dictionary, this function
     will create a HDF5 group called group_name within the provided h5_group and
     write the contents of metadata into the newly created group
     Parameters

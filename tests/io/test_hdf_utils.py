@@ -12,11 +12,12 @@ import dask.array as da
 import tempfile
 
 from sidpy import Dataset, Dimension
-from sidpy.hdf.hdf_utils import write_simple_attrs
+from sidpy.base.dict_utils import flatten_dict
+from sidpy.hdf.hdf_utils import write_simple_attrs, get_attr
 
 sys.path.append("../pyNSID/")
 from pyNSID.io.hdf_io import write_nsid_dataset
-from pyNSID.io.hdf_utils import find_dataset, read_h5py_dataset, get_all_main, link_as_main
+from pyNSID.io.hdf_utils import find_dataset, read_h5py_dataset, get_all_main, link_as_main, write_dict_to_h5_group
 import pyNSID
 
 
@@ -483,6 +484,79 @@ class TestLinkAsMain(unittest.TestCase):
     def tearDown(self, fname: str = 'test.hdf5') -> None:
         if os.path.exists(fname):
             os.remove(fname)
+
+
+class TestWriteDictToH5Group(unittest.TestCase):
+
+    def test_not_h5_group_object(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
+            with h5py.File(file_path, mode='w') as h5_file:
+                h5_dset = h5_file.create_dataset("dataset", data=[1, 2, 3])
+                with self.assertRaises(TypeError):
+                    _ = write_dict_to_h5_group(h5_dset, {'a': 1}, 'blah')
+
+    def test_metadata_not_dict(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
+            with h5py.File(file_path, mode='w') as h5_file:
+                with self.assertRaises(TypeError):
+                    _ = write_dict_to_h5_group(h5_file, ['not', 'dict'],
+                                               'blah')
+
+    def test_not_valid_group_name(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
+            with h5py.File(file_path, mode='w') as h5_file:
+                with self.assertRaises(ValueError):
+                    _ = write_dict_to_h5_group(h5_file, {'s': 1}, '   ')
+                with self.assertRaises(TypeError):
+                    _ = write_dict_to_h5_group(h5_file, {'s': 1}, [1, 4])
+
+    def test_group_name_already_exists(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
+            with h5py.File(file_path, mode='w') as h5_file:
+                _ = h5_file.create_dataset("dataset", data=[1, 2, 3])
+                with self.assertRaises(ValueError):
+                    _ = write_dict_to_h5_group(h5_file, {'a': 1}, 'dataset')
+
+    def test_metadata_is_empty(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
+            with h5py.File(file_path, mode='w') as h5_file:
+                ret_val = write_dict_to_h5_group(h5_file, {}, 'blah')
+                self.assertEqual(ret_val, None)
+                self.assertTrue(len(h5_file.keys()) == 0)
+
+    def test_metadata_is_nested(self):
+        metadata = {'a': 4, 'b': {'c': 2.353, 'd': 'nested'}}
+        flat_md = flatten_dict(metadata)
+        group_name = 'blah'
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
+            with h5py.File(file_path, mode='w') as h5_file:
+                h5_grp = write_dict_to_h5_group(h5_file, metadata, group_name)
+                self.assertIsInstance(h5_grp, h5py.Group)
+                grp_name = h5_grp.name.split('/')[-1]
+                self.assertEqual(grp_name, group_name)
+                self.assertEqual(len(h5_grp.attrs.keys()), len(flat_md))
+                for key, val in flat_md.items():
+                    self.assertEqual(val, get_attr(h5_grp, key))
+
+    def test_metadata_is_flat(self):
+        metadata = {'a': 4, 'b': 'hello'}
+        group_name = 'blah'
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
+            with h5py.File(file_path, mode='w') as h5_file:
+                h5_grp = write_dict_to_h5_group(h5_file, metadata, group_name)
+                self.assertIsInstance(h5_grp, h5py.Group)
+                grp_name = h5_grp.name.split('/')[-1]
+                self.assertEqual(grp_name, group_name)
+                self.assertEqual(len(h5_grp.attrs.keys()), len(metadata))
+                for key, val in metadata.items():
+                    self.assertEqual(val, get_attr(h5_grp, key))
 
 
 class TestValidateMainDset(unittest.TestCase):
