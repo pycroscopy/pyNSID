@@ -4,7 +4,7 @@ Reader capable of reading one or all NSID datasets present in a given HDF5 file
 
 Created on Fri May 22 16:29:25 2020
 
-@author: Gerd Duscher, Suhas Somnath
+@author: Gerd Duscher, Suhas Somnath, Maxim Ziadtinov
 """
 from __future__ import division, print_function, absolute_import, unicode_literals
 from warnings import warn
@@ -20,63 +20,63 @@ if sys.version_info.major == 3:
 
 class NSIDReader(sidpy.Reader):
 
-    def __init__(self, h5_object):
+    def __init__(self, file_path):
         """
-        dset - str
-            specific Main dataset that needs to be read in.
-            # If no path is specified, read all available NSID Main datasets
+        Creates an instance of NSIDReader which can read one or more HDF5
+        datasets formatted according to NSID into sidpy.Dataset objects
+
+        Parameters
+        ----------
+        file_path : str, h5py.File, or h5py.Group
+            Path to a HDF5 file or a handle to an open HDF5 file or group
+            object
         """
+
         warn('This Reader will eventually be moved to the ScopeReaders package'
              '. Be prepared to change your import statements',
              FutureWarning)
 
-        if not isinstance(h5_object.file, h5py.File):
-            raise TypeError('we can only read h5py datasets')
+        super(NSIDReader, self).__init__(file_path)
 
-        super(NSIDReader, self).__init__(file_path=h5_object.file.name)
+        # Let h5py raise an OS error if a non-HDF5 file was provided
+        self._h5_file = h5py.File(file_path, mode='w')
 
-        self.dset = None
-        self.main_datasets = []
-        if isinstance(h5_object, h5py.Dataset):
-            self.dset = h5_object
-            self.h5_group = self.dset.parent
-
-        elif isinstance(h5_object, h5py.Group):
-            self.h5_group = h5_object
-        else:
-            raise TypeError('we can only read h5py datasets')
-
-        # Find all main datasets is done in read as the file may change between readings
         # DO NOT close HDF5 file. Dask array will fail if you do so.
-        # TODO: sidpy.Dataset may need the ability to close a HDF5 file
-        # Perhaps this would be done by reading all contents into memory..
 
     def can_read(self):
-        list_of_main = get_all_main(self.h5_group, verbose=False)
-        return len(list_of_main) > 0
+        main_dsets = get_all_main(self._h5_file, verbose=False)
+        return len(main_dsets) > 0
 
-    def read(self, dataset=None):
-        if not isinstance(self.h5_group, h5py.Group):
-            raise TypeError('This function needs to be initialised with a hdf5 group or dataset first')
-
-        if dataset is None:
+    def read(self, h5_object=None):
+        if h5_object is None:
             return self.read_all(recursive=True)
-        if isinstance(dataset, h5py.Dataset):
-            return read_h5py_dataset(dataset)
-        if isinstance(dataset, h5py.Group):
-            name = dataset.name.split('/')[-1]
-            if isinstance(dataset[name], h5py.Dataset):
-                return read_h5py_dataset(dataset[name])
+        if not isinstance(h5_object, (h5py.Group, h5py.Dataset)):
+            raise TypeError('Provided h5_object was not a h5py.Dataset or '
+                            'h5py.Group object but was of type: {}'
+                            ''.format(type(h5_object)))
+        self.__validate_obj_in_same_file(h5_object)
+        if isinstance(h5_object, h5py.Dataset):
+            return read_h5py_dataset(h5_object)
+        else:
+            return self.read_all(parent=h5_object)
+
+    def __validate_obj_in_same_file(self, h5_object):
+        if h5_object.file != self._h5_file:
+            raise OSError('The file containing the provided h5_object: {} is '
+                          'not the same as provided HDF5 file when '
+                          'instantiating this object: {}'
+                          ''.format(h5_object.file.filename,
+                                    self._h5_file.filename))
 
     def read_all(self, recursive=True, parent=None):
 
         if parent is None:
-            h5_group = self.h5_group
+            h5_group = self._h5_file
         else:
-            if isinstance(parent, h5py.Group):
-                h5_group = parent
-            else:
+            if not isinstance(parent, h5py.Group):
                 raise TypeError('parent should be a h5py object')
+            self.__validate_obj_in_same_file(parent)
+            h5_group = parent
 
         if recursive:
             list_of_main = get_all_main(h5_group, verbose=False)
@@ -86,6 +86,7 @@ class NSIDReader(sidpy.Reader):
                 if isinstance(h5_group[key], h5py.Dataset):
                     if check_if_main(h5_group[key]):
                         list_of_main.append(h5_group[key])
+
         # Go through each of the identified
         list_of_datasets = []
         for dset in list_of_main:
