@@ -485,6 +485,9 @@ def write_dict_to_h5_group(h5_group, metadata, group_name):
     Nested dictionaries will be flattened until sidpy implements functions
     to write and read nested dictionaries to and from HDF5 files
     """
+
+    # TODO: Use version in sidpy.hdf_utils instead.
+
     if not isinstance(metadata, dict):
         raise TypeError('metadata is not a dict but of type: {}'
                         ''.format(type(metadata)))
