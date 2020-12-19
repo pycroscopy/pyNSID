@@ -74,7 +74,7 @@ class NSIDReader(sidpy.Reader):
             h5_group = self._h5_file
         else:
             if not isinstance(parent, h5py.Group):
-                raise TypeError('parent should be a h5py object')
+                raise TypeError('parent should be a h5py.Group object')
             self.__validate_obj_in_same_file(parent)
             h5_group = parent
 

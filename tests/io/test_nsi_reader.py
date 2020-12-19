@@ -4,18 +4,17 @@ from __future__ import (absolute_import, division, print_function,
 import os
 import sys
 import unittest
+import tempfile
 from typing import Type, Tuple
-
 import h5py
 import numpy as np
+from sidpy import Dataset, Dimension
 
 sys.path.append("../pyNSID/")
 
 from pyNSID.io.hdf_io import write_nsid_dataset
 from pyNSID.io.hdf_utils import find_dataset
 from pyNSID.io.nsi_reader import NSIDReader
-from sidpy import Dataset, Dimension
-
 
 
 def create_h5group(h5f_name: str, h5g_name: str) -> Type[h5py.Group]:
@@ -43,7 +42,94 @@ def get_dset(hf_path: str, dset_name: str) -> Type[h5py.Dataset]:
     return dset
 
 
-class test_nsid_reader(unittest.TestCase):
+class TestNsidReaderNoDatasets(unittest.TestCase):
+
+    def test_not_hdf5_file(self):
+        pass
+
+    def setUp(self) -> None:
+        pass
+
+    def tearDown(self) -> None:
+        pass
+
+    def test_can_read_fails(self):
+        pass
+
+    def test_read_returns_nothing(self):
+        pass
+
+    def test_read_all_no_parent(self):
+        pass
+
+
+class TestNsidReaderSingleDataset(unittest.TestCase):
+
+    def setUp(self) -> None:
+        pass
+
+    def tearDown(self) -> None:
+        pass
+
+    def test_can_read_passes(self):
+        pass
+
+    def test_read_no_object_specified(self):
+        pass
+
+    def test_read_invalid_dtype_for_object(self):
+        pass
+
+    def test_read_object_in_different_file(self):
+        pass
+
+    def test_read_correct_main_dset(self):
+        pass
+
+    def test_read_group_containing_main_dset(self):
+        pass
+
+    def test_read_all_no_parent(self):
+        pass
+
+    def test_read_all_parent_specified(self):
+        pass
+
+    def test_read_invalid_dtype_for_parent(self):
+        pass
+
+    def test_read_parent_in_different_file(self):
+        pass
+
+
+class TestNsidReaderMultipleDatasets(unittest.TestCase):
+
+    def setUp(self) -> None:
+        pass
+
+    def tearDown(self) -> None:
+        pass
+
+    def test_can_read_passes(self):
+        pass
+
+    def test_read_no_object_specified(self):
+        pass
+
+    def test_read_correct_main_dset(self):
+        pass
+
+    def test_read_group_containing_main_dset(self):
+        pass
+
+    def test_read_all_no_parent(self):
+        pass
+
+    def test_read_all_parent_specified(self):
+        pass
+
+
+class TestOldTests(unittest.TestCase):
 
     def test_can_read(self) -> None:
         hf_name = "test.hdf5"
