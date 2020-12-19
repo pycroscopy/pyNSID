@@ -15,9 +15,12 @@ import numpy as np
 
 from sidpy.base.dict_utils import flatten_dict
 from sidpy.base.string_utils import validate_single_string_arg
-from sidpy.hdf.hdf_utils import get_attr, copy_dataset, write_simple_attrs
+from sidpy.hdf.hdf_utils import get_attr, copy_dataset, write_simple_attrs, \
+    write_book_keeping_attrs
 from sidpy.hdf import hdf_utils as hut
 from sidpy import Dimension, Dataset
+
+from pyNSID.__version__ import version as pynsid_version
 
 if sys.version_info.major == 3:
     unicode = str
@@ -458,6 +461,22 @@ def validate_main_and_dims(main_shape, dim_dict, h5_parent_group):
                 print(dim_name, ' is not unique')
 
     return all(dimensions_correct)
+
+
+def write_pynsid_book_keeping_attrs(h5_object):
+    """
+    Writes book-keeping information to the HDF5 object
+
+    Parameters
+    ----------
+    h5_object
+
+    Returns
+    -------
+
+    """
+    write_book_keeping_attrs(h5_object)
+    write_simple_attrs(h5_object, {'pyNSID_version': pynsid_version})
 
 
 def write_dict_to_h5_group(h5_group, metadata, group_name):
