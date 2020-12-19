@@ -35,7 +35,7 @@ if sys.version_info.major == 3:
 
 def create_empty_dataset(shape, h5_group, name='nDIM_Data'):
     """
-    returns a NSID dataset filled with zeros according to required shape list.
+    returns a h5py.Dataset filled with zeros according to required shape list.
 
     Parameters
     ----------
@@ -46,8 +46,10 @@ def create_empty_dataset(shape, h5_group, name='nDIM_Data'):
     name: str, optional. Default: "nDIM_Data"
         Name of the main HDF5 dataset
 
-    :return:
-    NSID dataset
+    Returns
+    -------
+    h5py.Dataset
+        HDF5 dataset of desired shape written according to NSID format
     """
     if not contains_integers(shape):
         raise ValueError('dimensions of shape need to be all integers')
