@@ -26,8 +26,9 @@ from sidpy.hdf.hdf_utils import is_editable_h5, write_simple_attrs, \
 from sidpy.hdf.prov_utils import create_indexed_group
 from sidpy.base.dict_utils import flatten_dict
 
-from .hdf_utils import link_as_main, write_dict_to_h5_group
-from ..__version__ import *
+from .hdf_utils import link_as_main, write_dict_to_h5_group, \
+    write_pynsid_book_keeping_attrs
+
 if sys.version_info.major == 3:
     unicode = str
 
@@ -114,7 +115,7 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False,
     h5_group = h5_group.create_group(main_data_name)
 
     write_book_keeping_attrs(h5_group)
-    write_simple_attrs(h5_group, {'pyNSID': version})
+    write_pynsid_book_keeping_attrs(h5_group)
 
     #####################
     # Write Main Dataset
@@ -161,21 +162,21 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False,
         attrs_to_write = {'name': this_dim.name,
                           'units': this_dim.units,
                           'quantity': this_dim.quantity,
-                          'dimension_type': this_dim.dimension_type.name,
-                          'nsid_version': version}
+                          'dimension_type': this_dim.dimension_type.name}
 
         write_simple_attrs(this_dim_dset, attrs_to_write)
+        write_pynsid_book_keeping_attrs(this_dim_dset)
         dimensional_dict[i] = this_dim_dset
 
     attrs_to_write = {'quantity': dataset.quantity,
                       'units': dataset.units,
-                      'nsid_version': version,
                       'main_data_name': dataset.title,
                       'data_type': dataset.data_type.name,
                       'modality': dataset.modality,
                       'source': dataset.source}
 
     write_simple_attrs(h5_main, attrs_to_write)
+    write_pynsid_book_keeping_attrs(h5_main)
 
     for attr_name in dir(dataset):
         attr_val = getattr(dataset, attr_name)
@@ -250,7 +251,7 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
 
     log_group = create_indexed_group(h5_group, log_name)
     write_book_keeping_attrs(log_group)
-    write_simple_attrs(log_group, {'pyNSID': version})
+    write_pynsid_book_keeping_attrs(log_group)
 
     if found_valid_dataset:
         for dset in dataset:
