@@ -4,11 +4,16 @@ import sys
 import h5py
 import numpy as np
 from os import remove
+
+sys.path.insert(0, "../../../sidpy/")
 import sidpy
 
-sys.path.insert(0, "../pyNSID/")
+sys.path.insert(0, "../../")
 from pyNSID.io import hdf_io
 import pyNSID
+
+print(sidpy.__version__)
+
 
 #Suhas
 class TestCreateEmptyDataset(unittest.TestCase):
@@ -279,7 +284,9 @@ class TestWriteNSIDataset(unittest.TestCase):
         pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
 
         self.assertTrue('metadata' in h5_group['Image'])
-        self.assertTrue(h5_group['Image']['metadata'][()] == {'some-some': 'thing'})
+        print(h5_group['Image']['metadata'].attrs.keys())
+
+        self.assertTrue(dict(h5_group['Image']['metadata'].attrs) == {'some-some': 'thing'})
 
     # def test_no_original_metadata(self): # cannot delete attribute delattr(data_set, 'original_metadata')
 
@@ -314,7 +321,7 @@ class TestWriteNSIDataset(unittest.TestCase):
         pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
 
         self.assertTrue('original_metadata' in h5_group['Image'])
-        self.assertTrue(h5_group['Image']['original_metadata'][()] == {'some-some': 'thing'})
+        self.assertTrue(dict(h5_group['Image']['original_metadata'].attrs) == {'some-some': 'thing'})
 
     # TODO check if datasets are indeed linked correctly to main
 
