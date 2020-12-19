@@ -22,12 +22,11 @@ from dask import array as da
 from sidpy import Dataset, Dimension
 from sidpy.base.num_utils import contains_integers
 from sidpy.hdf.hdf_utils import is_editable_h5, write_simple_attrs, \
-    write_book_keeping_attrs
+    write_book_keeping_attrs, write_dict_to_h5_group
 from sidpy.hdf.prov_utils import create_indexed_group
 from sidpy.base.dict_utils import flatten_dict
 
-from .hdf_utils import link_as_main, write_dict_to_h5_group, \
-    write_pynsid_book_keeping_attrs
+from .hdf_utils import link_as_main, write_pynsid_book_keeping_attrs
 
 if sys.version_info.major == 3:
     unicode = str
@@ -167,7 +166,6 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False,
                           'dimension_type': this_dim.dimension_type.name}
 
         write_simple_attrs(this_dim_dset, attrs_to_write)
-        write_pynsid_book_keeping_attrs(this_dim_dset)
         dimensional_dict[i] = this_dim_dset
 
     attrs_to_write = {'quantity': dataset.quantity,
