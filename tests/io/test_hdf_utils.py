@@ -5,18 +5,16 @@ import os
 import sys
 import h5py
 import numpy as np
-from numpy.testing import assert_array_equal
 import dask.array as da
 import tempfile
 import sidpy
 from sidpy import Dataset, Dimension
-from sidpy.hdf.hdf_utils import write_simple_attrs, get_attr
+from sidpy.hdf.hdf_utils import write_simple_attrs
 flatten_dict = sidpy.dict_utils.flatten_dict
 
 sys.path.append("../../")
-import pyNSID
 from pyNSID.io.hdf_utils import find_dataset, read_h5py_dataset, \
-    get_all_main, link_as_main, write_dict_to_h5_group, check_if_main
+    get_all_main, link_as_main, check_if_main
 
 
 def make_simple_h5_dataset():
@@ -52,9 +50,13 @@ def make_simple_nsid_dataset(*args, **kwargs):
         data = np.random.normal(size=dsetshapes[i])
         h5_dataset = h5_group.create_dataset(d, data=data)
         
-        attrs_to_write = {'quantity': 'quantity', 'units': 'units', 'nsid_version': 'version',
-                        'main_data_name': 'title', 'data_type': 'UNKNOWN',
-                        'modality': 'modality', 'source': 'test'}
+        attrs_to_write = {'quantity': 'quantity',
+                          'units': 'units',
+                          'pyNSID_version': 'version',
+                          'main_data_name': 'title',
+                          'data_type': 'UNKNOWN',
+                          'modality': 'modality',
+                          'source': 'test'}
         if len(args) > 0:
             for k, v in args[0].items():
                 if k in attrs_to_write:
@@ -164,23 +166,48 @@ class TestReadH5pyDataset(unittest.TestCase):
             _ = read_h5py_dataset(dataset)
         self.assertTrue(err_msg in str(context.exception))
 
+    def test_valid_nsid_h5_dset(self):
+        base = {'quantity': 'Current',
+                'units': 'nA',
+                # 'pyNSID_version': 'version',
+                'title': 'Current-Voltage spectroscopy measurement',
+                'data_type': 'SPECTRAL_IMAGE',
+                'modality': 'cAFM',
+                'source': 'Asylum Research Cypher'}
+        h5file = make_simple_nsid_dataset(base)
+        dset = read_h5py_dataset(h5file['MyGroup']['data'])
+        self.assertIsInstance(dset, sidpy.Dataset)
+        # Validate the base attributes first
+        for key, expected in base.items():
+            actual = getattr(dset, key)
+
+        # Validate the dimensions
+
+        # Validate the main dataset itself
+
     def test_attrs_title(self) -> None:
-        _meta = {'main_data_name': 'new_name'}
+        """
+        _meta = {'title': 'new_name'}
         h5file = make_simple_nsid_dataset(_meta)
-        dset = read_h5py_dataset(h5file['MyGroup']['data'])  # h5file['MyGroup']['data']  ?
-        self.assertTrue(dset.attrs['main_data_name'] == 'new_name')
+        dset = read_h5py_dataset(h5file['MyGroup']['data'])
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.title == 'new_name')
+        """
+        pass
 
     def test_attrs_units(self) -> None:
         _meta = {"units": "nA"}
         h5file = make_simple_nsid_dataset(_meta)
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
-        self.assertTrue(dset.attrs['units'] == 'nA')
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.units == 'nA')
 
     def test_attrs_quantity(self):
         _meta = {"quantity": "Current"}
         h5file = make_simple_nsid_dataset(_meta)
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
-        self.assertTrue(dset.attrs['quantity'] == 'Current')
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.quantity == 'Current')
 
     def test_attrs_datatype(self):
         data_types = ['UNKNOWN', 'SPECTRUM', 'LINE_PLOT', 'LINE_PLOT_FAMILY',
@@ -190,23 +217,27 @@ class TestReadH5pyDataset(unittest.TestCase):
             _meta = {"data_type": dt}
         h5file = make_simple_nsid_dataset(_meta)
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
-        self.assertTrue(dset.attrs['data_type'] == dt)
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.data_type.name == dt)
 
     def test_attrs_modality(self) -> None:
         _meta = {"modality": "mod"}
         h5file = make_simple_nsid_dataset(_meta)
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
-        self.assertTrue(dset.attrs['modality'] == 'mod')
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.modality == 'mod')
 
     def test_attrs_source(self) -> None:
         _meta = {"source": "src"}
         h5file = make_simple_nsid_dataset(_meta)
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
-        self.assertTrue(dset.attrs['source'] == 'src')
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.source == 'src')
 
     def test_dims(self) -> None:
         h5file = make_simple_nsid_dataset()
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
+        self.assertIsInstance(dset, sidpy.Dataset)
         self.assertTrue(dset._axes[0].name == 'a0')
         self.assertTrue(dset._axes[1].name == 'b0')
 
@@ -415,79 +446,6 @@ class TestLinkAsMain(unittest.TestCase):
         for fname in ['test.h5', 'test2.h5']:
             if os.path.exists(fname):
                 os.remove(fname)
-
-
-class TestWriteDictToH5Group(unittest.TestCase):
-
-    def test_not_h5_group_object(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
-            with h5py.File(file_path, mode='w') as h5_file:
-                h5_dset = h5_file.create_dataset("dataset", data=[1, 2, 3])
-                with self.assertRaises(TypeError):
-                    _ = write_dict_to_h5_group(h5_dset, {'a': 1}, 'blah')
-
-    def test_metadata_not_dict(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
-            with h5py.File(file_path, mode='w') as h5_file:
-                with self.assertRaises(TypeError):
-                    _ = write_dict_to_h5_group(h5_file, ['not', 'dict'],
-                                               'blah')
-
-    def test_not_valid_group_name(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
-            with h5py.File(file_path, mode='w') as h5_file:
-                with self.assertRaises(ValueError):
-                    _ = write_dict_to_h5_group(h5_file, {'s': 1}, '   ')
-                with self.assertRaises(TypeError):
-                    _ = write_dict_to_h5_group(h5_file, {'s': 1}, [1, 4])
-
-    def test_group_name_already_exists(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
-            with h5py.File(file_path, mode='w') as h5_file:
-                _ = h5_file.create_dataset("dataset", data=[1, 2, 3])
-                with self.assertRaises(ValueError):
-                    _ = write_dict_to_h5_group(h5_file, {'a': 1}, 'dataset')
-
-    def test_metadata_is_empty(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
-            with h5py.File(file_path, mode='w') as h5_file:
-                ret_val = write_dict_to_h5_group(h5_file, {}, 'blah')
-                self.assertEqual(ret_val, None)
-                self.assertTrue(len(h5_file.keys()) == 0)
-
-    def test_metadata_is_nested(self):
-        metadata = {'a': 4, 'b': {'c': 2.353, 'd': 'nested'}}
-        flat_md = flatten_dict(metadata)
-        group_name = 'blah'
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
-            with h5py.File(file_path, mode='w') as h5_file:
-                h5_grp = write_dict_to_h5_group(h5_file, metadata, group_name)
-                self.assertIsInstance(h5_grp, h5py.Group)
-                grp_name = h5_grp.name.split('/')[-1]
-                self.assertEqual(grp_name, group_name)
-                self.assertEqual(len(h5_grp.attrs.keys()), len(flat_md))
-                for key, val in flat_md.items():
-                    self.assertEqual(val, get_attr(h5_grp, key))
-
-    def test_metadata_is_flat(self):
-        metadata = {'a': 4, 'b': 'hello'}
-        group_name = 'blah'
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + 'write_dict_to_h5_group.h5'
-            with h5py.File(file_path, mode='w') as h5_file:
-                h5_grp = write_dict_to_h5_group(h5_file, metadata, group_name)
-                self.assertIsInstance(h5_grp, h5py.Group)
-                grp_name = h5_grp.name.split('/')[-1]
-                self.assertEqual(grp_name, group_name)
-                self.assertEqual(len(h5_grp.attrs.keys()), len(metadata))
-                for key, val in metadata.items():
-                    self.assertEqual(val, get_attr(h5_grp, key))
 
 
 class TestValidateMainDset(unittest.TestCase):

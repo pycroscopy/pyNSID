@@ -13,11 +13,14 @@ from warnings import warn
 import h5py
 import numpy as np
 
-from sidpy.base.dict_utils import flatten_dict
-from sidpy.base.string_utils import validate_single_string_arg
-from sidpy.hdf.hdf_utils import get_attr, copy_dataset, write_simple_attrs
+from sidpy.base.dict_utils import nest_dict
+# from sidpy.base.string_utils import validate_single_string_arg
+from sidpy.hdf.hdf_utils import get_attr, copy_dataset, write_simple_attrs, \
+    write_book_keeping_attrs
 from sidpy.hdf import hdf_utils as hut
 from sidpy import Dimension, Dataset
+
+from pyNSID.__version__ import version as pynsid_version
 
 if sys.version_info.major == 3:
     unicode = str
@@ -118,19 +121,17 @@ def read_h5py_dataset(dset):
         except ValueError:
             print('dimension {} not NSID type using generic'.format(dim))
 
-    dataset.attrs = dict(dset.attrs)
+    for key in dset.parent:
+        if isinstance(dset.parent[key], h5py.Group):
+            if key[0] != '_':
+                setattr(dataset, key, nest_dict(dset.parent[key].attrs))
 
-    dataset.original_metadata = {}
-    if 'original_metadata' in dset.parent:
-        dataset.original_metadata = dict(dset.parent['original_metadata'].attrs)
-
-    # hdf5 information
-    dataset.h5_file = dset.file
+    dataset.h5_dataset = dset
     dataset.h5_filename = dset.file.filename
     try:
-        dataset.h5_dataset = dset.name
+        dataset.h5_dataset_name = dset.name
     except ValueError:
-        pass
+        dataset.h5_dataset_name = ''
     return dataset
 
 
@@ -208,10 +209,10 @@ def check_if_main(h5_main, verbose=False):
 
     # Check for Datasets
 
-    attrs_names = ['dimension_type', 'name', 'nsid_version', 'quantity', 'units', ]
-    attr_success = []
+    attrs_names = ['dimension_type', 'name', 'quantity', 'units']
+
     # Check for all required attributes in dataset
-    main_attrs_names = ['quantity', 'units', 'main_data_name', 'data_type', 'modality', 'source']
+    main_attrs_names = ['quantity', 'units', 'main_data_name', 'pyNSID_version', 'data_type', 'modality', 'source']
     main_attr_success = np.all([att in h5_main.attrs for att in main_attrs_names])
     if verbose:
         print('All Attributes in dataset: ', main_attr_success)
@@ -234,6 +235,7 @@ def check_if_main(h5_main, verbose=False):
     for i, dimension in enumerate(h5_main.dims):
         # check for all required attributes
         h5_dim_dset = h5_group[dimension.label]
+
         attr_success.append(np.all([att in h5_dim_dset.attrs for att in attrs_names]))
         dset_success.append(np.all([attr_success, isinstance(h5_dim_dset, h5py.Dataset)]))
         # dimensional scale has to be 1D
@@ -460,43 +462,17 @@ def validate_main_and_dims(main_shape, dim_dict, h5_parent_group):
     return all(dimensions_correct)
 
 
-def write_dict_to_h5_group(h5_group, metadata, group_name):
+def write_pynsid_book_keeping_attrs(h5_object):
     """
-    If the provided metadata parameter is a non-empty dictionary, this function
-    will create a HDF5 group called group_name within the provided h5_group and
-    write the contents of metadata into the newly created group
+    Writes book-keeping information to the HDF5 object
+
     Parameters
     ----------
-    h5_group : h5py.Group
-        Parent group to write metadata into
-    metadata : dict
-        Dictionary that needs to be written into the group
-    group_name : str
-        Name of the group to write attributes into
-
+    h5_object
 
     Returns
     -------
-    h5_metadata_grp : h5py.Group
-        Handle to the newly create group containing the metadata
 
-    Notes
-    -----
-    Nested dictionaries will be flattened until sidpy implements functions
-    to write and read nested dictionaries to and from HDF5 files
     """
-    if not isinstance(metadata, dict):
-        raise TypeError('metadata is not a dict but of type: {}'
-                        ''.format(type(metadata)))
-    if len(metadata) < 1:
-        return None
-    if not isinstance(h5_group, (h5py.Group, h5py.File)):
-        raise TypeError('h5_group is neither a h5py.Group or h5py.File object'
-                        'and is of type: {}'.format(type(h5_group)))
-
-    validate_single_string_arg(group_name, 'group_name')
-    group_name = group_name.replace(' ', '_')
-    h5_md_group = h5_group.create_group(group_name)
-    flat_dict = flatten_dict(metadata)
-    write_simple_attrs(h5_md_group, flat_dict)
-    return h5_md_group
+    write_book_keeping_attrs(h5_object)
+    write_simple_attrs(h5_object, {'pyNSID_version': pynsid_version})
