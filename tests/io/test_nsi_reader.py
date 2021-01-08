@@ -26,7 +26,6 @@ def create_h5group(h5f_name: str, h5g_name: str) -> Type[h5py.Group]:
 
 def write_dummy_dset(hf_group: Type[h5py.Group], dims: Tuple[int],
                      main_name: str, **kwargs) -> None:
-    dnames = kwargs.get("dnames", np.arange(len(dims)))
     dset = Dataset.from_array(
             np.random.random([*dims]), name="new")
     dnames = kwargs.get("dnames", np.arange(len(dims)))
@@ -135,10 +134,10 @@ class TestOldTests(unittest.TestCase):
         hf_name = "test.hdf5"
         self.tearDown()
         h5group_1 = create_h5group(hf_name, "group1")
+        self.assertFalse(NSIDReader(hf_name).can_read())
         h5group_2 = create_h5group(hf_name, "group2")
         write_dummy_dset(h5group_2, (10, 10, 5), "dset")
-        self.assertFalse(NSIDReader(h5group_1).can_read())
-        self.assertTrue(NSIDReader(h5group_2).can_read())
+        self.assertTrue(NSIDReader(hf_name).can_read())
 
     def test_read_single(self) -> None:
         hf_name = "test.hdf5"
@@ -146,10 +145,10 @@ class TestOldTests(unittest.TestCase):
         h5group = create_h5group(hf_name, "group")
         write_dummy_dset(h5group, (10, 10, 5), "dset")
         dset = get_dset(hf_name, "dset")
-        reader = NSIDReader(h5group)
-        d1 = reader.read(dset)
+        reader = NSIDReader(hf_name)
+        d1 = reader.read(h5group)
         d2 = reader.read()
-        self.assertTrue(isinstance(d1, Dataset))
+        self.assertTrue(isinstance(d1[0], Dataset))
         self.assertTrue(isinstance(d2, list))
         self.assertTrue(isinstance(d2[0], Dataset))
 
@@ -162,7 +161,7 @@ class TestOldTests(unittest.TestCase):
                 h5group, (10, 10, 5+i),
                 "dset{}".format(i),
                 dnames=np.arange(3*i, 3*(i+1)))
-        reader = NSIDReader(h5group)
+        reader = NSIDReader(hf_name)
         d_all = reader.read()
         self.assertTrue(isinstance(d_all, list))
         self.assertEqual(len(d_all), 3)
@@ -186,12 +185,12 @@ class TestOldTests(unittest.TestCase):
         # write a single dataset to the second group
         write_dummy_dset(h5group_2, (7, 7, 10), "dset")
         # initialize and test reader
-        reader = NSIDReader(h5group_1)
+        reader = NSIDReader(hf_name)
         d_all = reader.read_all(recursive=True)
-        self.assertEqual(len(d_all), 5)
-        self.assertEqual(sum([1 for d in d_all if isinstance(d, Dataset)]), 5)
+        self.assertEqual(len(d_all), 6)
+        self.assertEqual(sum([1 for d in d_all if isinstance(d, Dataset)]), 6)
         d = reader.read_all(recursive=True, parent=h5group_2)
-        self.assertEqual(len(d), 1)
+        self.assertEqual(len(d), 6)
         self.assertTrue(isinstance(d[0], Dataset))
 
     def tearDown(self, fname: str = 'test.hdf5') -> None:
