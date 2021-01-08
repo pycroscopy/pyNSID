@@ -163,22 +163,25 @@ class TestReadH5pyDataset(unittest.TestCase):
         self.assertTrue(err_msg in str(context.exception))
 
     def test_attrs_title(self) -> None:
-        _meta = {'main_data_name': 'new_name'}
+        _meta = {'title': 'new_name'}
         h5file = make_simple_nsid_dataset(_meta)
-        dset = read_h5py_dataset(h5file['MyGroup']['data'])  # h5file['MyGroup']['data']  ?
-        self.assertTrue(dset.attrs['main_data_name'] == 'new_name')
+        dset = read_h5py_dataset(h5file['MyGroup']['data'])
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.title == 'new_name')
 
     def test_attrs_units(self) -> None:
         _meta = {"units": "nA"}
         h5file = make_simple_nsid_dataset(_meta)
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
-        self.assertTrue(dset.attrs['units'] == 'nA')
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.units == 'nA')
 
     def test_attrs_quantity(self):
         _meta = {"quantity": "Current"}
         h5file = make_simple_nsid_dataset(_meta)
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
-        self.assertTrue(dset.attrs['quantity'] == 'Current')
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.quantity == 'Current')
 
     def test_attrs_datatype(self):
         data_types = ['UNKNOWN', 'SPECTRUM', 'LINE_PLOT', 'LINE_PLOT_FAMILY',
@@ -188,23 +191,27 @@ class TestReadH5pyDataset(unittest.TestCase):
             _meta = {"data_type": dt}
         h5file = make_simple_nsid_dataset(_meta)
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
-        self.assertTrue(dset.attrs['data_type'] == dt)
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.data_type.name == dt)
 
     def test_attrs_modality(self) -> None:
         _meta = {"modality": "mod"}
         h5file = make_simple_nsid_dataset(_meta)
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
-        self.assertTrue(dset.attrs['modality'] == 'mod')
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.modality == 'mod')
 
     def test_attrs_source(self) -> None:
         _meta = {"source": "src"}
         h5file = make_simple_nsid_dataset(_meta)
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
-        self.assertTrue(dset.attrs['source'] == 'src')
+        self.assertIsInstance(dset, sidpy.Dataset)
+        self.assertTrue(dset.source == 'src')
 
     def test_dims(self) -> None:
         h5file = make_simple_nsid_dataset()
         dset = read_h5py_dataset(h5file['MyGroup']['data'])
+        self.assertIsInstance(dset, sidpy.Dataset)
         self.assertTrue(dset._axes[0].name == 'a0')
         self.assertTrue(dset._axes[1].name == 'b0')
 
