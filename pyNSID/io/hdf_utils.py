@@ -211,7 +211,7 @@ def check_if_main(h5_main, verbose=False):
 
     # Check for Datasets
 
-    attrs_names = ['dimension_type', 'name', 'nsid_version', 'quantity', 'units', ]
+    attrs_names = ['dimension_type', 'name', 'quantity', 'units', ]
     attr_success = []
     # Check for all required attributes in dataset
     main_attrs_names = ['quantity', 'units', 'main_data_name', 'data_type', 'modality', 'source']
@@ -237,6 +237,7 @@ def check_if_main(h5_main, verbose=False):
     for i, dimension in enumerate(h5_main.dims):
         # check for all required attributes
         h5_dim_dset = h5_group[dimension.label]
+
         attr_success.append(np.all([att in h5_dim_dset.attrs for att in attrs_names]))
         dset_success.append(np.all([attr_success, isinstance(h5_dim_dset, h5py.Dataset)]))
         # dimensional scale has to be 1D
