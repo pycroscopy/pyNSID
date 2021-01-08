@@ -45,7 +45,7 @@ class NSIDReader(sidpy.Reader):
         super(NSIDReader, self).__init__(file_path)
 
         # Let h5py raise an OS error if a non-HDF5 file was provided
-        self._h5_file = h5py.File(file_path, mode='r')
+        self._h5_file = h5py.File(file_path, mode='r+')
 
         self._main_dsets = get_all_main(self._h5_file, verbose=False)
 
