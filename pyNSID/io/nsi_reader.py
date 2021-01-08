@@ -42,7 +42,8 @@ class NSIDReader(sidpy.Reader):
              '. Be prepared to change your import statements',
              FutureWarning)
 
-        super(NSIDReader, self).__init__(file_path)
+        super(sidpy.Reader, self).__init__()
+
 
         # Let h5py raise an OS error if a non-HDF5 file was provided
         self._h5_file = h5py.File(file_path, mode='r+')
