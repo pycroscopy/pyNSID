@@ -127,8 +127,11 @@ def read_h5py_dataset(dset):
                 setattr(dataset, key, nest_dict(dset.parent[key].attrs))
 
     dataset.h5_dataset = dset
-    dataset.filename = dset.file.filename
-
+    dataset.h5_filename = dset.file.filename
+    try:
+        dataset.h5_dataset_name = dset.name
+    except ValueError:
+        dataset.h5_dataset_name = ''
     return dataset
 
 
