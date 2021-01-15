@@ -10,3 +10,5 @@ Basic usage
    :hidden:
 
    write_read_sidpy_dataset.ipynb
+   read_image_pyNSID_file.ipynb
+   structure_nsid_data_format.ipynb
