@@ -1,17 +1,17 @@
 pyNSID
 ======
 
-.. image:: https://travis-ci.com/pycroscopy/pynsid.svg?branch=master
-    :target: https://travis-ci.com/pycroscopy/pynsid
-    :alt: TravisCI
+.. image:: https://github.com/pycroscopy/pyNSID/workflows/build/badge.svg?branch=master
+    :target: https://github.com/pycroscopy/pyNSID/actions?query=workflow%3Abuild
+    :alt: GitHub Actions
 
 .. image:: https://img.shields.io/pypi/v/pynsid.svg
     :target: https://pypi.org/project/pynsid/
     :alt: PyPI
 
-.. image:: https://coveralls.io/repos/github/pycroscopy/pyNSID/badge.svg?branch=master
-    :target: https://coveralls.io/github/pycroscopy/pyNSID?branch=master
-    :alt: Coveralls
+.. image:: https://codecov.io/gh/pycroscopy/pyNSID/branch/master/graph/badge.svg?token=484EH7UML3
+    :target: https://codecov.io/gh/pycroscopy/pyNSID
+    :alt: CodeCov
 
 .. image:: https://img.shields.io/pypi/l/pynsid.svg
     :target: https://pypi.org/project/pynsid/
