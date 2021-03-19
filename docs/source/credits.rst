@@ -3,7 +3,7 @@ Credits
 The core pyNSID team consists of:
 
 * `@ssomnath <https://github.com/ssomnath>`_ (Suhas Somnath)
-* `@gduscher <https://github.com/gduscher>`_ (Prof. Gerd Duscher)
+* `@gduscher <https://github.com/gduscher>`_ (Gerd Duscher)
 * `@ramav87 <https://github.com/ramav87>`_ (Rama K. Vasudevan)
 * `@rajgiriUW <https://github.com/rajgiriUW>`_ (Raj Giridharagopal)
 

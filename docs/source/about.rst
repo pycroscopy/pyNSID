@@ -13,15 +13,12 @@ What?
   * is just a definition or a blueprint rather than something tangible and readily usable.
   * cannot handle niche cases like spiral scans, compressed sensing, etc. given that these data do not have an N-dimensional form.
     However, our sister project - `pyUSID <../pyUSID/about.html>`_ was built to handle such complex scenarios
-* pyNSID is a `python <http://www.python.org/>`_ package that currently provides three pieces of functionality:
+* pyNSID is a `python <http://www.python.org/>`_ package that currently provides all  **io** functionality:
 
+  #. * pyNSID is build on top of h5py a popular package for hierarchical data file
   #. **io**: Primarily, it enables the storage and access of NSID in **hierarchical data format** `(HDF5) <http://extremecomputingtraining.anl.gov/files/2015/03/HDF5-Intro-aug7-130.pdf>`_ files (referred to as h5USID files) using python
-  #. **viz**: It has handy tools for visualizing NSID and general scientific data
-  #. **processing**: It provides a framework for formulating scientific problems into computational problems.
-     See `pycroscopy <../pycroscopy/about.html>`_ - a sister project that uses pyNSID for analysis of microscopy data.
 
-* Just as scipy uses numpy underneath, scientific packages like **pycroscopy** use **pyNSID** and **pyUSID** for all file-handling, data processing, and generating plots for journal publications
-* pyNSID uses popular packages such as numpy, h5py, dask, matplotlib, etc. for most of the storage, computation, and visualization.
+* Just as scipy uses numpy underneath, scientific packages like **pycroscopy** use **pyNSID** and **pyUSID** for all file-handling, and the data format `sidpy <https://github.com/pycroscopy/sidpy>`_  for all processing and visualization.
 * **pyNSID is currently in the early stages of development**. The underlying code may change / be reorganized substantially.
 * Jump to our `GitHub project <https://github.com/pycroscopy/pyNSID>`_
 

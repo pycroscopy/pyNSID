@@ -8,7 +8,9 @@ Why not just use h5py?
 ----------------------
 h5py does indeed provide all the functionality necessary to support NSID. However, a layer of convenience and standardization is still useful / necessary for few reasons:
 
-1. To ensure that data (in memory) are always stored in the same standardized fashion. This would be a function like `pyUSID.hdf_utils.write_main_dataset() <https://pycroscopy.github.io/pyUSID/auto_examples/intermediate/plot_hdf_utils_write.html#write-main-dataset>`_ or a class like `pyUSID.ArrayTranslator <https://pycroscopy.github.io/pyUSID/auto_examples/beginner/plot_numpy_translator.html#sphx-glr-auto-examples-beginner-plot-numpy-translator-py>`_.
+1. To ensure that data (in memory) are always stored in the same standardized fashion.
+This would be a function like `pyUSID.hdf_utils.write_main_dataset() <https://pycroscopy.github.io/pyUSID/auto_examples/intermediate/plot_hdf_utils_write.html#write-main-dataset>`_
+or a class like `pyUSID.ArrayTranslator <https://pycroscopy.github.io/pyUSID/auto_examples/beginner/plot_numpy_translator.html#sphx-glr-auto-examples-beginner-plot-numpy-translator-py>`_.
 2. To make it easier to access relevant ancillary information from HDF5 datasets such as the dimensions, units, scales, etc. without needing to write a lot of h5py code. I anticpate that this may look like a class along the lines of `pyusid.USIDataset <https://pycroscopy.github.io/pyUSID/auto_examples/beginner/plot_usi_dataset.html>`_. However, this class may extend a ``dask.array`` object instead of a h5py.Dataset object for simplicity. ``xarray`` apparently extends pandas which is inappropriate for this application. However, packages like ``pint`` should ceratinly be used.
 3. To simplify certain ancillary tasks like identify all NSID datasets in a given file, seamlessly reusing datasets representing dimensions / copying datasets, verifying whether a dataset is indeed NSID or not.
 4. To facilitate embarrasingly parallel computations on datasets along the lines of `pyUSID.Process <https://pycroscopy.github.io/pyUSID/auto_examples/intermediate/plot_process.html#sphx-glr-auto-examples-intermediate-plot-process-py>`_. I would love to use dask to handle parallelization. However, HDF5 datasets are still not pickle-able. Therefore, Dask cannot operate on them. It is likely, that this framaework would rely on lower-level libraries like mpi4py
@@ -28,7 +30,7 @@ The main data will be stored in an HDF5 dataset:
 * **dtype**: basic types like integer, float, and complex only. I am told that compound-valued datasets are not supported well in languages other than python. Therefore, such data should be broken up into simpler dtype datasets.
 * **chunks**: Leave as default / do not specify anything.
 * **compression**: Preferably do not use anything. If compression is indeed necessary, consider using `gzip`.
-* **Dimension scales**: Every single dimension needs to have at least one scale attached to it with the name(s) of the dimension(s) as the `label`(s) for the scale. Normally, we would only have one dataset attached to each dimension. However, for example, if one of the reference axes was a color (a tuple of three integers), we would need to attach three datasets to the scale for the appropriate dimension.
+* **Dimension scales**: Every single dimension needs to have at least one scale attached to it with the name(s) of the dimension(s) as the `label`(s) for the scale.Normally, we would only have one dataset attached to each dimension. However, for example, if one of the reference axes was a color (a tuple of three integers), we would need to attach three datasets to the scale for the appropriate dimension.
 * **Required Attributes**:
 
   * ``quantity``: `string`: Physical quantity that is contained in this dataset

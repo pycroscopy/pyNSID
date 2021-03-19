@@ -13,7 +13,7 @@ Do you already have Anaconda installed?
 
 - No?
 
-  - `Download and install Anaconda <https://www.anaconda.com/download/>`_ for Python 3.6
+  - `Download and install Anaconda <https://www.anaconda.com/download/>`_ for Python 3.6 or higher (current version is 3.8)
 
 - Yes?
 
@@ -29,7 +29,7 @@ Do you already have Anaconda installed?
 
 Compatibility
 ~~~~~~~~~~~~~
-* pyNSID is compatible with python 2.7, and 3.4 onwards. Please raise an issue if you find a bug.
+* pyNSID is compatible with python 3.6 onwards. Please raise an issue if you find a bug.
 * We do not support 32 bit architectures
 * We only support text that is UTF-8 compliant due to restrictions posed by HDF5
 
