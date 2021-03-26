@@ -1,0 +1,32 @@
+pyNSID.io
+=========
+
+.. automodule:: pyNSID.io
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+      :template: custom-module-template.rst
+   :recursive:
+
+   pyNSID.io.hdf_io
+   pyNSID.io.hdf_utils
+   pyNSID.io.nsi_reader
+

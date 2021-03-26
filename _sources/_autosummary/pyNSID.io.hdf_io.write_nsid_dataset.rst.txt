@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_io.write\_nsid\_dataset
+======================================
+
+.. currentmodule:: pyNSID.io.hdf_io
+
+.. autofunction:: write_nsid_dataset

@@ -1,0 +1,33 @@
+pyNSID.io.hdf\_io
+=================
+
+.. automodule:: pyNSID.io.hdf_io
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      create_empty_dataset
+      write_nsid_dataset
+      write_results
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

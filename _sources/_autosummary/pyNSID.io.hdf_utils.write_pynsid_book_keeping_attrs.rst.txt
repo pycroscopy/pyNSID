@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_utils.write\_pynsid\_book\_keeping\_attrs
+========================================================
+
+.. currentmodule:: pyNSID.io.hdf_utils
+
+.. autofunction:: write_pynsid_book_keeping_attrs

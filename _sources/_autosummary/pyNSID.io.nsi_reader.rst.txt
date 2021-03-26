@@ -1,0 +1,32 @@
+pyNSID.io.nsi\_reader
+=====================
+
+.. automodule:: pyNSID.io.nsi_reader
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      NSIDReader
+   
+   
+
+   
+   
+   
+
+
+

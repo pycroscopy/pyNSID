@@ -1,0 +1,32 @@
+﻿pyNSID
+======
+
+.. automodule:: pyNSID
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+      :template: custom-module-template.rst
+   :recursive:
+
+   pyNSID.io
+   pyNSID.processing
+   pyNSID.viz
+
