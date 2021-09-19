@@ -17,7 +17,7 @@ import datetime
 from sidpy.base.dict_utils import nest_dict
 # from sidpy.base.string_utils import validate_single_string_arg
 from sidpy.hdf.hdf_utils import get_attr, copy_dataset, write_simple_attrs, \
-    write_book_keeping_attrs
+    write_book_keeping_attrs, group_to_dict
 from sidpy.hdf import hdf_utils as hut
 from sidpy import Dimension, Dataset
 
@@ -123,10 +123,11 @@ def read_h5py_dataset(dset):
             print('dimension {} not NSID type using generic'.format(dim))
 
     for key in dset.parent:
+
         if isinstance(dset.parent[key], h5py.Group):
             if key[0] != '_':
-                setattr(dataset, key, nest_dict(dset.parent[key].attrs))
-
+                setattr(dataset, key, h5_group_to_dict(dset.parent[key]))
+                
     dataset.h5_dataset = dset
     dataset.h5_filename = dset.file.filename
     try:
