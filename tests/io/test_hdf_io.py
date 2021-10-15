@@ -287,8 +287,9 @@ class TestWriteNSIDataset(unittest.TestCase):
         self.assertTrue('metadata' in h5_group['Image'])
         print(h5_group['Image']['metadata'].attrs.keys())
 
-        # self.assertTrue(dict(h5_group['Image']['metadata'].attrs) == {'some-some': 'thing'})
-        # Todo: use sidy to read dictionary and compare
+        read_dict = sidpy.hdf_utils.h5_group_to_dict(h5_group['Image']['metadata'])
+        self.assertTrue(read_dict['metadata']['some'] == {'some': 'thing'})
+
     # def test_no_original_metadata(self): # cannot delete attribute delattr(data_set, 'original_metadata')
 
     def test_original_metadata_is_empty(self):
@@ -322,8 +323,10 @@ class TestWriteNSIDataset(unittest.TestCase):
         pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
 
         self.assertTrue('original_metadata' in h5_group['Image'])
-        # self.assertTrue(dict(h5_group['Image']['original_metadata'].attrs) == {'some-some': 'thing'})
-        # Todo: use sidpy to read dictionary and compare
+
+        read_dict = sidpy.hdf_utils.h5_group_to_dict(h5_group['Image']['original_metadata'])
+        self.assertTrue(read_dict['original_metadata']['some'] ==  {'some': 'thing'})
+
     # TODO check if datasets are indeed linked correctly to main
 
     def test_h5_dataset_property_of_sidpy_dataset_populated(self):
