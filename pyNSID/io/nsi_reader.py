@@ -38,7 +38,7 @@ class NSIDReader(sidpy.Reader):
         the file again outside the context of this Reader.
         """
 
-        warn('This Reader will eventually be moved to the ScopeReaders package'
+        warn('This Reader will be moved to the ScifiReaders package in next release.'
              '. Be prepared to change your import statements',
              FutureWarning)
 
