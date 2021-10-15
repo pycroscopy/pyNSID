@@ -180,7 +180,7 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False,
 
     for attr_name in dir(dataset):
         attr_val = getattr(dataset, attr_name)
-        if isinstance(attr_val, dict):
+        if isinstance(attr_val, dict) and attr_name[0] != '_':
             if verbose:
                 print('Writing attributes from property: {} of the '
                       'sidpy.Dataset'.format(attr_name))
@@ -258,6 +258,6 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
             write_nsid_dataset(dset, log_group)
 
         if found_valid_attributes:
-            write_simple_attrs(log_group, flatten_dict(attributes))
+            write_simple_attrs(log_group, attributes)
 
     return log_group
