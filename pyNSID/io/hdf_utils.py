@@ -12,11 +12,10 @@ import sys
 from warnings import warn
 import h5py
 import numpy as np
+import datetime
 
-from sidpy.base.dict_utils import nest_dict
-# from sidpy.base.string_utils import validate_single_string_arg
 from sidpy.hdf.hdf_utils import get_attr, copy_dataset, write_simple_attrs, \
-    write_book_keeping_attrs
+    write_book_keeping_attrs, h5_group_to_dict
 from sidpy.hdf import hdf_utils as hut
 from sidpy import Dimension, Dataset
 
@@ -124,8 +123,8 @@ def read_h5py_dataset(dset):
     for key in dset.parent:
         if isinstance(dset.parent[key], h5py.Group):
             if key[0] != '_':
-                setattr(dataset, key, nest_dict(dset.parent[key].attrs))
-
+                setattr(dataset, key, h5_group_to_dict(dset.parent[key]))
+                
     dataset.h5_dataset = dset
     dataset.h5_filename = dset.file.filename
     try:
@@ -476,3 +475,57 @@ def write_pynsid_book_keeping_attrs(h5_object):
     """
     write_book_keeping_attrs(h5_object)
     write_simple_attrs(h5_object, {'pyNSID_version': pynsid_version})
+
+
+def make_nexus_compatible(h5_dataset):
+    """
+    Makes a pyNSID file compatible with the NeXus file format
+    by adding the approbriate attributes and by writing one group.
+
+    Parameters
+    ----------
+    h5_dataset: h5py.Dataset
+        h5py dataset with main data
+
+    Returns
+    -------
+
+    """
+    if not isinstance(h5_dataset, h5py.Dataset):
+        raise ValueError('We need a h5py dataset for compatibility with NeXus file format')
+
+    time_stamp = "T".join(str(datetime.datetime.now()).split())
+    h5_file = h5_dataset.file
+    h5_group = h5_dataset.parent.parent
+    h5_file.attrs[u'default'] = h5_dataset.parent.parent.name
+
+    # give the HDF5 root some more attributes
+
+    h5_file.attrs[u'file_name'] = h5_file.filename
+    h5_file.attrs[u'file_time'] = time_stamp
+    h5_file.attrs[u'instrument'] = u'None'
+    h5_file.attrs[u'creator'] = u'pyNSID'
+    h5_file.attrs[u'NeXus_version'] = u'4.3.0'
+    h5_file.attrs[u'HDF5_Version'] = h5py.version.hdf5_version
+    h5_file.attrs[u'h5py_version'] = h5py.version.version
+
+    h5_file.attrs[u'default'] = h5_group.name
+
+    h5_group.attrs[u'NX_class'] = u'NXentry'
+    h5_group.attrs[u'default'] = h5_dataset.name.split('/')[-1]
+
+    if 'title' in h5_group:
+        del h5_group['title']
+    h5_group.create_dataset(u'title', data=h5_dataset.name.split('/')[-1])
+
+    nxdata = h5_dataset.parent
+
+    nxdata.attrs[u'NX_class'] = u'NXdata'
+    nxdata.attrs[u'signal'] = h5_dataset.name.split('/')[-1]
+    axes = []
+    for dimension_label in h5_dataset.attrs['DIMENSION_LABELS']:
+        axes.append(dimension_label.decode('utf8'))
+
+    nxdata.attrs[u'axes'] = axes
+    for i, axis in enumerate(axes):
+        nxdata.attrs[axes[i] + '_indices'] = [i, ]
