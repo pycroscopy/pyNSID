@@ -12,8 +12,7 @@ Submodules
     nsi_reader
 """
 from . import hdf_utils, hdf_io
-from .nsi_reader import NSIDReader
 from .hdf_io import *
 from .hdf_utils import make_nexus_compatible
 
-__all__ = ['hdf_utils', 'hdf_io', 'NSIDReader', 'make_nexus_compatible']
+__all__ = ['hdf_utils', 'hdf_io', 'make_nexus_compatible']
