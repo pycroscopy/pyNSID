@@ -19,7 +19,6 @@ Jump to our `GitHub project page <https://github.com/pycroscopy/pyNSID>`_
    install
    nsid
    contact
-   credits
 
 Source code API
 ---------------

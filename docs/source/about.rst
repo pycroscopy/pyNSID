@@ -46,7 +46,10 @@ As we see it, there are a few opportunities in scientific research:
 Who?
 ----
 * We envision pyNSID to be a convenient package that facilitates all scientists to store and exchange data across scientific domains with ease.
-* This project is being led by staff members at Oak Ridge National Laboratory (ORNL), and professors at University of Tennessee, Knoxville
+* This project is being led by staff members at Oak Ridge National Laboratory (ORNL), and professors at University of Tennessee, Knoxville:
+
+  * Suhas Somnath (`ssomnath <https://github.com/ssomnath>`_)
+  * Gerd Duscher (`gduscher <https://github.com/gduscher>`_)
+  * Rama K. Vasudevan (`ramav87 <https://github.com/ramav87>`_)
 * We invite anyone interested to join our team to build better and free software for the scientific community
-* Please visit our `credits and acknowledgements <./credits.html>`_ page for more information.
 * If you are interested in integrating our data model (NSID) with your existing package, please `get in touch <./contact.html>`_ with us.
