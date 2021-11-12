@@ -2,24 +2,23 @@
 pyNSID
 ======
 
-**Python framework for storing, visualizing, and processing spectroscopy, imaging or any observational / experimental data**
+**Python framework for storing N-dimensional scientific data**
 
 What?
 ------
 * The `N-Dimensional Spectroscopic and Imaging Data (NSID) model <../nsid.html>`_:
 
-  * facilitates the representation of most spectroscopic or imaging data regardless of their origin, modality, size, or dimensionality.
-  * enables the development of instrument- and modality- agnostic data processing and analysis algorithms.
-  * is just a definition or a blueprint rather than something tangible and readily usable.
+  * itself is a definition or specification for how to store data.
+  * facilitates the representation of any N-dimensional data array regardless of their origin, modality, size, or dimensionality.
+  * can be used for any N-dimensional data (scientific or otherwise), though originally designed for spectroscopic and imaging data.
+  * simplifies downstream development of instrument- and modality- agnostic data processing and analysis algorithms.
   * cannot handle niche cases like spiral scans, compressed sensing, etc. given that these data do not have an N-dimensional form.
     However, our sister project - `pyUSID <../pyUSID/about.html>`_ was built to handle such complex scenarios
 * pyNSID is a `python <http://www.python.org/>`_ package that currently provides all  **io** functionality:
 
-  #. * pyNSID is build on top of h5py a popular package for hierarchical data file
-  #. **io**: Primarily, it enables the storage and access of NSID in **hierarchical data format** `(HDF5) <http://extremecomputingtraining.anl.gov/files/2015/03/HDF5-Intro-aug7-130.pdf>`_ files (referred to as h5USID files) using python
+  * * pyNSID is build on top of `h5py <https://docs.h5py.org/en/stable/>`_ a popular package for reading and manipulating hierarchical data file format (HDF5) files.
+  * **io**: Primarily, it enables the storage and access of NSID in **hierarchical data format** `(HDF5) <http://extremecomputingtraining.anl.gov/files/2015/03/HDF5-Intro-aug7-130.pdf>`_ files (referred to as h5USID files) using python
 
-* Just as scipy uses numpy underneath, scientific packages like **pycroscopy** use **pyNSID** and **pyUSID** for all file-handling, and the data format `sidpy <https://github.com/pycroscopy/sidpy>`_  for all processing and visualization.
-* **pyNSID is currently in the early stages of development**. The underlying code may change / be reorganized substantially.
 * Jump to our `GitHub project <https://github.com/pycroscopy/pyNSID>`_
 
 .. note::
@@ -29,35 +28,25 @@ What?
 
 Why?
 -----
-As we see it, there are a few opportunities in scientific imaging (that surely apply to several other scientific domains):
+As we see it, there are a few opportunities in scientific research:
 
 **1. Growing data sizes**
-  * Cannot use desktop computers for analysis
-  * *Need: High performance computing, storage resources and compatible, scalable file structures*
+  * Need to be able to effortlessly accommodate datasets that are kB to TB and beyond
+  * *Need: Scalable storage resources and compatible, scalable file structures*
 
-**2. Increasing data complexity**
+**2. Increasing data and metadata complexity**
   * Sophisticated imaging and spectroscopy modes resulting in 5,6,7... dimensional data
-  * *Need: Robust software and generalized data formatting*
+  * *Need: Generalized data formatting and ability to store rich metadata accompanying central data*
 
 **3. Multiple file formats**
   * Different formats from each instrument. Proprietary in most cases
-  * Incompatible for correlation
-  * *Need: Open, instrument-independent data format*
-
-**4. Expensive analysis software**
-  * Software supplied with instruments often insufficient / incapable of custom analysis routines
-  * Commercial software (Eg: Matlab, Origin..) are often prohibitively expensive.
-  * *Need: Free, powerful, open source, user-friendly software*
-
-**5. Closed science**
-  * Analysis software and data not shared
-  * No guarantees of reproducibility or traceability
-  * *Need: open source data structures, file formats, centralized code and data repositories*
+  * Incompatible for and impeding correlation
+  * *Need: Open, instrument-independent data format for storing and sharing data*
 
 Who?
 ----
 * We envision pyNSID to be a convenient package that facilitates all scientists to store and exchange data across scientific domains with ease.
 * This project is being led by staff members at Oak Ridge National Laboratory (ORNL), and professors at University of Tennessee, Knoxville
-* We invite anyone interested to join our team to build better, free software for the scientific community
+* We invite anyone interested to join our team to build better and free software for the scientific community
 * Please visit our `credits and acknowledgements <./credits.html>`_ page for more information.
 * If you are interested in integrating our data model (NSID) with your existing package, please `get in touch <./contact.html>`_ with us.
