@@ -11,7 +11,8 @@ Fundamentally, any N-dimensional data collection (should) have the following key
   A `dimension` here refers to an independent variable against which data is collected.
   For example, in the case of a grayscale photograph, the `X` and `Y` axes are the independent variables or `dimensions` while the brightness values at each pixel constitute the central data array.
 * Axes for each of the ``N`` dimensions. These would be individual values for each of the ``N`` variables against which data were collected in the central dataset.
-  **Note**: These axes need to be linear. In other words, it is not necessary that the independent variable be varied linearly.
+
+  **Note**: These axes need not be linear. In other words, it is not necessary that the independent variable be varied linearly.
   For example, an independent variable like voltage or bias could be varied sinusoidally or as a bi-polar triangular or sawtooth waveform.
 * Metadata that provides contextual information about this data collection.
   These could be measurement, observation, simulation, or analysis parameters necessary to provide a wholesome picture of the data collection.
@@ -107,21 +108,21 @@ However, this solution does not work *elegantly* for certain situations:
 Do get in touch if you have a better solution
 
 Existing solutions
-~~~~~~~~~~~~~~~~~~
+------------------
 
-Why not just use h5py?
-----------------------
+h5py
+~~~~
 ``h5py``, on top of which ``pyNSID`` is built, does indeed provide all the functionality necessary to support ``NSID``.
 However, a layer of *convenience* and *standardization* is still useful / necessary for few reasons:
 
 1. To ensure that data (in memory) are always stored in the `same standardized manner <https://pycroscopy.github.io/sidpy/_autosummary/sidpy.sid.dataset.Dataset.html#sidpy.sid.dataset.Dataset>`_.
    This is handled by ``sidpy.Dataset`` via ``SciFiReaders.NSIDReader``.
-2. To make it ``easier to access relevant information <https://pycroscopy.github.io/sidpy/_autosummary/sidpy.sid.dataset.Dataset.html#sidpy.sid.dataset.Dataset>`_ from HDF5 datasets such as the dimensions, units, scales, etc. without needing to write a lot of h5py code.
+2. To make it `easier to access relevant information <https://pycroscopy.github.io/sidpy/_autosummary/sidpy.sid.dataset.Dataset.html#sidpy.sid.dataset.Dataset>`_ from HDF5 datasets such as the dimensions, units, scales, etc. without needing to write a lot of h5py code.
 3. To simplify certain ancillary tasks like identify all NSID datasets in a given file, seamlessly reusing datasets representing dimensions / copying datasets, verifying whether a dataset is indeed NSID or not.
 4. To facilitate embarrassingly parallel computations on datasets along the lines of `pyUSID.Process <https://pycroscopy.github.io/pyUSID/auto_examples/intermediate/plot_process.html#sphx-glr-auto-examples-intermediate-plot-process-py>`_ without having to customize algorithms to a specific instrument format, etc.
 
-From scientific literature
---------------------------
+Scientific literature
+~~~~~~~~~~~~~~~~~~~~~
 As of this writing we are aware of similar efforts:
 
 * Multi-vendor consortium headed by UIUC - `electron microscopy data <https://emdatasets.com/format/>`_
