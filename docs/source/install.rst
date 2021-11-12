@@ -13,16 +13,18 @@ Do you already have Anaconda installed?
 
 - No?
 
-  - `Download and install Anaconda <https://www.anaconda.com/download/>`_ for Python 3.6 or higher (current version is 3.8)
+  - Download and install `Anaconda <https://www.anaconda.com/download/>`_ or
+    `Miniconda <https://conda.io/projects/conda/en/latest/user-guide/install/index.html>`_
+    for Python 3.6 or higher (current version is 3.9)
 
 - Yes?
 
-  - Is your Anaconda based on python 2.7, 3.4+?
+  - Is your Anaconda based on python 3.6+?
 
     - No?
 
       - Uninstall existing Python / Anaconda distribution(s).
-      - Restart computer
+      - Restart computer (not necessary but highly recommended, especially for Windows)
     - Yes?
 
       - Proceed to install pyNSID
@@ -71,18 +73,20 @@ In such cases, the aforementioned routes will not work. Please follow these inst
 #. Recall that pyNSID requires python and several other packages. Therefore, you will need to:
 
    #. Download the `Anaconda installer <https://www.anaconda.com/download/>`_ from a computer is online
-   #. Copy the installer onto the target computer via a USB pen drive
-   #. Install Anaconda
-#. Download the pyNSID repository from GitHub via `this link <https://github.com/pycroscopy/pyNSID/archive/master.zip>`_
-#. Copy the resultant zip file to the offline computer via a portable storage device like a USB pen drive
-#. Unzip the zip file in the offline computer.
+   #. Download the pyNSID repository from GitHub via `this link <https://github.com/pycroscopy/pyNSID/archive/master.zip>`_
+   #. Similarly, download source code for our dependencies, mainly `h5py <https://github.com/h5py/h5py>`_, ``dask``, and `sidpy <https://github.com/pycroscopy/sidpy>`_
+#. Copy the Anaconda installer resultant zip files to the offline computer via a portable storage device like a USB pen drive
+#. Install Anaconda
+#. Unzip the zip files for the packages
 #. Open a `terminal <#terminal>`_ window
-#. Navigate to the folder where you unzipped the contents of the zip file via ``cd`` commands
-#. Type the following command:
+#. Install these packages in this sequence (h5py, dask, sidpy, pyNSID) by:
 
-   .. code:: bash
+   #. navigating to the folder where you unzipped the contents of the zip file via ``cd`` commands
+   #. Type the following command:
 
-     python setup.py install
+      .. code:: bash
+
+        python setup.py install
 
   
 Installing from a specific branch (advanced users **ONLY**)
@@ -96,7 +100,7 @@ Note that we do not recommend installing pyNSID this way since branches other th
 
      conda install git
 
-Install a specific branch of pyNSID (``dev`` in this case):
+Install a specific branch of pyNSID (e.g. - ``dev`` in this case):
 
 .. code:: bash
 
