@@ -8,6 +8,10 @@ pyNSID
 .. image:: https://img.shields.io/pypi/v/pynsid.svg
     :target: https://pypi.org/project/pynsid/
     :alt: PyPI
+    
+.. image:: https://img.shields.io/conda/vn/conda-forge/pyNSID.svg
+    :target: https://github.com/conda-forge/pyNSID-feedstock
+    :alt: conda-forge
 
 .. image:: https://codecov.io/gh/pycroscopy/pyNSID/branch/master/graph/badge.svg?token=484EH7UML3
     :target: https://codecov.io/gh/pycroscopy/pyNSID
