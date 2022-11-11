@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NSID Specifications &mdash; pyNSID 0.0.4 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contact us" href="contact.html" />
+    <link rel="prev" title="Installation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> pyNSID
+          </a>
+              <div class="version">
+                0.0.4
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">pyNSID</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="about.html">pyNSID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">NSID Specifications</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#a-data-collection">A data collection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#n-dimensional-spectroscopy-and-imaging-data-nsid">N-Dimensional Spectroscopy and Imaging Data (NSID)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#group">Group</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main-dataset">Main Dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ancillary-datasets">Ancillary Datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#metadata">Metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multiple-data-collections-in-same-file">Multiple data collections in same file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-processing-results-in-same-file">Data processing results in same file</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#existing-solutions">Existing solutions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#h5py">h5py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scientific-literature">Scientific literature</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contact.html">Contact us</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/00_basic_usage/index.html">Basic usage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyNSID</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">NSID Specifications</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/nsid.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="nsid-specifications">
+<h1>NSID Specifications<a class="headerlink" href="#nsid-specifications" title="Permalink to this heading">¶</a></h1>
+<p><strong>Suhas Somnath</strong></p>
+<section id="a-data-collection">
+<h2>A data collection<a class="headerlink" href="#a-data-collection" title="Permalink to this heading">¶</a></h2>
+<p>Though it is best to refer to this concept as a <code class="docutils literal notranslate"><span class="pre">dataset</span></code>, this concept is being referred to as a collection to avoid confusion with HDF5’s <code class="docutils literal notranslate"><span class="pre">dataset</span></code>
+Fundamentally, any N-dimensional data collection (should) have the following key components:</p>
+<ul>
+<li><p>Central <code class="docutils literal notranslate"><span class="pre">N</span></code>-dimensional array or dataset of interest.
+A <cite>dimension</cite> here refers to an independent variable against which data is collected.
+For example, in the case of a grayscale photograph, the <cite>X</cite> and <cite>Y</cite> axes are the independent variables or <cite>dimensions</cite> while the brightness values at each pixel constitute the central data array.</p></li>
+<li><p>Axes for each of the <code class="docutils literal notranslate"><span class="pre">N</span></code> dimensions. These would be individual values for each of the <code class="docutils literal notranslate"><span class="pre">N</span></code> variables against which data were collected in the central dataset.</p>
+<p><strong>Note</strong>: These axes need not be linear. In other words, it is not necessary that the independent variable be varied linearly.
+For example, an independent variable like voltage or bias could be varied sinusoidally or as a bi-polar triangular or sawtooth waveform.</p>
+</li>
+<li><p>Metadata that provides contextual information about this data collection.
+These could be measurement, observation, simulation, or analysis parameters necessary to provide a wholesome picture of the data collection.</p></li>
+</ul>
+</section>
+<section id="n-dimensional-spectroscopy-and-imaging-data-nsid">
+<h2>N-Dimensional Spectroscopy and Imaging Data (NSID)<a class="headerlink" href="#n-dimensional-spectroscopy-and-imaging-data-nsid" title="Permalink to this heading">¶</a></h2>
+<p>The core philosophy of NSID is to enable the storage of one or more data collections in a single file.
+NSID was designed with Hierarchical Data Format (HDF5) files in mind though it may indeed be possible to implement the basic philosophy in other file formats as well.</p>
+<p>In NSID, the central data is referred to as the <code class="docutils literal notranslate"><span class="pre">Main</span> <span class="pre">Dataset</span></code> and the axes are referred to as <code class="docutils literal notranslate"><span class="pre">Ancillary</span> <span class="pre">Datasets</span></code>. Attributes attached to both <code class="docutils literal notranslate"><span class="pre">Main</span></code> and <code class="docutils literal notranslate"><span class="pre">Ancillary</span></code>
+datasets will be used to identify them as <code class="docutils literal notranslate"><span class="pre">Main</span></code> and <code class="docutils literal notranslate"><span class="pre">Ancillary</span></code> datasets among other ordinary HDF5 datasets in a file.</p>
+<section id="group">
+<h3>Group<a class="headerlink" href="#group" title="Permalink to this heading">¶</a></h3>
+<p>It is strongly encouraged that all components (<code class="docutils literal notranslate"><span class="pre">Main</span> <span class="pre">dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">Ancillary</span> <span class="pre">dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">metadata</span></code>) associated with a single data collection be stored within a single HDF5 group
+for the sake of cleanliness and avoiding confusion with another data collection.</p>
+</section>
+<section id="main-dataset">
+<h3>Main Dataset<a class="headerlink" href="#main-dataset" title="Permalink to this heading">¶</a></h3>
+<p>The central data will be stored in a HDF5 dataset with the following properties:</p>
+<ul class="simple">
+<li><p><strong>name</strong>: Arbitrary - No restrictions applied here so long as the name or title is unique within a given HDF5 group.</p></li>
+<li><p><strong>shape</strong>: Arbitrary - matching the dimensionality of the data</p></li>
+<li><p><strong>dtype</strong>: basic types like <code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">float</span></code>, and <code class="docutils literal notranslate"><span class="pre">complex</span></code> only.
+Though HDF5 and h5py can indeed store compound valued datasets,
+it is not recommended that such complex dtypes be used since other languages like Fortran or Java may be unable to read such dtypes.
+Therefore, such data should be broken up into independent datasets with simple dtypes.</p></li>
+<li><p><strong>chunks</strong>: Leave as default / do not specify anything.</p></li>
+<li><p><strong>compression</strong>: Preferably do not use anything. If compression is indeed necessary, consider using <cite>gzip</cite>.</p></li>
+<li><p><strong>Dimension scales</strong>: Every single <code class="docutils literal notranslate"><span class="pre">dimension</span></code> needs to have at least one <code class="docutils literal notranslate"><span class="pre">Dimension</span> <span class="pre">Scale</span></code> attached to it with the name(s) of the dimension(s) as the <cite>label</cite> (s) for the scale.
+Normally, we would only have one dataset attached to each dimension.</p></li>
+<li><p><strong>Recommended Attributes</strong>: Aligned with the specifications for <a class="reference external" href="https://pycroscopy.github.io/sidpy/_autosummary/sidpy.sid.dataset.Dataset.html#sidpy.sid.dataset.Dataset">sidpy.Dataset</a>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">title</span></code>: <cite>string</cite>: Title for this dataset. Perhaps important if there are multiple datasets within the same HDF5 file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">quantity</span></code>: <cite>string</cite>: Physical quantity that is contained in this dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">units</span></code>: <cite>string</cite>: Units for this physical quantity</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_type</span></code>: <cite>string</cite> : What kind of data this is.
+Example - image, image stack, video, hyperspectral image, etc.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">modality</span></code>: <cite>string</cite> : Experimental / simulation modality - scientific meaning of data.
+Example - photograph, TEM micrograph, SPM Force-Distance spectroscopy.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: <cite>string</cite> : Source for dataset like the kind of instrument.
+One could go very deep here into either the algorithmic details (if this is a result from analysis)
+or the exact configurations for the instrument that generated this data collection.
+We are inclined on removing this attribute and having this concept expressed in the metadata alone.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nsid_version</span></code>: <cite>string</cite>: Version of the abstract NSID model.
+Currently, the pyNSID version is being used in place of the revision number for the NSID specification.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="ancillary-datasets">
+<h3>Ancillary Datasets<a class="headerlink" href="#ancillary-datasets" title="Permalink to this heading">¶</a></h3>
+<p>Each of the <cite>N</cite> dimensions corresponding to the <cite>N</cite>-dimensional <cite>Main Dataset</cite> would be an independent HDF5 dataset with the following properties:</p>
+<ul class="simple">
+<li><p><strong>shape</strong> - 1D only</p></li>
+<li><p><strong>dtype</strong> - Simple data types like <code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="docutils literal notranslate"><span class="pre">complex</span></code></p></li>
+<li><p><strong>Required attributes</strong> -</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">quantity</span></code>: <cite>string</cite>: Physical quantity that is contained in this dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">units</span></code>: <cite>string</cite>: units for the physical quantity</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dimension_type</span></code>: <cite>string</cite>: Kind of dimension - ‘position’, ‘spectral’, ‘reciprocal’</p></li>
+</ul>
+</li>
+</ul>
+<p>The ancillary dataset for each dimension would be <a class="reference external" href="http://docs.h5py.org/en/stable/high/dims.html">attached</a> to the <code class="docutils literal notranslate"><span class="pre">Main</span> <span class="pre">Dataset</span></code> using
+HDF5 <a class="reference external" href="https://support.hdfgroup.org/HDF5/Tutor/h5dimscale.html">Dimension Scales</a>.</p>
+</section>
+<section id="metadata">
+<h3>Metadata<a class="headerlink" href="#metadata" title="Permalink to this heading">¶</a></h3>
+<p>Contextual information will be mostly be broken down into two categories or variables just as in the <code class="docutils literal notranslate"><span class="pre">sidpy.Dataset</span></code>
+and contents each of these variables will be written in to HDF5 Groups of the same names:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata</span></code> - which will contain the most frequently used / important metadata</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">original_metadata</span></code> - raw metadata obtained from vendor’s proprietary data files.</p></li>
+</ul>
+<p>Mirror the (potentially) hierarchical or nested metadata into identical hierarchical HDF5 groups within the same parent HDF5 Group as the <code class="docutils literal notranslate"><span class="pre">Main</span> <span class="pre">Dataset</span></code>.
+This requires feedback from experts in schemas and ontologies.</p>
+</section>
+<section id="multiple-data-collections-in-same-file">
+<h3>Multiple data collections in same file<a class="headerlink" href="#multiple-data-collections-in-same-file" title="Permalink to this heading">¶</a></h3>
+<p>A single HDF5 file can contain multiple HDF5 datasets.
+It is not necessary that all datasets be NSID-specific.
+Similarly, the hierarchical nature of HDF5 will allow the storage of multiple NSID data collections within the same HDF5 file.
+Strict restrictions will not be placed on how the datasets should be arranged.
+Users are free to use and are encouraged to use the similar guidelines of <a class="reference external" href="https://pycroscopy.github.io/USID/h5_usid.html#measurement-data">Measurement Groups</a> and <a class="reference external" href="https://pycroscopy.github.io/USID/usid_model.html#channels">Channels</a> as defined in USID.</p>
+</section>
+<section id="data-processing-results-in-same-file">
+<h3>Data processing results in same file<a class="headerlink" href="#data-processing-results-in-same-file" title="Permalink to this heading">¶</a></h3>
+<p>We defined a <a class="reference external" href="https://pycroscopy.github.io/USID/h5_usid.html#tool-analysis-processing">possible solution</a> for capturing provenance between the source dataset and the results datasets.
+Briefly, results would be stored in a group whose name would be formatted as <code class="docutils literal notranslate"><span class="pre">SourceDataset-ProcessingAlgorithmName_NumericIndex</span></code>.
+However, this solution does not work <em>elegantly</em> for certain situations:</p>
+<ul class="simple">
+<li><p>if multiple source datasets were used to produce a set of results datasets.</p></li>
+<li><p>if results are written into a different file.</p></li>
+<li><p>In general, the algorithm name was loosely defined.</p></li>
+</ul>
+<p>Do get in touch if you have a better solution</p>
+</section>
+</section>
+<section id="existing-solutions">
+<h2>Existing solutions<a class="headerlink" href="#existing-solutions" title="Permalink to this heading">¶</a></h2>
+<section id="h5py">
+<h3>h5py<a class="headerlink" href="#h5py" title="Permalink to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">h5py</span></code>, on top of which <code class="docutils literal notranslate"><span class="pre">pyNSID</span></code> is built, does indeed provide all the functionality necessary to support <code class="docutils literal notranslate"><span class="pre">NSID</span></code>.
+However, a layer of <em>convenience</em> and <em>standardization</em> is still useful / necessary for few reasons:</p>
+<ol class="arabic simple">
+<li><p>To ensure that data (in memory) are always stored in the <a class="reference external" href="https://pycroscopy.github.io/sidpy/_autosummary/sidpy.sid.dataset.Dataset.html#sidpy.sid.dataset.Dataset">same standardized manner</a>.
+This is handled by <code class="docutils literal notranslate"><span class="pre">sidpy.Dataset</span></code> via <code class="docutils literal notranslate"><span class="pre">SciFiReaders.NSIDReader</span></code>.</p></li>
+<li><p>To make it <a class="reference external" href="https://pycroscopy.github.io/sidpy/_autosummary/sidpy.sid.dataset.Dataset.html#sidpy.sid.dataset.Dataset">easier to access relevant information</a> from HDF5 datasets such as the dimensions, units, scales, etc. without needing to write a lot of h5py code.</p></li>
+<li><p>To simplify certain ancillary tasks like identify all NSID datasets in a given file, seamlessly reusing datasets representing dimensions / copying datasets, verifying whether a dataset is indeed NSID or not.</p></li>
+<li><p>To facilitate embarrassingly parallel computations on datasets along the lines of <a class="reference external" href="https://pycroscopy.github.io/pyUSID/auto_examples/intermediate/plot_process.html#sphx-glr-auto-examples-intermediate-plot-process-py">pyUSID.Process</a> without having to customize algorithms to a specific instrument format, etc.</p></li>
+</ol>
+</section>
+<section id="scientific-literature">
+<h3>Scientific literature<a class="headerlink" href="#scientific-literature" title="Permalink to this heading">¶</a></h3>
+<p>As of this writing we are aware of similar efforts:</p>
+<ul class="simple">
+<li><p>Multi-vendor consortium headed by UIUC - <a class="reference external" href="https://emdatasets.com/format/">electron microscopy data</a></p></li>
+<li><p>DREAM.3D - “<a class="reference external" href="https://iopscience.iop.org/article/10.1088/0965-0393/18/6/065008">MXA: a customizable HDF5-based data format for multi-dimensional data sets</a>” by Michael Jackson</p></li>
+<li><p>APS at Argonne - “<a class="reference external" href="https://onlinelibrary.wiley.com/doi/full/10.1107/S160057751401604X?sentby=iucr">Scientific data exchange: a schema for HDF5-based storage of raw and analyzed data</a>” by Francesco de Carlo.</p></li>
+</ul>
+<p>However, all of these were targeting a specific scientific sub-domain / modality. They were not as simple / general as pyNSID.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="install.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="contact.html" class="btn btn-neutral float-right" title="Contact us" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Suhas Somnath, Gerd Duscher, Rama K. Vasudevan, Raj Giridhar, and contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

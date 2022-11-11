@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_io.structures\_to\_dict
+======================================
+
+.. currentmodule:: pyNSID.io.hdf_io
+
+.. autofunction:: structures_to_dict

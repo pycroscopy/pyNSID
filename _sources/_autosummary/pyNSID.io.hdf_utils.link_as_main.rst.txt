@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_utils.link\_as\_main
+===================================
+
+.. currentmodule:: pyNSID.io.hdf_utils
+
+.. autofunction:: link_as_main

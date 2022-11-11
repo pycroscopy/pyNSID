@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Write/read SIDpy Dataset via pyNSID &mdash; pyNSID 0.0.4 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Read TEM Image" href="read_image_pyNSID_file.html" />
+    <link rel="prev" title="Basic usage" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> pyNSID
+          </a>
+              <div class="version">
+                0.0.4
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">pyNSID</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">pyNSID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../nsid.html">NSID Specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contact.html">Contact us</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Basic usage</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Write/read SIDpy Dataset via pyNSID</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Creating-sidpy.Dataset-object(s)">Creating sidpy.Dataset object(s)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Writing-sidpy.Dataset-object(s)-to-HDF5-files">Writing sidpy.Dataset object(s) to HDF5 files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Reading-sidpy.Dataset-object(s)">Reading sidpy.Dataset object(s)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Close-File">Close File</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="read_image_pyNSID_file.html">Read TEM Image</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyNSID</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Basic usage</a></li>
+      <li class="breadcrumb-item active">Write/read SIDpy Dataset via pyNSID</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/notebooks/00_basic_usage/write_read_sidpy_dataset.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+.jp-RenderedHTMLCommon thead,
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+.jp-RenderedHTMLCommon th,
+div.rendered_html th {
+  font-weight: bold;
+}
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+.jp-RenderedHTMLCommon tbody tr:hover,
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="Write/read-SIDpy-Dataset-via-pyNSID">
+<h1>Write/read SIDpy Dataset via pyNSID<a class="headerlink" href="#Write/read-SIDpy-Dataset-via-pyNSID" title="Permalink to this heading">¶</a></h1>
+<p><em>Author: Maxim Ziatdinov</em></p>
+<p><em>Date: September 2020</em></p>
+<p>update: - <em>Gerd Duscher 01/2021 (compatibility to pyNSID version 0.0.2)</em></p>
+<p>A fast introduction into how to write SIDpy datasets to NSID formatted HDF5 files</p>
+<p>Start with standard imports:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ensure python 3 compatibility:</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="p">(</span><span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span>
+                        <span class="n">unicode_literals</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pylab</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># we will also need a sidpy package</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sidpy</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="o">!</span>pip3 install sidpy
+    <span class="kn">import</span> <span class="nn">sidpy</span>
+
+<span class="kn">import</span> <span class="nn">pyNSID</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="s2">&quot;numpy.core.fromnumeric&quot;</span><span class="p">)</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="s2">&quot;pyNSID.io.nsi_reader&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Creating-sidpy.Dataset-object(s)">
+<h2>Creating sidpy.Dataset object(s)<a class="headerlink" href="#Creating-sidpy.Dataset-object(s)" title="Permalink to this heading">¶</a></h2>
+<p>Let’s create a simple sidpy Dataset from a numpy array:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dataset</span> <span class="o">=</span> <span class="n">sidpy</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;new&#39;</span><span class="p">)</span>
+<span class="n">dataset</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<table>
+<tr>
+<td>
+<table>
+  <thead>
+    <tr><td> </td><th> Array </th><th> Chunk </th></tr>
+  </thead>
+  <tbody>
+    <tr><th> Bytes </th><td> 1.60 kB </td> <td> 1.60 kB </td></tr>
+    <tr><th> Shape </th><td> (4, 5, 10) </td> <td> (4, 5, 10) </td></tr>
+    <tr><th> Count </th><td> 1 Tasks </td><td> 1 Chunks </td></tr>
+    <tr><th> Type </th><td> float64 </td><td> numpy.ndarray </td></tr>
+  </tbody>
+</table>
+</td>
+<td>
+<svg width="208" height="138" style="stroke:rgb(0,0,0);stroke-width:1" >
+
+  <!-- Horizontal lines -->
+  <line x1="10" y1="0" x2="38" y2="28" style="stroke-width:2" />
+  <line x1="10" y1="60" x2="38" y2="88" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="10" y1="0" x2="10" y2="60" style="stroke-width:2" />
+  <line x1="38" y1="28" x2="38" y2="88" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="10.0,0.0 38.23529411764706,28.235294117647058 38.23529411764706,88.23529411764706 10.0,60.0" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Horizontal lines -->
+  <line x1="10" y1="0" x2="130" y2="0" style="stroke-width:2" />
+  <line x1="38" y1="28" x2="158" y2="28" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="10" y1="0" x2="38" y2="28" style="stroke-width:2" />
+  <line x1="130" y1="0" x2="158" y2="28" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="10.0,0.0 130.0,0.0 158.23529411764707,28.235294117647058 38.23529411764706,28.235294117647058" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Horizontal lines -->
+  <line x1="38" y1="28" x2="158" y2="28" style="stroke-width:2" />
+  <line x1="38" y1="88" x2="158" y2="88" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="38" y1="28" x2="38" y2="88" style="stroke-width:2" />
+  <line x1="158" y1="28" x2="158" y2="88" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="38.23529411764706,28.235294117647058 158.23529411764707,28.235294117647058 158.23529411764707,88.23529411764706 38.23529411764706,88.23529411764706" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Text -->
+  <text x="98.235294" y="108.235294" font-size="1.0rem" font-weight="100" text-anchor="middle" >10</text>
+  <text x="178.235294" y="58.235294" font-size="1.0rem" font-weight="100" text-anchor="middle" transform="rotate(0,178.235294,58.235294)">5</text>
+  <text x="14.117647" y="94.117647" font-size="1.0rem" font-weight="100" text-anchor="middle" transform="rotate(45,14.117647,94.117647)">4</text>
+</svg>
+</td>
+</tr>
+</table></div>
+</div>
+<p>Let’s also define the dataset attributes…</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dataset</span><span class="o">.</span><span class="n">data_type</span> <span class="o">=</span> <span class="s1">&#39;SPECTRAL_IMAGE&#39;</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;nA&#39;</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">quantity</span> <span class="o">=</span> <span class="s1">&#39;Current&#39;</span>
+</pre></div>
+</div>
+</div>
+<p>… and set individual dimensions. In the case of spectroscopic datasets, the first two dimensions are typically spatial units (e.g. nm) and the third one can be energy (e.g. <span class="math notranslate nohighlight">\(meV\)</span> or <span class="math notranslate nohighlight">\(nm^{-1}\)</span>).</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dataset</span><span class="o">.</span><span class="n">set_dimension</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sidpy</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span>
+                                        <span class="n">units</span><span class="o">=</span><span class="s1">&#39;nm&#39;</span><span class="p">,</span> <span class="n">quantity</span><span class="o">=</span><span class="s1">&#39;Length&#39;</span><span class="p">,</span>
+                                        <span class="n">dimension_type</span><span class="o">=</span><span class="s1">&#39;spatial&#39;</span><span class="p">))</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">set_dimension</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">sidpy</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span>
+                                        <span class="n">units</span><span class="o">=</span><span class="s1">&#39;nm&#39;</span><span class="p">,</span> <span class="n">quantity</span><span class="o">=</span><span class="s1">&#39;Length&#39;</span><span class="p">,</span>
+                                        <span class="n">dimension_type</span><span class="o">=</span><span class="s1">&#39;spatial&#39;</span><span class="p">))</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">set_dimension</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">sidpy</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])),</span> <span class="s1">&#39;bias&#39;</span><span class="p">,</span>
+                                        <span class="n">units</span><span class="o">=</span><span class="s1">&#39;mV&#39;</span><span class="p">,</span> <span class="n">quantity</span><span class="o">=</span><span class="s1">&#39;Voltage&#39;</span><span class="p">,</span>
+                                        <span class="n">dimension_type</span><span class="o">=</span><span class="s1">&#39;spectral&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">dim_0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">dim_1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">dim_2</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+x:  Length (nm) of size (4,)
+y:  Length (nm) of size (5,)
+bias:  Voltage (mV) of size (10,)
+</pre></div></div>
+</div>
+</section>
+<section id="Writing-sidpy.Dataset-object(s)-to-HDF5-files">
+<h2>Writing sidpy.Dataset object(s) to HDF5 files<a class="headerlink" href="#Writing-sidpy.Dataset-object(s)-to-HDF5-files" title="Permalink to this heading">¶</a></h2>
+<p>Load NSID-formatted h5 file:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hf</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;test.hf5&quot;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Let’s create a new channel where we are going to save our sidpy dataset:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hf</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s1">&#39;Measurement_000/Channel_000&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">hf</span><span class="p">[</span><span class="s2">&quot;Measurement_000&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Channel_000
+</pre></div></div>
+</div>
+<p>Now let’s write our sidpy dataset into the newly created channel:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pyNSID</span><span class="o">.</span><span class="n">hdf_io</span><span class="o">.</span><span class="n">write_nsid_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">hf</span><span class="p">[</span><span class="s1">&#39;Measurement_000/Channel_000&#39;</span><span class="p">],</span> <span class="n">main_data_name</span><span class="o">=</span><span class="s2">&quot;new_spectrum&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+C:\Users\gduscher\Anaconda3\lib\site-packages\pyNSID\io\hdf_utils.py:351: FutureWarning: validate_h5_dimension may be removed in a future version
+  warn(&#39;validate_h5_dimension may be removed in a future version&#39;,
+</pre></div></div>
+</div>
+<p>Close h5 file:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Reading-sidpy.Dataset-object(s)">
+<h2>Reading sidpy.Dataset object(s)<a class="headerlink" href="#Reading-sidpy.Dataset-object(s)" title="Permalink to this heading">¶</a></h2>
+<p>Load back the file:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hf</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;test.hf5&quot;</span><span class="p">,</span> <span class="s1">&#39;r+&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">hf</span><span class="p">[</span><span class="s2">&quot;Measurement_000&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Channel_000
+</pre></div></div>
+</div>
+<p>Find our dataset:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dataset_hdf5</span>  <span class="o">=</span>  <span class="n">pyNSID</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">hdf_utils</span><span class="o">.</span><span class="n">find_dataset</span><span class="p">(</span><span class="n">hf</span><span class="p">,</span><span class="s1">&#39;new_spectrum&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">dataset_hdf5</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;HDF5 dataset &#34;new_spectrum&#34;: shape (4, 5, 10), type &#34;&lt;f8&#34;&gt;
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>Read the dataset stored in HDF5 format as a sidpy object (Dataset) using NSIDReader:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dr</span> <span class="o">=</span> <span class="n">pyNSID</span><span class="o">.</span><span class="n">NSIDReader</span><span class="p">(</span><span class="s1">&#39;test.hf5&#39;</span><span class="p">)</span>
+<span class="n">dataset_sid</span> <span class="o">=</span> <span class="n">dr</span><span class="o">.</span><span class="n">read</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataset_sid</span><span class="p">,</span> <span class="n">sidpy</span><span class="o">.</span><span class="n">Dataset</span><span class="p">)</span>
+<span class="n">dataset_sid</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/notebooks_00_basic_usage_write_read_sidpy_dataset_28_0.png" src="../../_images/notebooks_00_basic_usage_write_read_sidpy_dataset_28_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">dataset_sid</span><span class="p">)</span>
+<span class="n">dataset_sid</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+sidpy.Dataset of type SPECTRAL_IMAGE with:
+ dask.array&lt;generic, shape=(4, 5, 10), dtype=float64, chunksize=(4, 5, 10), chunktype=numpy.ndarray&gt;
+ data contains: Current (nA)
+ and Dimensions:
+x:  Length (nm) of size (4,)
+y:  Length (nm) of size (5,)
+bias:  Voltage (mV) of size (10,)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<table>
+<tr>
+<td>
+<table>
+  <thead>
+    <tr><td> </td><th> Array </th><th> Chunk </th></tr>
+  </thead>
+  <tbody>
+    <tr><th> Bytes </th><td> 1.60 kB </td> <td> 1.60 kB </td></tr>
+    <tr><th> Shape </th><td> (4, 5, 10) </td> <td> (4, 5, 10) </td></tr>
+    <tr><th> Count </th><td> 1 Tasks </td><td> 1 Chunks </td></tr>
+    <tr><th> Type </th><td> float64 </td><td> numpy.ndarray </td></tr>
+  </tbody>
+</table>
+</td>
+<td>
+<svg width="208" height="138" style="stroke:rgb(0,0,0);stroke-width:1" >
+
+  <!-- Horizontal lines -->
+  <line x1="10" y1="0" x2="38" y2="28" style="stroke-width:2" />
+  <line x1="10" y1="60" x2="38" y2="88" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="10" y1="0" x2="10" y2="60" style="stroke-width:2" />
+  <line x1="38" y1="28" x2="38" y2="88" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="10.0,0.0 38.23529411764706,28.235294117647058 38.23529411764706,88.23529411764706 10.0,60.0" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Horizontal lines -->
+  <line x1="10" y1="0" x2="130" y2="0" style="stroke-width:2" />
+  <line x1="38" y1="28" x2="158" y2="28" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="10" y1="0" x2="38" y2="28" style="stroke-width:2" />
+  <line x1="130" y1="0" x2="158" y2="28" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="10.0,0.0 130.0,0.0 158.23529411764707,28.235294117647058 38.23529411764706,28.235294117647058" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Horizontal lines -->
+  <line x1="38" y1="28" x2="158" y2="28" style="stroke-width:2" />
+  <line x1="38" y1="88" x2="158" y2="88" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="38" y1="28" x2="38" y2="88" style="stroke-width:2" />
+  <line x1="158" y1="28" x2="158" y2="88" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="38.23529411764706,28.235294117647058 158.23529411764707,28.235294117647058 158.23529411764707,88.23529411764706 38.23529411764706,88.23529411764706" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Text -->
+  <text x="98.235294" y="108.235294" font-size="1.0rem" font-weight="100" text-anchor="middle" >10</text>
+  <text x="178.235294" y="58.235294" font-size="1.0rem" font-weight="100" text-anchor="middle" transform="rotate(0,178.235294,58.235294)">5</text>
+  <text x="14.117647" y="94.117647" font-size="1.0rem" font-weight="100" text-anchor="middle" transform="rotate(45,14.117647,94.117647)">4</text>
+</svg>
+</td>
+</tr>
+</table></div>
+</div>
+</section>
+<section id="Close-File">
+<h2>Close File<a class="headerlink" href="#Close-File" title="Permalink to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dataset_sid</span><span class="o">.</span><span class="n">h5_dataset</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Basic usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="read_image_pyNSID_file.html" class="btn btn-neutral float-right" title="Read TEM Image" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Suhas Somnath, Gerd Duscher, Rama K. Vasudevan, Raj Giridhar, and contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

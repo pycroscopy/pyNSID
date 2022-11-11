@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_utils.get\_all\_main
+===================================
+
+.. currentmodule:: pyNSID.io.hdf_utils
+
+.. autofunction:: get_all_main

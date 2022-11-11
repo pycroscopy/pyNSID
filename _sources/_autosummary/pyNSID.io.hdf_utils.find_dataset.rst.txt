@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_utils.find\_dataset
+==================================
+
+.. currentmodule:: pyNSID.io.hdf_utils
+
+.. autofunction:: find_dataset

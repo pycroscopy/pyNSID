@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_utils.make\_nexus\_compatible
+============================================
+
+.. currentmodule:: pyNSID.io.hdf_utils
+
+.. autofunction:: make_nexus_compatible

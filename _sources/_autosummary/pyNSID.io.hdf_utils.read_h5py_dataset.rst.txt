@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_utils.read\_h5py\_dataset
+========================================
+
+.. currentmodule:: pyNSID.io.hdf_utils
+
+.. autofunction:: read_h5py_dataset

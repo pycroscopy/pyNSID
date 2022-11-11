@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_io.create\_empty\_dataset
+========================================
+
+.. currentmodule:: pyNSID.io.hdf_io
+
+.. autofunction:: create_empty_dataset

@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_io.ase\_to\_dict
+===============================
+
+.. currentmodule:: pyNSID.io.hdf_io
+
+.. autofunction:: ase_to_dict

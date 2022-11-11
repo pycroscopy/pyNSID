@@ -1,0 +1,38 @@
+pyNSID.io.hdf\_utils
+====================
+
+.. automodule:: pyNSID.io.hdf_utils
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      ase_from_dictionary
+      check_if_main
+      find_dataset
+      get_all_main
+      link_as_main
+      make_nexus_compatible
+      read_h5py_dataset
+      validate_h5_dimension
+      validate_main_and_dims
+      write_pynsid_book_keeping_attrs
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

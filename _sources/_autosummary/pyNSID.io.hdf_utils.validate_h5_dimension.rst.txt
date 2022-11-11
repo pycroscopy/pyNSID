@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_utils.validate\_h5\_dimension
+============================================
+
+.. currentmodule:: pyNSID.io.hdf_utils
+
+.. autofunction:: validate_h5_dimension

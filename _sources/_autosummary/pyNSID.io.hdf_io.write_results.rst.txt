@@ -1,0 +1,6 @@
+pyNSID.io.hdf\_io.write\_results
+================================
+
+.. currentmodule:: pyNSID.io.hdf_io
+
+.. autofunction:: write_results

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyNSID.io.hdf_utils &mdash; pyNSID 0.0.4 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> pyNSID
+          </a>
+              <div class="version">
+                0.0.4
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">pyNSID</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">pyNSID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../nsid.html">NSID Specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact.html">Contact us</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/00_basic_usage/index.html">Basic usage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyNSID</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">pyNSID.io.hdf_utils</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/pyNSID.io.hdf_utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="module-pyNSID.io.hdf_utils">
+<span id="pynsid-io-hdf-utils"></span><h1>pyNSID.io.hdf_utils<a class="headerlink" href="#module-pyNSID.io.hdf_utils" title="Permalink to this heading">¶</a></h1>
+<p>Lower-level and simpler NSID-specific HDF5 utilities that facilitate
+higher-level data operations</p>
+<p>Created on Tue Aug  3 21:14:25 2020</p>
+<p>&#64;author: Gerd Duscher, and Suhas Somnath</p>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="pyNSID.io.hdf_utils.ase_from_dictionary.html#pyNSID.io.hdf_utils.ase_from_dictionary" title="pyNSID.io.hdf_utils.ase_from_dictionary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ase_from_dictionary</span></code></a></p></td>
+<td><p>converts structure dictionary to ase.Atoms object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pyNSID.io.hdf_utils.check_if_main.html#pyNSID.io.hdf_utils.check_if_main" title="pyNSID.io.hdf_utils.check_if_main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_if_main</span></code></a></p></td>
+<td><p>Checks the input dataset to see if it has all the necessary features to be considered a Main dataset.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pyNSID.io.hdf_utils.find_dataset.html#pyNSID.io.hdf_utils.find_dataset" title="pyNSID.io.hdf_utils.find_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_dataset</span></code></a></p></td>
+<td><p>Uses visit() to find all datasets with the desired name :param h5_group: Group to search within for the Dataset :type h5_group: <a class="reference external" href="https://docs.h5py.org/en/latest/high/group.html#h5py.Group" title="(in h5py v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">h5py.Group</span></code></a> :param dset_name: Name of the dataset to search for :type dset_name: str</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pyNSID.io.hdf_utils.get_all_main.html#pyNSID.io.hdf_utils.get_all_main" title="pyNSID.io.hdf_utils.get_all_main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_main</span></code></a></p></td>
+<td><p>Simple function to recursively print the contents of an hdf5 group :param parent: HDF5 Group to search within :type parent: <a class="reference external" href="https://docs.h5py.org/en/latest/high/group.html#h5py.Group" title="(in h5py v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">h5py.Group</span></code></a> :param verbose: If true, extra print statements (usually for debugging) are enabled :type verbose: bool, optional.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pyNSID.io.hdf_utils.link_as_main.html#pyNSID.io.hdf_utils.link_as_main" title="pyNSID.io.hdf_utils.link_as_main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">link_as_main</span></code></a></p></td>
+<td><p>Attaches datasets as h5 Dimensional Scales to  <cite>h5_main</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pyNSID.io.hdf_utils.make_nexus_compatible.html#pyNSID.io.hdf_utils.make_nexus_compatible" title="pyNSID.io.hdf_utils.make_nexus_compatible"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_nexus_compatible</span></code></a></p></td>
+<td><p>Makes a pyNSID file compatible with the NeXus file format by adding the approbriate attributes and by writing one group.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pyNSID.io.hdf_utils.read_h5py_dataset.html#pyNSID.io.hdf_utils.read_h5py_dataset" title="pyNSID.io.hdf_utils.read_h5py_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_h5py_dataset</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pyNSID.io.hdf_utils.validate_h5_dimension.html#pyNSID.io.hdf_utils.validate_h5_dimension" title="pyNSID.io.hdf_utils.validate_h5_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_h5_dimension</span></code></a></p></td>
+<td><p>Validates a dimension already present in an HDF5 file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pyNSID.io.hdf_utils.validate_main_and_dims.html#pyNSID.io.hdf_utils.validate_main_and_dims" title="pyNSID.io.hdf_utils.validate_main_and_dims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_main_and_dims</span></code></a></p></td>
+<td><p>Validates the shape of the main dataset against the dictionary of dimensions and the parent HDF5 group into which the data would be written.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pyNSID.io.hdf_utils.write_pynsid_book_keeping_attrs.html#pyNSID.io.hdf_utils.write_pynsid_book_keeping_attrs" title="pyNSID.io.hdf_utils.write_pynsid_book_keeping_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_pynsid_book_keeping_attrs</span></code></a></p></td>
+<td><p>Writes book-keeping information to the HDF5 object</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Suhas Somnath, Gerd Duscher, Rama K. Vasudevan, Raj Giridhar, and contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

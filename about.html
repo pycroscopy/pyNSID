@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyNSID &mdash; pyNSID 0.0.4 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="#" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="install.html" />
+    <link rel="prev" title="pyNSID Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> pyNSID
+          </a>
+              <div class="version">
+                0.0.4
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">pyNSID</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">pyNSID</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what">What?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why">Why?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#who">Who?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsid.html">NSID Specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contact.html">Contact us</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/00_basic_usage/index.html">Basic usage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyNSID</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">pyNSID</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/about.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="pynsid">
+<h1>pyNSID<a class="headerlink" href="#pynsid" title="Permalink to this heading">¶</a></h1>
+<p><strong>Python framework for storing N-dimensional scientific data</strong></p>
+<section id="what">
+<h2>What?<a class="headerlink" href="#what" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The <a class="reference external" href="../nsid.html">N-Dimensional Spectroscopic and Imaging Data (NSID) model</a>:</p>
+<ul>
+<li><p>itself is a definition or specification for how to store data.</p></li>
+<li><p>facilitates the representation of any N-dimensional data array regardless of their origin, modality, size, or dimensionality.</p></li>
+<li><p>can be used for any N-dimensional data (scientific or otherwise), though originally designed for spectroscopic and imaging data.</p></li>
+<li><p>simplifies downstream development of instrument- and modality- agnostic data processing and analysis algorithms.</p></li>
+<li><p>cannot handle niche cases like spiral scans, compressed sensing, etc. given that these data do not have an N-dimensional form.
+However, our sister project - <a class="reference external" href="../pyUSID/about.html">pyUSID</a> was built to handle such complex scenarios</p></li>
+</ul>
+</li>
+<li><p>pyNSID is a <a class="reference external" href="http://www.python.org/">python</a> package that currently provides all  <strong>io</strong> functionality:</p>
+<ul>
+<li><ul>
+<li><p>pyNSID is build on top of <a class="reference external" href="https://docs.h5py.org/en/stable/">h5py</a> a popular package for reading and manipulating hierarchical data file format (HDF5) files.</p></li>
+</ul>
+</li>
+<li><p><strong>io</strong>: Primarily, it enables the storage and access of NSID in <strong>hierarchical data format</strong> <a class="reference external" href="http://extremecomputingtraining.anl.gov/files/2015/03/HDF5-Intro-aug7-130.pdf">(HDF5)</a> files (referred to as h5USID files) using python</p></li>
+</ul>
+</li>
+<li><p>Jump to our <a class="reference external" href="https://github.com/pycroscopy/pyNSID">GitHub project</a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We are running weekly hackathons for pyNSID development every Friday from 3-5 PM - USA Eastern time.
+The requirements for participation are: knowledge of python, numpy, h5py, git, NSID rules.
+Please email vasudevanrk <em>at</em> ornl.gov to be added to the hackathons</p>
+</div>
+</section>
+<section id="why">
+<h2>Why?<a class="headerlink" href="#why" title="Permalink to this heading">¶</a></h2>
+<p>As we see it, there are a few opportunities in scientific research:</p>
+<dl class="simple">
+<dt><strong>1. Growing data sizes</strong></dt><dd><ul class="simple">
+<li><p>Need to be able to effortlessly accommodate datasets that are kB to TB and beyond</p></li>
+<li><p><em>Need: Scalable storage resources and compatible, scalable file structures</em></p></li>
+</ul>
+</dd>
+<dt><strong>2. Increasing data and metadata complexity</strong></dt><dd><ul class="simple">
+<li><p>Sophisticated imaging and spectroscopy modes resulting in 5,6,7… dimensional data</p></li>
+<li><p><em>Need: Generalized data formatting and ability to store rich metadata accompanying central data</em></p></li>
+</ul>
+</dd>
+<dt><strong>3. Multiple file formats</strong></dt><dd><ul class="simple">
+<li><p>Different formats from each instrument. Proprietary in most cases</p></li>
+<li><p>Incompatible for and impeding correlation</p></li>
+<li><p><em>Need: Open, instrument-independent data format for storing and sharing data</em></p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="who">
+<h2>Who?<a class="headerlink" href="#who" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>We envision pyNSID to be a convenient package that facilitates all scientists to store and exchange data across scientific domains with ease.</p></li>
+<li><p>This project is being led by staff members at Oak Ridge National Laboratory (ORNL), and professors at University of Tennessee, Knoxville:</p>
+<ul>
+<li><p>Suhas Somnath (<a class="reference external" href="https://github.com/ssomnath">ssomnath</a>)</p></li>
+<li><p>Gerd Duscher (<a class="reference external" href="https://github.com/gduscher">gduscher</a>)</p></li>
+<li><p>Rama K. Vasudevan (<a class="reference external" href="https://github.com/ramav87">ramav87</a>)</p></li>
+</ul>
+</li>
+<li><p>We invite anyone interested to join our team to build better and free software for the scientific community</p></li>
+<li><p>If you are interested in integrating our data model (NSID) with your existing package, please <a class="reference external" href="./contact.html">get in touch</a> with us.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="pyNSID Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Suhas Somnath, Gerd Duscher, Rama K. Vasudevan, Raj Giridhar, and contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

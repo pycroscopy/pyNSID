@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyNSID.io.hdf_io &mdash; pyNSID 0.0.4 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="../../../about.html" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> pyNSID
+          </a>
+              <div class="version">
+                0.0.4
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">pyNSID</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../about.html">pyNSID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nsid.html">NSID Specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contact.html">Contact us</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/00_basic_usage/index.html">Basic usage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pyNSID</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pyNSID.io.hdf_io</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pyNSID.io.hdf_io</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities that assist in writing NSID related data to HDF5 files</span>
+
+<span class="sd">Created on Thu August 20 2020</span>
+
+<span class="sd">@author: Suhas Somnath, Gerd Duscher</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="p">(</span><span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span>
+                        <span class="n">unicode_literals</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+
+<span class="kn">import</span> <span class="nn">ase</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;create_empty_dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;write_nsid_dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;write_results&#39;</span><span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">dask</span> <span class="kn">import</span> <span class="n">array</span> <span class="k">as</span> <span class="n">da</span>
+<span class="kn">from</span> <span class="nn">sidpy</span> <span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">Dimension</span>
+<span class="kn">from</span> <span class="nn">sidpy.base.dict_utils</span> <span class="kn">import</span> <span class="n">flatten_dict</span>
+<span class="kn">from</span> <span class="nn">sidpy.base.num_utils</span> <span class="kn">import</span> <span class="n">contains_integers</span>
+<span class="kn">from</span> <span class="nn">sidpy.hdf.hdf_utils</span> <span class="kn">import</span> <span class="p">(</span><span class="n">is_editable_h5</span><span class="p">,</span> <span class="n">write_book_keeping_attrs</span><span class="p">,</span>
+                                 <span class="n">write_dict_to_h5_group</span><span class="p">,</span> <span class="n">write_simple_attrs</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">sidpy.hdf.prov_utils</span> <span class="kn">import</span> <span class="n">create_indexed_group</span>
+
+<span class="kn">from</span> <span class="nn">.hdf_utils</span> <span class="kn">import</span> <span class="n">link_as_main</span><span class="p">,</span> <span class="n">write_pynsid_book_keeping_attrs</span>
+
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+    <span class="n">unicode</span> <span class="o">=</span> <span class="nb">str</span>
+
+
+<div class="viewcode-block" id="create_empty_dataset"><a class="viewcode-back" href="../../../_autosummary/pyNSID.io.hdf_io.create_empty_dataset.html#pyNSID.io.hdf_io.create_empty_dataset">[docs]</a><span class="k">def</span> <span class="nf">create_empty_dataset</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">h5_group</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;nDIM_Data&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns a h5py.Dataset filled with zeros according to required shape list.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shape: list</span>
+<span class="sd">        List of integers denoting the shape of the main dataset</span>
+<span class="sd">    h5_group: h5py.Group</span>
+<span class="sd">        HDF5 group into which the datasets will be written into</span>
+<span class="sd">    name: str, optional. Default: &quot;nDIM_Data&quot;</span>
+<span class="sd">        Name of the main HDF5 dataset</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    h5py.Dataset</span>
+<span class="sd">        HDF5 dataset of desired shape written according to NSID format</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">contains_integers</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;dimensions of shape need to be all integers&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">h5_group</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;h5_group should be a h5py.Group object&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">write_nsid_dataset</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">)),</span>
+                              <span class="n">h5_group</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write_nsid_dataset"><a class="viewcode-back" href="../../../_autosummary/pyNSID.io.hdf_io.write_nsid_dataset.html#pyNSID.io.hdf_io.write_nsid_dataset">[docs]</a><span class="k">def</span> <span class="nf">write_nsid_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">h5_group</span><span class="p">,</span> <span class="n">main_data_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes the provided sid dataset as a &#39;Main&#39; dataset with all appropriate</span>
+<span class="sd">    linking.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dataset : sidpy.Dataset</span>
+<span class="sd">        Dataset to be written to HDF5 in NSID format</span>
+<span class="sd">    h5_group : class:`h5py.Group`</span>
+<span class="sd">        Parent group under which the datasets will be created</span>
+<span class="sd">    main_data_name : String / Unicode</span>
+<span class="sd">        Name to give to the main dataset. This cannot contain the &#39;-&#39; character</span>
+<span class="sd">        Use this to provide better context about the dataset in the HDF5 file</span>
+<span class="sd">    verbose : bool, Optional. Default = False</span>
+<span class="sd">        Whether or not to write logs to standard out</span>
+<span class="sd">    kwargs: dict</span>
+<span class="sd">        additional keyword arguments passed on to h5py when writing data</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    h5py dataset</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;data to write should be sidpy Dataset&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">h5_group</span><span class="p">,</span> <span class="p">(</span><span class="n">h5py</span><span class="o">.</span><span class="n">Group</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;h5_parent_group should be a h5py.File or h5py.Group &#39;</span>
+                        <span class="s1">&#39;object&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">main_data_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;main_data_name should be a string, but it instead  it&#39;</span>
+                        <span class="s1">&#39; is </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">main_data_name</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_editable_h5</span><span class="p">(</span><span class="n">h5_group</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The provided file is not editable&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;h5 group and file OK&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">main_data_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;main_data_name must be a string&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">main_data_name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">main_data_name</span> <span class="o">=</span> <span class="s1">&#39;nDim_Data&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">main_data_name</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">main_data_name</span> <span class="o">=</span> <span class="n">main_data_name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;-&#39;</span> <span class="ow">in</span> <span class="n">main_data_name</span><span class="p">:</span>
+        <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;main_data_name should not contain the &quot;-&quot; character. Reformatted&#39;</span>
+             <span class="s1">&#39; name from:</span><span class="si">{}</span><span class="s1"> to &#39;</span>
+             <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">main_data_name</span><span class="p">,</span> <span class="n">main_data_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)))</span>
+    <span class="n">main_data_name</span> <span class="o">=</span> <span class="n">main_data_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+
+    <span class="n">h5_group</span> <span class="o">=</span> <span class="n">h5_group</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">main_data_name</span><span class="p">)</span>
+
+    <span class="n">write_book_keeping_attrs</span><span class="p">(</span><span class="n">h5_group</span><span class="p">)</span>
+    <span class="n">write_pynsid_book_keeping_attrs</span><span class="p">(</span><span class="n">h5_group</span><span class="p">)</span>
+
+    <span class="c1">#####################</span>
+    <span class="c1"># Write Main Dataset</span>
+    <span class="c1">####################</span>
+    <span class="k">if</span> <span class="n">h5_group</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">driver</span> <span class="o">==</span> <span class="s1">&#39;mpio&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;compression&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;This HDF5 file has been opened wth the &quot;mpio&quot; communicator. &#39;</span>
+                 <span class="s1">&#39;mpi4py does not allow creation of compressed datasets. &#39;</span>
+                 <span class="s1">&#39;Compression kwarg has been removed&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">main_data_name</span> <span class="ow">in</span> <span class="n">h5_group</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;h5 dataset of that name already exists, choose &#39;</span>
+                         <span class="s1">&#39;different name or delete first&#39;</span><span class="p">)</span>
+
+    <span class="n">_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dtype&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># step 1 - create the empty dataset:</span>
+    <span class="n">h5_main</span> <span class="o">=</span> <span class="n">h5_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">main_data_name</span><span class="p">,</span>
+                                      <span class="n">shape</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+                                      <span class="n">dtype</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+                                      <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Created empty dataset: </span><span class="si">{}</span><span class="s1"> for writing Dask dataset: </span><span class="si">{}</span><span class="s1">&#39;</span>
+              <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">h5_main</span><span class="p">,</span> <span class="n">dataset</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Dask array will be written to HDF5 dataset: &quot;</span><span class="si">{}</span><span class="s1">&quot; in file: &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span>
+              <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">h5_main</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">h5_main</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">filename</span><span class="p">))</span>
+    <span class="c1"># Step 2 - now ask Dask to dump data to disk</span>
+    <span class="n">da</span><span class="o">.</span><span class="n">to_hdf5</span><span class="p">(</span><span class="n">h5_main</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="p">{</span><span class="n">h5_main</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">dataset</span><span class="p">})</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Created dataset for Main&#39;</span><span class="p">)</span>
+
+    <span class="c1">#################</span>
+    <span class="c1"># Add Dimensions</span>
+    <span class="c1">#################</span>
+    <span class="n">dimensional_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">this_dim</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">_axes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">this_dim</span><span class="p">,</span> <span class="n">Dimension</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Dimensions </span><span class="si">{}</span><span class="s1"> is not a sidpy Dimension&#39;</span><span class="p">)</span>
+
+        <span class="n">this_dim_dset</span> <span class="o">=</span> <span class="n">h5_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">this_dim</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                                <span class="n">data</span><span class="o">=</span><span class="n">this_dim</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">attrs_to_write</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">this_dim</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                          <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="n">this_dim</span><span class="o">.</span><span class="n">units</span><span class="p">,</span>
+                          <span class="s1">&#39;quantity&#39;</span><span class="p">:</span> <span class="n">this_dim</span><span class="o">.</span><span class="n">quantity</span><span class="p">,</span>
+                          <span class="s1">&#39;dimension_type&#39;</span><span class="p">:</span> <span class="n">this_dim</span><span class="o">.</span><span class="n">dimension_type</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
+
+        <span class="n">write_simple_attrs</span><span class="p">(</span><span class="n">this_dim_dset</span><span class="p">,</span> <span class="n">attrs_to_write</span><span class="p">)</span>
+        <span class="n">dimensional_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">this_dim_dset</span>
+
+    <span class="n">attrs_to_write</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;quantity&#39;</span><span class="p">:</span> <span class="n">dataset</span><span class="o">.</span><span class="n">quantity</span><span class="p">,</span>
+                      <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="n">dataset</span><span class="o">.</span><span class="n">units</span><span class="p">,</span>
+                      <span class="s1">&#39;main_data_name&#39;</span><span class="p">:</span> <span class="n">dataset</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+                      <span class="s1">&#39;data_type&#39;</span><span class="p">:</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data_type</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                      <span class="s1">&#39;modality&#39;</span><span class="p">:</span> <span class="n">dataset</span><span class="o">.</span><span class="n">modality</span><span class="p">,</span>
+                      <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="n">dataset</span><span class="o">.</span><span class="n">source</span><span class="p">}</span>
+
+    <span class="n">write_simple_attrs</span><span class="p">(</span><span class="n">h5_main</span><span class="p">,</span> <span class="n">attrs_to_write</span><span class="p">)</span>
+    <span class="n">write_pynsid_book_keeping_attrs</span><span class="p">(</span><span class="n">h5_main</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">attr_name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+        <span class="n">attr_val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">attr_name</span> <span class="o">==</span> <span class="s1">&#39;structures&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Writing structure attributes </span><span class="si">{}</span><span class="s1"> of the &#39;</span>
+                      <span class="s1">&#39;sidpy.Dataset&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">attr_val</span><span class="o">.</span><span class="n">keys</span><span class="p">))</span>
+            <span class="n">structure_dict</span> <span class="o">=</span> <span class="n">structures_to_dict</span><span class="p">(</span><span class="n">attr_val</span><span class="p">)</span>
+            <span class="n">write_dict_to_h5_group</span><span class="p">(</span><span class="n">h5_group</span><span class="p">,</span> <span class="n">attr_val</span><span class="p">,</span> <span class="n">structure_dict</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr_val</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">attr_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;_&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Writing attributes from property: </span><span class="si">{}</span><span class="s1"> of the &#39;</span>
+                      <span class="s1">&#39;sidpy.Dataset&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">attr_name</span><span class="p">))</span>
+            <span class="n">write_dict_to_h5_group</span><span class="p">(</span><span class="n">h5_group</span><span class="p">,</span> <span class="n">attr_val</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">)</span>
+
+    <span class="c1"># This will attach the dimensions</span>
+    <span class="n">nsid_data_main</span> <span class="o">=</span> <span class="n">link_as_main</span><span class="p">(</span><span class="n">h5_main</span><span class="p">,</span> <span class="n">dimensional_dict</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Successfully linked datasets - dataset should be main now&#39;</span><span class="p">)</span>
+
+    <span class="n">dataset</span><span class="o">.</span><span class="n">h5_dataset</span> <span class="o">=</span> <span class="n">nsid_data_main</span>
+
+    <span class="k">return</span> <span class="n">nsid_data_main</span></div>
+
+
+<div class="viewcode-block" id="write_results"><a class="viewcode-back" href="../../../_autosummary/pyNSID.io.hdf_io.write_results.html#pyNSID.io.hdf_io.write_results">[docs]</a><span class="k">def</span> <span class="nf">write_results</span><span class="p">(</span><span class="n">h5_group</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attributes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">process_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes results of a processing step back to HDF5 in NSID format</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    h5_group : h5py.Group</span>
+<span class="sd">        HDF5 Group into which results will be written</span>
+<span class="sd">    dataset : sidpy.Dataset, optional. Default = None</span>
+<span class="sd">        Dataset ??</span>
+<span class="sd">    attributes : dict, optional. Default = None</span>
+<span class="sd">        Metadata regarding processing step</span>
+<span class="sd">    process_name : str, optional. Default = &quot;Log_&quot;</span>
+<span class="sd">        Name of the prefix for group containing process results</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    log_group : h5py.Group</span>
+<span class="sd">        HDF5 group containing results</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">found_valid_dataset</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">):</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="p">[</span><span class="n">dataset</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">itm</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">)</span> <span class="k">for</span> <span class="n">itm</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;List contains non-Sidpy dataset entries! &#39;</span>
+                                <span class="s1">&#39;Should only contain sidpy datasets&#39;</span><span class="p">)</span>
+
+            <span class="n">found_valid_dataset</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">found_valid_attributes</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">attributes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">attributes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">found_valid_attributes</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Provided attributes is type </span><span class="si">{}</span><span class="s2"> but should be type&quot;</span>
+                            <span class="s2">&quot; dict&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">attributes</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">found_valid_dataset</span> <span class="ow">or</span> <span class="n">found_valid_attributes</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;results should contain at least a sidpy Dataset or &#39;</span>
+                         <span class="s1">&#39;a dictionary in results&#39;</span><span class="p">)</span>
+    <span class="n">log_name</span> <span class="o">=</span> <span class="s1">&#39;Log_&#39;</span>
+    <span class="k">if</span> <span class="n">process_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">log_name</span> <span class="o">=</span> <span class="n">log_name</span><span class="o">+</span><span class="n">process_name</span>
+
+    <span class="n">log_group</span> <span class="o">=</span> <span class="n">create_indexed_group</span><span class="p">(</span><span class="n">h5_group</span><span class="p">,</span> <span class="n">log_name</span><span class="p">)</span>
+    <span class="n">write_book_keeping_attrs</span><span class="p">(</span><span class="n">log_group</span><span class="p">)</span>
+    <span class="n">write_pynsid_book_keeping_attrs</span><span class="p">(</span><span class="n">log_group</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">found_valid_dataset</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">dset</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">:</span>
+            <span class="n">write_nsid_dataset</span><span class="p">(</span><span class="n">dset</span><span class="p">,</span> <span class="n">log_group</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">found_valid_attributes</span><span class="p">:</span>
+            <span class="n">write_simple_attrs</span><span class="p">(</span><span class="n">log_group</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">log_group</span></div>
+
+
+<div class="viewcode-block" id="structures_to_dict"><a class="viewcode-back" href="../../../_autosummary/pyNSID.io.hdf_io.structures_to_dict.html#pyNSID.io.hdf_io.structures_to_dict">[docs]</a><span class="k">def</span> <span class="nf">structures_to_dict</span><span class="p">(</span><span class="n">structures</span><span class="p">):</span>
+    <span class="n">structure_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">structures</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">structure_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ase_to_dict</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">structure_dict</span></div>
+
+
+<div class="viewcode-block" id="ase_to_dict"><a class="viewcode-back" href="../../../_autosummary/pyNSID.io.hdf_io.ase_to_dict.html#pyNSID.io.hdf_io.ase_to_dict">[docs]</a><span class="k">def</span> <span class="nf">ase_to_dict</span><span class="p">(</span><span class="n">atoms</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    converts ase.Atoms object to dictionary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;unit_cell&#39;</span><span class="p">:</span> <span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+            <span class="s1">&#39;elements&#39;</span><span class="p">:</span> <span class="n">atoms</span><span class="o">.</span><span class="n">get_chemical_formula</span><span class="p">(),</span>
+            <span class="s1">&#39;base&#39;</span><span class="p">:</span> <span class="n">atoms</span><span class="o">.</span><span class="n">get_scaled_positions</span><span class="p">(),</span>
+            <span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="n">atoms</span><span class="o">.</span><span class="n">info</span><span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">tags</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Suhas Somnath, Gerd Duscher, Rama K. Vasudevan, Raj Giridhar, and contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

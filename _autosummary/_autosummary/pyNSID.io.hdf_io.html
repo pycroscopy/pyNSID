@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyNSID.io.hdf_io &mdash; pyNSID 0.0.4 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> pyNSID
+          </a>
+              <div class="version">
+                0.0.4
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">pyNSID</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">pyNSID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../nsid.html">NSID Specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contact.html">Contact us</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/00_basic_usage/index.html">Basic usage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyNSID</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">pyNSID.io.hdf_io</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_autosummary/_autosummary/pyNSID.io.hdf_io.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="module-pyNSID.io.hdf_io">
+<span id="pynsid-io-hdf-io"></span><h1>pyNSID.io.hdf_io<a class="headerlink" href="#module-pyNSID.io.hdf_io" title="Permalink to this heading">¶</a></h1>
+<p>Utilities that assist in writing NSID related data to HDF5 files</p>
+<p>Created on Thu August 20 2020</p>
+<p>&#64;author: Suhas Somnath, Gerd Duscher</p>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../pyNSID.io.hdf_io.ase_to_dict.html#pyNSID.io.hdf_io.ase_to_dict" title="pyNSID.io.hdf_io.ase_to_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ase_to_dict</span></code></a>(atoms)</p></td>
+<td><p>converts ase.Atoms object to dictionary</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../pyNSID.io.hdf_io.create_empty_dataset.html#pyNSID.io.hdf_io.create_empty_dataset" title="pyNSID.io.hdf_io.create_empty_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_empty_dataset</span></code></a>(shape, h5_group[, name])</p></td>
+<td><p>returns a h5py.Dataset filled with zeros according to required shape list.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../pyNSID.io.hdf_io.structures_to_dict.html#pyNSID.io.hdf_io.structures_to_dict" title="pyNSID.io.hdf_io.structures_to_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">structures_to_dict</span></code></a>(structures)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../pyNSID.io.hdf_io.write_nsid_dataset.html#pyNSID.io.hdf_io.write_nsid_dataset" title="pyNSID.io.hdf_io.write_nsid_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_nsid_dataset</span></code></a>(dataset, h5_group[, ...])</p></td>
+<td><p>Writes the provided sid dataset as a 'Main' dataset with all appropriate linking.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../pyNSID.io.hdf_io.write_results.html#pyNSID.io.hdf_io.write_results" title="pyNSID.io.hdf_io.write_results"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_results</span></code></a>(h5_group[, dataset, ...])</p></td>
+<td><p>Writes results of a processing step back to HDF5 in NSID format</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Suhas Somnath, Gerd Duscher, Rama K. Vasudevan, Raj Giridhar, and contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
