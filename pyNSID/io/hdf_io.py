@@ -7,24 +7,25 @@ Created on Thu August 20 2020
 @author: Suhas Somnath, Gerd Duscher
 """
 
-from __future__ import (division, print_function, unicode_literals,
-                        absolute_import)
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import sys
 from warnings import warn
 
+import ase
 import h5py
 import numpy as np
 
 __all__ = ['create_empty_dataset', 'write_nsid_dataset', 'write_results']
 
 from dask import array as da
-
 from sidpy import Dataset, Dimension
-from sidpy.base.num_utils import contains_integers
-from sidpy.hdf.hdf_utils import is_editable_h5, write_simple_attrs, \
-    write_book_keeping_attrs, write_dict_to_h5_group
-from sidpy.hdf.prov_utils import create_indexed_group
 from sidpy.base.dict_utils import flatten_dict
+from sidpy.base.num_utils import contains_integers
+from sidpy.hdf.hdf_utils import (is_editable_h5, write_book_keeping_attrs,
+                                 write_dict_to_h5_group, write_simple_attrs)
+from sidpy.hdf.prov_utils import create_indexed_group
 
 from .hdf_utils import link_as_main, write_pynsid_book_keeping_attrs
 
@@ -177,10 +178,17 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False,
 
     write_simple_attrs(h5_main, attrs_to_write)
     write_pynsid_book_keeping_attrs(h5_main)
-
+    
     for attr_name in dir(dataset):
         attr_val = getattr(dataset, attr_name)
-        if isinstance(attr_val, dict) and attr_name[0] != '_':
+        if attr_name == 'structures':
+            if verbose:
+                print('Writing structure attributes {} of the '
+                      'sidpy.Dataset'.format(attr_val.keys))
+            structure_dict = structures_to_dict(attr_val)
+            write_dict_to_h5_group(h5_group, attr_val, structure_dict)
+
+        elif isinstance(attr_val, dict) and attr_name[0] != '_':
             if verbose:
                 print('Writing attributes from property: {} of the '
                       'sidpy.Dataset'.format(attr_name))
@@ -261,3 +269,22 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
             write_simple_attrs(log_group, attributes)
 
     return log_group
+
+
+def structures_to_dict(structures):
+    structure_dict = {}
+    for key, structure in structures.items():
+        structure_dict[key] = ase_to_dict()
+    return structure_dict
+
+
+def ase_to_dict(atoms):
+    """
+    converts ase.Atoms object to dictionary
+    """
+    tags = {'unit_cell': atoms.cell.array,
+            'elements': atoms.get_chemical_formula(),
+            'base': atoms.get_scaled_positions(),
+            'metadata': atoms.info}
+
+    return tags
