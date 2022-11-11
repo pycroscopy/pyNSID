@@ -14,6 +14,7 @@ from warnings import warn
 
 import h5py
 import numpy as np
+import ase
 
 __all__ = ['create_empty_dataset', 'write_nsid_dataset', 'write_results']
 
@@ -177,9 +178,14 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False,
 
     write_simple_attrs(h5_main, attrs_to_write)
     write_pynsid_book_keeping_attrs(h5_main)
+    if len(dataset.structure) > 0:
 
     for attr_name in dir(dataset):
         attr_val = getattr(dataset, attr_name)
+        if attr_name == 'structures':
+            structure_dict = structures_to_dict(attr_val)
+            write_dict_to_h5_group(h5_group, attr_val, structure_dict)
+
         if isinstance(attr_val, dict) and attr_name[0] != '_':
             if verbose:
                 print('Writing attributes from property: {} of the '
@@ -261,3 +267,34 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
             write_simple_attrs(log_group, attributes)
 
     return log_group
+
+
+def structures_to_dict(structures):
+    structure_dict = {}
+    for key, structure in structures.items():
+        structure_dict[key] = ase_to_dict()
+    return structure_dict
+
+
+def ase_to_dict(atoms):
+    """
+    converts ase.Atoms object to dictionary
+    """
+    tags = {'unit_cell': atoms.cell.array,
+            'elements': atoms.get_chemical_formula(),
+            'base': atoms.get_scaled_positions(),
+            'metadata': atoms.info}
+
+    return tags
+
+
+def ase_from_dictionary(tags):
+    """
+    converts structure dictionary to ase.Atoms object
+    """
+    atoms = ase.Atoms(cell=tags['unit_cell'],
+                      symbols=tags['elements'],
+                      scaled_positions=tags['base'])
+    if 'metadata' in tags:
+        atoms.info = tags['metadata']
+    return atoms

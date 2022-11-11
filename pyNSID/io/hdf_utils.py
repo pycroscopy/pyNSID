@@ -13,6 +13,7 @@ from warnings import warn
 import h5py
 import numpy as np
 import datetime
+import ase
 
 from sidpy.hdf.hdf_utils import get_attr, copy_dataset, write_simple_attrs, \
     write_book_keeping_attrs, h5_group_to_dict
@@ -122,7 +123,10 @@ def read_h5py_dataset(dset):
 
     for key in dset.parent:
         if isinstance(dset.parent[key], h5py.Group):
-            if key[0] != '_':
+            if key == 'structures':
+                for key, structure in h5_group_to_dict(dset.parent[key]):
+                    dataset.structure.update({key:  ase_from_dictionary(structure)})
+            elif key[0] != '_':
                 setattr(dataset, key, h5_group_to_dict(dset.parent[key]))
                 
     dataset.h5_dataset = dset
@@ -133,6 +137,16 @@ def read_h5py_dataset(dset):
         dataset.h5_dataset_name = ''
     return dataset
 
+def ase_from_dictionary(tags):
+    """
+    converts structure dictionary to ase.Atoms object
+    """
+    atoms = ase.Atoms(cell=tags['unit_cell'],
+                      symbols=tags['elements'],
+                      scaled_positions=tags['base'])
+    if 'metadata' in tags:
+        atoms.info = tags['metadata']
+    return atoms
 
 def find_dataset(h5_group, dset_name):
     """
