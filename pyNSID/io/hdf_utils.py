@@ -124,8 +124,8 @@ def read_h5py_dataset(dset):
     for key in dset.parent:
         if isinstance(dset.parent[key], h5py.Group):
             if key == 'structures':
-                for key, structure in h5_group_to_dict(dset.parent[key]):
-                    dataset.structure.update({key:  ase_from_dictionary(structure)})
+                for name, structure in h5_group_to_dict(dset.parent[key]):
+                    dataset.structure.update({name:  ase_from_dictionary(structure)})
             elif key[0] != '_':
                 setattr(dataset, key, h5_group_to_dict(dset.parent[key]))
                 

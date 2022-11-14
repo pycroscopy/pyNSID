@@ -7,6 +7,8 @@ import h5py
 import numpy as np
 import dask.array as da
 import tempfile
+import ase.build
+
 import sidpy
 from sidpy import Dataset, Dimension
 from sidpy.hdf.hdf_utils import write_simple_attrs
@@ -30,6 +32,7 @@ def make_simple_h5_dataset():
 
     dims = {0: h5_group.create_dataset('a', np.arange(data.shape[0])),
             1: h5_group.create_dataset('b', np.arange(data.shape[1]))}
+
     return h5_file
 
 

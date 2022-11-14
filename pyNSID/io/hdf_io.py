@@ -186,7 +186,7 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False,
                 print('Writing structure attributes {} of the '
                       'sidpy.Dataset'.format(attr_val.keys))
             structure_dict = structures_to_dict(attr_val)
-            write_dict_to_h5_group(h5_group, attr_val, structure_dict)
+            write_dict_to_h5_group(h5_group, structure_dict, attr_name)
 
         elif isinstance(attr_val, dict) and attr_name[0] != '_':
             if verbose:
@@ -274,7 +274,7 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
 def structures_to_dict(structures):
     structure_dict = {}
     for key, structure in structures.items():
-        structure_dict[key] = ase_to_dict()
+        structure_dict[key] = ase_to_dict(structure)
     return structure_dict
 
 
