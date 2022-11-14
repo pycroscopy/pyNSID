@@ -4,7 +4,7 @@ import sys
 import h5py
 import numpy as np
 from os import remove
-
+import ase.build
 # sys.path.insert(0, "../../../sidpy/")
 import sidpy
 
@@ -119,8 +119,12 @@ class TestWriteNSIDataset(unittest.TestCase):
             assert sidpy.hdf_utils.get_attr(h5_dset, 'units') == data_set.units, \
                 "Source attribute not correctly written, should be {} but is {} in file"\
                     .format(data_set.units, sidpy.hdf_utils.get_attr(h5_dset, 'units'))
+            assert sidpy.hdf_utils.get_attr(h5_dset, 'structures') == {}, \
+                "Source attribute not correctly written, should be {} but is {} in file" \
+                    .format(data_set.units, sidpy.hdf_utils.get_attr(h5_dset, 'units'))
         h5_f.close()
         remove('test.h5')
+
 
     def test_not_sidpy_dataset(self):
         h5_file = h5py.File('test.h5', 'w')
@@ -338,6 +342,17 @@ class TestWriteNSIDataset(unittest.TestCase):
         pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
 
         self.assertTrue('property' in h5_group['Image'])
+
+    def test_structures(self):
+        import ase.build
+        data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), title='Image')
+        data_set.structures.update({'al': ase.build.bulk('Cu', 'fcc', a=3.6, cubic=True)})
+
+        h5_file = h5py.File('test.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup')
+        pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
+
+        self.assertFalse('original_metadata' in h5_group['Image'])
 
     def test_dim_varied(self):
         for ind in range(1, 10):
