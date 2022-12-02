@@ -17,7 +17,8 @@ flatten_dict = sidpy.dict_utils.flatten_dict
 sys.path.append("../../")
 from pyNSID.io.hdf_utils import find_dataset, read_h5py_dataset, \
     get_all_main, link_as_main, check_if_main
-
+sys.path.insert(0, "../../")
+from pyNSID.io import hdf_io
 
 def make_simple_h5_dataset():
     """
@@ -248,6 +249,19 @@ class TestReadH5pyDataset(unittest.TestCase):
         if os.path.exists(fname):
             os.remove(fname)
 
+    def test_read_structures(self):
+        data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), title='Image')
+        data_set.structures.update({'Al': ase.build.bulk('Al', 'fcc', a=3.6, cubic=True)})
+        data_set.structures.update({'Cu': ase.build.bulk('Cu', 'fcc', a=3.6, cubic=True)})
+
+        h5_file = h5py.File('test.h5', 'w')
+        h5_group = h5_file.create_group('MyGroup2')
+        hdf_io.write_nsid_dataset(data_set, h5_group)
+
+        dset = read_h5py_dataset(h5_file['MyGroup2']['Image']['Image'])
+
+        self.assertTrue('Al' in dset.structures)
+        h5_file.close()
 
 class TestGetAllMain(unittest.TestCase):
 

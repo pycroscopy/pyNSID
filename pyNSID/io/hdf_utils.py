@@ -123,9 +123,12 @@ def read_h5py_dataset(dset):
 
     for key in dset.parent:
         if isinstance(dset.parent[key], h5py.Group):
-            if key == 'structures':
-                for name, structure in h5_group_to_dict(dset.parent[key]):
-                    dataset.structure.update({name:  ase_from_dictionary(structure)})
+            if 'Structure_' in key:
+                structure_group = dset.parent[key]
+                structure = h5_group_to_dict(structure_group)
+                atoms, atoms_name =  ase_from_dictionary(structure[key])
+
+                dataset.structures.update({atoms_name: atoms})
             elif key[0] != '_':
                 setattr(dataset, key, h5_group_to_dict(dset.parent[key]))
                 
@@ -141,12 +144,15 @@ def ase_from_dictionary(tags):
     """
     converts structure dictionary to ase.Atoms object
     """
-    atoms = ase.Atoms(cell=tags['unit_cell'],
-                      symbols=tags['elements'],
-                      scaled_positions=tags['base'])
-    if 'metadata' in tags:
-        atoms.info = tags['metadata']
-    return atoms
+    for key, ase_dict in tags.items():
+        if key not in ['machine_id', 'platform','sidpy_version', 'timestamp']:
+            atoms = ase.Atoms(cell=ase_dict['unit_cell'],
+                      symbols=ase_dict['elements'],
+                      scaled_positions=ase_dict['base'])
+            if 'info' in ase_dict:
+                    atoms.info = ase_dict['info']
+            ase_name = key
+    return atoms, ase_name
 
 def find_dataset(h5_group, dset_name):
     """

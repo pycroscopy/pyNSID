@@ -178,21 +178,24 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False,
 
     write_simple_attrs(h5_main, attrs_to_write)
     write_pynsid_book_keeping_attrs(h5_main)
-    
+
     for attr_name in dir(dataset):
         attr_val = getattr(dataset, attr_name)
+        kes = list(h5_main.parent)
+        for k in kes:
+            kes2 = list(h5_main.parent[k])
+
         if attr_name == 'structures':
             if verbose:
                 print('Writing structure attributes {} of the '
                       'sidpy.Dataset'.format(attr_val.keys))
-            structure_dict = structures_to_dict(attr_val)
-            write_dict_to_h5_group(h5_group, structure_dict, attr_name)
+            structures_to_h5(h5_main.parent, dataset.structures)
 
         elif isinstance(attr_val, dict) and attr_name[0] != '_':
             if verbose:
                 print('Writing attributes from property: {} of the '
                       'sidpy.Dataset'.format(attr_name))
-            write_dict_to_h5_group(h5_group, attr_val, attr_name)
+            write_dict_to_h5_group(h5_main.parent, attr_val, attr_name)
 
     # This will attach the dimensions
     nsid_data_main = link_as_main(h5_main, dimensional_dict)
@@ -271,11 +274,10 @@ def write_results(h5_group, dataset=None, attributes=None, process_name=None):
     return log_group
 
 
-def structures_to_dict(structures):
-    structure_dict = {}
+def structures_to_h5(h5_group, structures):
     for key, structure in structures.items():
-        structure_dict[key] = ase_to_dict(structure)
-    return structure_dict
+        structure.info['title'] = key
+        add_crystal_structure(h5_group, structure, name=key)
 
 
 def ase_to_dict(atoms):
@@ -285,6 +287,27 @@ def ase_to_dict(atoms):
     tags = {'unit_cell': atoms.cell.array,
             'elements': atoms.get_chemical_formula(),
             'base': atoms.get_scaled_positions(),
-            'metadata': atoms.info}
+            'info': atoms.info}
 
     return tags
+
+
+def add_crystal_structure(h5_group, input_structure, name=None):
+    """Write crystal structure to NSID file"""
+
+    if isinstance(input_structure, ase.Atoms):
+        crystal_tags = ase_to_dict(input_structure)
+        if crystal_tags['info'] == {}:
+            crystal_tags['info'] = {'title': input_structure.get_chemical_formula()}
+    elif isinstance(input_structure, dict):
+        crystal_tags = input_structure
+    else:
+        raise TypeError('Need a dictionary or an ase.Atoms object with ase installed')
+    if name is None:
+        name = input_structure.get_chemical_formula()
+    structure_group = create_indexed_group(h5_group, 'Structure_')
+
+    write_dict_to_h5_group(structure_group, crystal_tags, name)
+
+    h5_group.file.flush()
+    return structure_group
