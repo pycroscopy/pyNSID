@@ -344,15 +344,18 @@ class TestWriteNSIDataset(unittest.TestCase):
         self.assertTrue('property' in h5_group['Image'])
 
     def test_structures(self):
-        import ase.build
         data_set = sidpy.Dataset.from_array(np.zeros([5, 6]), title='Image')
-        data_set.structures.update({'al': ase.build.bulk('Cu', 'fcc', a=3.6, cubic=True)})
+        data_set.structures.update({'Al': ase.build.bulk('Al', 'fcc', a=3.6, cubic=True)})
+        data_set.structures.update({'Cu': ase.build.bulk('Cu', 'fcc', a=3.6, cubic=True)})
 
         h5_file = h5py.File('test.h5', 'w')
         h5_group = h5_file.create_group('MyGroup')
         pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
+        keys = list(h5_group['Image']['Structure_000'].keys())
+        keys2 = list(h5_group['Image']['Structure_001'].keys())
 
-        self.assertFalse('original_metadata' in h5_group['Image'])
+        self.assertTrue('Structure_000' in h5_group['Image'])
+        self.assertTrue('Structure_001' in h5_group['Image'])
 
     def test_dim_varied(self):
         for ind in range(1, 10):
