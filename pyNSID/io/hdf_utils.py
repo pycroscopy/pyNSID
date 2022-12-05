@@ -28,7 +28,7 @@ if sys.version_info.major == 3:
 
 def get_all_main(parent, verbose=False):
     """
-    Simple function to recursively print the contents of an hdf5 group
+    Simple function to recursively print the contents of a hdf5 group
     Parameters
     ----------
     parent : :class:`h5py.Group`
@@ -126,7 +126,7 @@ def read_h5py_dataset(dset):
             if 'Structure_' in key:
                 structure_group = dset.parent[key]
                 structure = h5_group_to_dict(structure_group)
-                atoms, atoms_name =  ase_from_dictionary(structure[key])
+                atoms, atoms_name = ase_from_dictionary(structure[key])
 
                 dataset.structures.update({atoms_name: atoms})
             elif key[0] != '_':
@@ -140,19 +140,23 @@ def read_h5py_dataset(dset):
         dataset.h5_dataset_name = ''
     return dataset
 
+
 def ase_from_dictionary(tags):
     """
     converts structure dictionary to ase.Atoms object
     """
+    atoms = None
+    ase_name = ''
     for key, ase_dict in tags.items():
-        if key not in ['machine_id', 'platform','sidpy_version', 'timestamp']:
+        if key not in ['machine_id', 'platform', 'sidpy_version', 'timestamp']:
             atoms = ase.Atoms(cell=ase_dict['unit_cell'],
-                      symbols=ase_dict['elements'],
-                      scaled_positions=ase_dict['base'])
+                              symbols=ase_dict['elements'],
+                              scaled_positions=ase_dict['base'])
             if 'info' in ase_dict:
-                    atoms.info = ase_dict['info']
+                atoms.info = ase_dict['info']
             ase_name = key
     return atoms, ase_name
+
 
 def find_dataset(h5_group, dset_name):
     """
@@ -351,7 +355,7 @@ def validate_h5_dimension(h5_dim, dim_length):
     ----------
     h5_dim : h5py.Dataset
         HDF5 dataset which represents a scientific dimension.
-        The dimension should have non empty attributes 'name', quantity',
+        The dimension should have non-empty attributes 'name', quantity',
         'units', and 'dimension_type'
     dim_length : int
         Expected length of dataset
@@ -483,7 +487,7 @@ def validate_main_and_dims(main_shape, dim_dict, h5_parent_group):
 
 def write_pynsid_book_keeping_attrs(h5_object):
     """
-    Writes book-keeping information to the HDF5 object
+    Writes bookkeeping information to the HDF5 object
 
     Parameters
     ----------
@@ -500,7 +504,7 @@ def write_pynsid_book_keeping_attrs(h5_object):
 def make_nexus_compatible(h5_dataset):
     """
     Makes a pyNSID file compatible with the NeXus file format
-    by adding the approbriate attributes and by writing one group.
+    by adding the appropriate attributes and by writing one group.
 
     Parameters
     ----------
