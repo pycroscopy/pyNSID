@@ -5,7 +5,6 @@ import h5py
 import numpy as np
 from os import remove
 import ase.build
-# sys.path.insert(0, "../../../sidpy/")
 import sidpy
 
 sys.path.insert(0, "../../")

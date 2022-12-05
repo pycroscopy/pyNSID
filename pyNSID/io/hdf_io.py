@@ -2,7 +2,7 @@
 """
 Utilities that assist in writing NSID related data to HDF5 files
 
-Created on Thu August 20 2020
+Created on Thu August 20, 2020
 
 @author: Suhas Somnath, Gerd Duscher
 """
@@ -21,7 +21,6 @@ __all__ = ['create_empty_dataset', 'write_nsid_dataset', 'write_results']
 
 from dask import array as da
 from sidpy import Dataset, Dimension
-from sidpy.base.dict_utils import flatten_dict
 from sidpy.base.num_utils import contains_integers
 from sidpy.hdf.hdf_utils import (is_editable_h5, write_book_keeping_attrs,
                                  write_dict_to_h5_group, write_simple_attrs)
@@ -181,10 +180,6 @@ def write_nsid_dataset(dataset, h5_group, main_data_name='', verbose=False,
 
     for attr_name in dir(dataset):
         attr_val = getattr(dataset, attr_name)
-        kes = list(h5_main.parent)
-        for k in kes:
-            kes2 = list(h5_main.parent[k])
-
         if attr_name == 'structures':
             if verbose:
                 print('Writing structure attributes {} of the '
