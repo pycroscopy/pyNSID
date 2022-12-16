@@ -73,7 +73,9 @@ def read_h5py_dataset(dset):
         raise TypeError('can only read NSID datasets, not general one, try to import with from_array')
 
     # create vanilla dask array
-    dataset = Dataset.from_array(np.array(dset))
+    data_array = np.empty(dset.shape)
+    dset.read_direct(data_array)
+    dataset = Dataset.from_array(data_array)
 
     if 'title' in dset.attrs:
         dataset.title = dset.attrs['title']
