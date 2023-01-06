@@ -262,7 +262,7 @@ def check_if_main(h5_main, verbose=False):
         h5_dim_dset = h5_group[dimension.label]
 
         attr_success.append(np.all([att in h5_dim_dset.attrs for att in attrs_names]))
-        dset_success.append(np.all([attr_success, isinstance(h5_dim_dset, h5py.Dataset)]))
+        dset_success.append(isinstance(h5_dim_dset, h5py.Dataset))
         # dimensional scale has to be 1D
         if len(h5_dim_dset.shape) == 1:
             # and of the same length as the shape of the dataset
