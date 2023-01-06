@@ -221,7 +221,7 @@ class TestWriteNSIDataset(unittest.TestCase):
         pyNSID.hdf_io.write_nsid_dataset(data_set, h5_group)
         print(h5_group) # ['Image'][()].dtype)
         sidpy.hdf_utils.print_tree(h5_file)
-        self.assertTrue(h5_group['Image']['Image'][()].dtype == np.complex)
+        self.assertTrue(h5_group['Image']['Image'][()].dtype == complex)
 
     def test_complex_valued_dimension(self):
         data_set = sidpy.Dataset.from_array(np.zeros([5, 6], dtype=complex), title='Image')
