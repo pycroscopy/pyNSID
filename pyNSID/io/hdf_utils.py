@@ -132,7 +132,7 @@ def read_h5py_dataset(dset):
 
                 dataset.structures.update({atoms_name: atoms})
             elif key[0] != '_':
-                setattr(dataset, key, h5_group_to_dict(dset.parent[key]))
+                setattr(dataset, key, h5_group_to_dict(dset.parent[key])[key])
                 
     dataset.h5_dataset = dset
     dataset.h5_filename = dset.file.filename
