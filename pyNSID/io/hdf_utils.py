@@ -132,7 +132,7 @@ def read_h5py_dataset(dset):
 
                 dataset.structures.update({atoms_name: atoms})
             elif key[0] != '_':
-                setattr(dataset, key, h5_group_to_dict(dset.parent[key]))
+                setattr(dataset, key, h5_group_to_dict(dset.parent[key])[key])
                 
     dataset.h5_dataset = dset
     dataset.h5_filename = dset.file.filename
@@ -262,7 +262,7 @@ def check_if_main(h5_main, verbose=False):
         h5_dim_dset = h5_group[dimension.label]
 
         attr_success.append(np.all([att in h5_dim_dset.attrs for att in attrs_names]))
-        dset_success.append(np.all([attr_success, isinstance(h5_dim_dset, h5py.Dataset)]))
+        dset_success.append(isinstance(h5_dim_dset, h5py.Dataset))
         # dimensional scale has to be 1D
         if len(h5_dim_dset.shape) == 1:
             # and of the same length as the shape of the dataset
