@@ -74,11 +74,11 @@ def read_h5py_dataset(dset):
 
     # create vanilla dask array
     #find out if data is complex or not
-    if 'complex' in dset.dtype: 
+    if 'complex' in str(dset.dtype): 
         data_array = np.empty(dset.shape, dtype = 'complex64')
     else:
         data_array = np.empty(dset.shape, dtype = 'float')
-        
+
     dset.read_direct(data_array)
     dataset = Dataset.from_array(data_array)
 
