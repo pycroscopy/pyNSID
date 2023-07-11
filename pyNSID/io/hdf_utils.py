@@ -73,7 +73,12 @@ def read_h5py_dataset(dset):
         raise TypeError('can only read NSID datasets, not general one, try to import with from_array')
 
     # create vanilla dask array
-    data_array = np.empty(dset.shape)
+    #find out if data is complex or not
+    if 'complex' in dset.dtype: 
+        data_array = np.empty(dset.shape, dtype = 'complex64')
+    else:
+        data_array = np.empty(dset.shape, dtype = 'float')
+        
     dset.read_direct(data_array)
     dataset = Dataset.from_array(data_array)
 
