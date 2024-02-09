@@ -14,6 +14,8 @@ import h5py
 import numpy as np
 import datetime
 import ase
+import dill
+import base64
 
 from sidpy.hdf.hdf_utils import get_attr, copy_dataset, write_simple_attrs, \
     write_book_keeping_attrs, h5_group_to_dict
@@ -129,6 +131,7 @@ def read_h5py_dataset(dset):
             print('dimension {} not NSID type using generic'.format(dim))
 
     for key in dset.parent:
+        print(key)
         if isinstance(dset.parent[key], h5py.Group):
             if 'Structure_' in key:
                 structure_group = dset.parent[key]
@@ -137,6 +140,7 @@ def read_h5py_dataset(dset):
 
                 dataset.structures.update({atoms_name: atoms})
             elif key[0] != '_':
+                print(dset.parent[key])
                 setattr(dataset, key, h5_group_to_dict(dset.parent[key])[key])
                 
     dataset.h5_dataset = dset
@@ -145,6 +149,29 @@ def read_h5py_dataset(dset):
         dataset.h5_dataset_name = dset.name
     except ValueError:
         dataset.h5_dataset_name = ''
+
+    #Decode any functions present
+    #TODO: At this stage we are assuming this will be in the metadata in 'fitting_functions'
+    #Is this a standard? We need to discuss how best to handle it.
+    #I am also just dumping the functions into 'decoded_functions' in the metadata.
+        
+    if hasattr(dataset, 'metadata'):
+        
+        if 'fitting_functions' in dataset.metadata.keys():
+            print('Found fitting functions. Attempting to decode')
+            #try:
+            fit_fn_packed = dataset.metadata['fitting_functions']
+            loaded_dict = {}
+            fit_fns = []
+            for key in dataset.metadata['fitting_functions'].keys():
+                encoded_value = fit_fn_packed[key]
+                serialized_value = base64.b64decode(encoded_value)
+                loaded_dict[key] = dill.loads(serialized_value)
+                fit_fn = loaded_dict[key] #retrieve the function
+                fit_fns.append(fit_fn)
+            dataset.metadata['decoded_functions'] = fit_fns
+            #except:
+            #    print('Error during decoding. Skipping')
     return dataset
 
 
