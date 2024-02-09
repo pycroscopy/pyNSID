@@ -18,6 +18,7 @@ requirements = ['numpy>=1.10',
                 'six',
                 'ase',
                 'sidpy>=0.0.2',
+                'dill'
                 ]
 
 setup(
